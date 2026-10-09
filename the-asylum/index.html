@@ -143,7 +143,7 @@
   button.primary:disabled{opacity:.5; cursor:default; transform:none; box-shadow:none}
   button.ghost{background:transparent; border:1px solid #555; color:var(--bone)}
   button.ghost:hover{border-color:var(--bone)}
-  /* Pact (kontrak kegelapan) */
+  /* Registrasi (tema ingatan/amnesia) */
   .pact{max-width:580px}
   .kicker{font-size:.68rem; letter-spacing:.4em; text-indent:.4em; color:var(--blood); text-transform:uppercase; margin-bottom:1.1rem; font-weight:800; text-align:center}
   .pact-title{
@@ -1946,22 +1946,22 @@ function showTitle(){
   wireSaveButtons();
 }
 
-/* ---------- LAYAR: KONTRAK KEGELAPAN (registrasi) ---------- */
+/* ---------- LAYAR: INGATAN (registrasi — tema amnesia) ---------- */
 function showPact(){
   S.node = "pact"; updateHUD();
   document.body.style.overflow = "hidden";
   document.onkeydown = null;
   app.innerHTML = `
     <div id="titleScreen"><div class="tube"></div><div class="fog"></div><div class="title-inner screen pact">
-      <div class="kicker">Perjanjian</div>
-      <h2 class="pact-title">KONTRAK KEGELAPAN</h2>
-      <p class="pact-flavor">Sebelum kakimu melangkah ke dalam lorong ini, kegelapan menuntut sebuah perjanjian.<br/><br/>Di hadapan sesuatu yang <b>tak bernama</b> — yang mengamatimu dari balik kegelapan — kau diminta menandatangani kontrak ini dengan <b>darahmu sendiri</b>.<br/><br/>Nama yang kau tulis akan menjadi namamu di dalam cerita. Tak ada jalan kembali setelah tinta mengering.</p>
-      <label>Nama Player<input id="pName" maxlength="24" placeholder="Tulis namamu..." autocomplete="off"/></label>
+      <div class="kicker">Ingatan</div>
+      <h2 class="pact-title">INGATAN YANG HILANG</h2>
+      <p class="pact-flavor">Kau terbangun tanpa apa-apa. Tidak ada nama. Tidak ada masa lalu. Hanya perban, kegelapan, dan detak jantungmu sendiri.<br/><br/>Pejamkan mata. Selami kekosongan itu — jauh di dalam sana, di antara kepingan yang hancur, ada sesuatu yang masih tersisa.<br/><br/>Sebuah nama. <b>Namamu</b>.<br/><br/>Coba ingat... siapa dirimu?</p>
+      <label>Namamu adalah<input id="pName" maxlength="24" placeholder="Sebuah nama muncul di benakmu..." autocomplete="off"/></label>
       <label>Jenis Kelamin
         <select id="pGender"><option>Laki-laki</option><option>Perempuan</option></select>
       </label>
-      <div class="btnrow" style="margin-top:1.4rem"><button class="big primary" id="btnSign">✒ TANDATANGANI DENGAN DARAH</button></div>
-      <p class="pact-warn">Dengan menandatangani, jiwamu terikat pada cerita ini.<br/>Pilihanmu final. Kematianmu tercatat.</p>
+      <div class="btnrow" style="margin-top:1.4rem"><button class="big primary" id="btnSign">✦ ITU NAMAKU</button></div>
+      <p class="pact-warn">Dengan mengingat siapa dirimu, cerita ini menjadi milikmu.<br/>Pilihanmu final. Kematianmu tercatat.</p>
     </div></div>`;
   $("#pName").focus();
   $("#btnSign").onclick = ()=>{
@@ -1969,7 +1969,7 @@ function showPact(){
     if(!name){ $("#pName").style.borderColor = "var(--blood)"; $("#pName").focus(); return; }
     S.registered = true; S.name = name; S.gender = $("#pGender").value;
     S.node = "status"; persist();
-    const b = $("#btnSign"); b.disabled = true; b.textContent = "🩸 TERSEGEL";
+    const b = $("#btnSign"); b.disabled = true; b.textContent = "✦ TERINGAT";
     setTimeout(()=>{ document.body.style.overflow=""; showStatus("new"); }, 1000);
   };
   $("#pName").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("#btnSign").click(); });
