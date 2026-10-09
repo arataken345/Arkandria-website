@@ -1569,6 +1569,8 @@ function sanitizeFavor(f){
    Status tampil disimpan di key tutorial (sekali per perangkat).
    ============================================================ */
 const TUTPOP = {
+  energy_brief: { t:"⚡ ENERGI — BACA INI DULU",
+               h:"Setiap pilihan menguras <b>4 Energi</b> — perhatikan angka <b>-4 ⚡</b> yang melayang tiap kau memilih.<br><br>• Beberapa pilihan <b>butuh energi tertentu</b>. Terlalu lelah? Pilihan itu terkunci.<br>• <b>Semakin rendah energimu, semakin rentan kau terhadap bahaya.</b> Kalau pilihanmu berujung buruk dan kau harus <b>lari</b>... kau tak akan bisa.<br>• <b>Gunakan energimu dengan bijak.</b> Tidak semua tempat bisa kau cek sekaligus — kadang ada isinya, kadang tidak ada apa-apa. Bijak-bijaklah.<br><br>Makan untuk memulihkan: buka tas 🎒, tekan <b>PAKAI</b> pada makanan." },
   tier:      { t:"📊 STATUS BERTINGKAT",
                h:"Efek seperti <b>Stress</b>, <b>Keracunan</b>, <b>Kelelahan</b> punya 4 tingkat: <i>Ringan → Sedang → Tinggi → Ekstrim</i>. Pilihanmu bisa menaikkan/menurunkannya satu tingkat.<br><br>Di tingkat <b>Ekstrim</b> jadi berbahaya: Kelelahan Ekstrim membuatmu <b>Lemas</b> (setara Terluka), Stress Ekstrim membuat pilihanmu <b>diacak dadu</b>!" },
   energy:    { t:"⚡ ENERGI",
@@ -2147,6 +2149,7 @@ function showStatus(mode, resumeTarget){
   });
   wireSaveButtons();
   $("#btnEnter").onclick = ()=>{
+    tutPop("energy_brief"); /* briefing energi: sekali per perangkat, sebelum mulai */
     if(mode==="new"){ goTarget("prolog2"); }
     else goTarget(resumeTarget && NODES[resumeTarget] ? resumeTarget : "opening");
   };
