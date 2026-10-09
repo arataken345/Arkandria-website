@@ -86,6 +86,10 @@
     text-align:center; position:relative; overflow:hidden;
     padding-top:5rem;
   }
+  .hero-bg{position:absolute; inset:0; pointer-events:none;
+    background:url("img/arkandria-hero.jpg") center 38%/cover no-repeat; opacity:.55;}
+  .hero-veil{position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(5,5,8,.55), rgba(5,5,8,.15) 40%, rgba(5,5,8,.82));}
   .doorway{ /* ambang cahaya — monumental, terkendali */
     position:absolute; top:50%; left:50%; transform:translate(-50%,-58%);
     width:clamp(120px,22vw,220px); height:72vh; pointer-events:none;
@@ -222,6 +226,8 @@
 <main id="main">
   <!-- HERO -->
   <section class="hero" id="top" aria-labelledby="hero-title">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-veil" aria-hidden="true"></div>
     <div class="doorway" aria-hidden="true"></div>
     <div class="fog" aria-hidden="true"></div>
     <div class="hero-inner">
