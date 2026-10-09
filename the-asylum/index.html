@@ -1624,7 +1624,7 @@ function tickTemp(){
 /* ---------- MENTAL / EMOSI ---------- */
 function mentalWorse(n){ S.mental = Math.min(MENTAL.length-1, S.mental+(n||1)); }
 function mentalBetter(n){ S.mental = Math.max(0, S.mental-(n||1)); }
-/* Emosi transien: {nama: intensitas 1..3}, meluruh 1 tiap pindah node */
+/* Emosi transien: {nama: intensitas 1..3} — meluruh pada decay tick (acak tiap 5-10 pilihan) */
 function addEmotion(name, amt){
   if(!S.emotions) S.emotions = {};
   const v = Math.max(0, Math.min(3, (S.emotions[name]||0)+(amt||1)));
@@ -1637,6 +1637,20 @@ function tickEmotions(){
     S.emotions[k]--;
     if(S.emotions[k]<=0) delete S.emotions[k];
   });
+}
+/* Decay tick: emosi meluruh & mental pulih 1 tingkat — terjadi acak setiap
+   5-10 pilihan (bukan tiap pilihan). Membuat emosi/mental tak terduga. */
+function rollDecayAt(){ return 5 + Math.floor(Math.random()*6); }
+function decayTick(){
+  if(S.decayCount==null) S.decayCount = 0;
+  if(S.decayAt==null) S.decayAt = rollDecayAt();
+  S.decayCount++;
+  if(S.decayCount >= S.decayAt){
+    S.decayCount = 0;
+    S.decayAt = rollDecayAt();
+    tickEmotions();
+    if(S.mental > 0) mentalBetter(1);
+  }
 }
 /* Goyah: mental Panik/Hancur, atau Takut>=2 — mengunci pilihan yang butuh ketenangan */
 function isShaken(){ return S.mental>=3 || emotionGet("Takut")>=2; }
@@ -2786,7 +2800,7 @@ function goTarget(target, opts){
   if(!n) return;
   const before = snapshotState();
   S.node = target;
-  tickTemp(); tickEmotions();      /* status sementara & emosi meluruh tiap pindah node */
+  tickTemp(); decayTick();            /* temp: tiap node; emosi+mental: tick acak 5-10 pilihan */
   applyEnterMutations(n);         /* sistem baru: tier, body, mental, emosi, objective, favor, item */
   if(n.tutPop) tutPop(n.tutPop);      /* popup tutorial kontekstual dari node */
   persist();
