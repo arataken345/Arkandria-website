@@ -287,7 +287,24 @@
     #reactionBar.sev-high, #reactionBar.sev-critical{animation:none}
     #reactionBar{transition:none}
     .tut-dots span{transition:none}
+    .keydisp.err{animation:none}
   }
+  /* ===== SISTEM BARU ARC 1: input, keypad, tier, emosi ===== */
+  .condtag{display:inline-block; font-size:.68rem; font-weight:800; letter-spacing:.08em;
+    border:1px solid var(--dim); border-radius:4px; padding:.05rem .4rem; margin-left:.5rem; color:var(--dim)}
+  .txtinput{width:100%; max-width:420px; padding:.8rem 1rem; font-size:1rem; text-align:center;
+    background:#0c0c10; border:1px solid #3a3a3a; border-radius:8px; color:var(--bone);
+    letter-spacing:.12em; margin:1.4rem auto; display:block}
+  .txtinput:focus{outline:none; border-color:var(--blood)}
+  .keypad{display:grid; grid-template-columns:repeat(3, 64px); gap:.6rem; justify-content:center; margin:1.2rem auto}
+  .keybtn{padding:.9rem 0; font-size:1.2rem; background:#141419; color:var(--bone);
+    border:1px solid #3a3a3a; border-radius:10px; cursor:pointer}
+  .keybtn:active{background:#23232c}
+  .keydisp{text-align:center; font-size:1.5rem; letter-spacing:.5em; text-indent:.5em;
+    color:var(--bone); min-height:2.2rem; margin-top:1rem}
+  .keydisp.err{color:var(--blood); animation:rtremor .4s ease}
+  .tierRingan{color:#4ade80} .tierSedang{color:#facc15}
+  .tierTinggi{color:#fb923c} .tierEkstrim{color:#ef4444; font-weight:800}
 </style>
 </head>
 <body>
@@ -428,6 +445,15 @@ function eqSlotName(key){
   const s = EQ_SLOTS.find(x=>x.key===key);
   return s ? s.name : key;
 }
+/* KATALOG ITEM ARC 1 (ikon wajib unik per item — aturan Kaze):
+   koin_logam:        🪙 Koin Logam Kusam — "barang tak berguna"
+   catatan_eksperimen:📜 Catatan Eksperimen — habis dipakai (consumeItem) untuk keypad
+   makanan_kaleng:    🥫 Makanan Kaleng (Baik)
+   air_minum:         🍶 Air Minum (Baik)
+   sisa_makanan:      🍲 Sisa Makanan & Air (Buruk)
+   morfin:            💉 Morfin yang Sempurna
+   arloji:            ⏱️ Arloji Saku
+   perban_bersih:     🩹 Perban Bersih                                          */
 
 /* ---------- SAVE (localStorage — hanya CERITA BARU yang me-reset) ---------- */
 const SAVE_KEY = "asylum_save_v1";
@@ -437,7 +463,9 @@ function persist(){
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       registered: true, name: S.name, gender: S.gender,
       deathCount: S.deathCount, items: S.items, status: S.status,
-      mental: S.mental, effects: S.effects, equipment: S.equipment, node: S.node
+      mental: S.mental, effects: S.effects, equipment: S.equipment, node: S.node,
+      tiers: S.tiers, temp: S.temp, emotions: S.emotions, favor: S.favor,
+      objective: S.objective, body: S.body
     }));
   }catch(e){}
 }
@@ -457,7 +485,10 @@ function snapshotState(){
   const equipment = {};
   Object.keys(S.equipment).forEach(k=>{ equipment[k] = S.equipment[k] ? S.equipment[k].id : null; });
   return { status:S.status, mental:S.mental, deathCount:S.deathCount,
-           items, equipment, effects:[...S.effects] };
+           items, equipment, effects:[...S.effects],
+           tiers:{...(S.tiers||{})}, temp:(S.temp||[]).map(t=>t.n).sort(),
+           emotions:{...(S.emotions||{})}, favor:{...(S.favor||{})},
+           objective:S.objective||null, body:S.body||null };
 }
 function itemName(id){
   const it = S.items.find(x=>x.id===id);
@@ -514,6 +545,57 @@ function deriveEvents(before, after, source){
     if(!before.effects.includes(ef))
       push("effect_started", "moderate", { effect:ef }, "effect_started");
   });
+  /* --- tier berubah (+ kondisi turunan Ekstrim) --- */
+  const tnames = new Set([...Object.keys(before.tiers), ...Object.keys(after.tiers)]);
+  tnames.forEach(name=>{
+    const b = before.tiers[name], a = after.tiers[name];
+    if(b===a) return;
+    const bl = (b===undefined) ? "—" : TIER_NAMES[b];
+    const al = (a===undefined) ? "Hilang" : TIER_NAMES[a];
+    push("tier_changed", (a===3||b===3) ? "high" : "moderate",
+         { name, from:bl, to:al, label:al }, "tier_changed");
+    if(name==="Kelelahan" && a===3 && b!==3)
+      push("derived", "high", { name:"Lemas",
+        note:"Kelelahan mencapai Ekstrim — tubuhmu Lemas, setara Terluka." }, "derived_lemas");
+    if(name==="Stress" && a===3 && b!==3)
+      push("derived", "high", { name:"Kebingungan Akut",
+        note:"Stress mencapai Ekstrim — pilihanmu berikutnya ditentukan dadu." }, "derived_bingung");
+    if(name==="Kelelahan" && b===3 && a!==3)
+      push("derived", "low", { name:"Lemas", note:"Rasa lemasmu mereda." }, "derived_lemas_end");
+    if(name==="Stress" && b===3 && a!==3)
+      push("derived", "low", { name:"Kebingungan Akut", note:"Pikiranmu kembali jernih." }, "derived_bingung_end");
+  });
+  /* --- emosi --- */
+  const enames = new Set([...Object.keys(before.emotions), ...Object.keys(after.emotions)]);
+  enames.forEach(name=>{
+    const b = before.emotions[name]||0, a = after.emotions[name]||0;
+    if(a===b) return;
+    push("emotion_changed", (a>b && a>=2) ? "moderate" : "low",
+         { name, from:b, to:a, dir: a>b ? "naik" : "turun" }, "emotion_changed");
+  });
+  /* --- favorability --- */
+  const fnames = new Set([...Object.keys(before.favor), ...Object.keys(after.favor)]);
+  fnames.forEach(name=>{
+    const b = before.favor[name]||0, a = after.favor[name]||0;
+    if(a!==b){
+      const d = a-b;
+      push("favor_changed", "low",
+           { name, from:b, to:a, delta:d, dstr:(d>0?"+":"")+d }, "favor_changed");
+    }
+  });
+  /* --- objective --- */
+  if(after.objective!==before.objective)
+    push("objective_changed", "moderate",
+         { from:before.objective||"—", to:after.objective||"—",
+           objective:after.objective||"" }, "objective_changed");
+  /* --- status sementara --- */
+  const bt = new Set(before.temp), at = new Set(after.temp);
+  at.forEach(t=>{ if(!bt.has(t)) push("temp_started", "low", { name:t }, "temp_started"); });
+  bt.forEach(t=>{ if(!at.has(t)) push("temp_ended", "low", { name:t }, "temp_ended"); });
+  /* --- kondisi tubuh --- */
+  if(after.body!==before.body && (after.body || before.body))
+    push("body_changed", "low",
+         { from:before.body||"—", to:after.body||"—" }, "body_changed");
   return evts;
 }
 /* Teks reaksi kurasi — variasi terkendali (deterministik), tanpa prosa acak. */
@@ -534,6 +616,19 @@ const REACTIONS = {
   equipment_equipped:  { text:["{name} terpasang di {slotName}."] },
   equipment_unequipped:{ text:["{name} dilepas dari {slotName}."] },
   effect_started:      { text:["Efek baru menyelimutimu: {effect}."] },
+  tier_changed:        { text:["{name}: {from} → {to}.",
+                               "Efek {name} kini {label}."] },
+  derived_lemas:       { text:["{note}"] },
+  derived_bingung:     { text:["{note}"] },
+  derived_lemas_end:   { text:["{note}"] },
+  derived_bingung_end: { text:["{note}"] },
+  emotion_changed:     { text:["{name} {dir} dalam dirimu."] },
+  favor_changed:       { text:["Hubungan dengan {name} berubah ({dstr})."] },
+  objective_changed:   { text:["🎯 Objective baru: {objective}.",
+                               "Tujuanmu diperbarui: {objective}."] },
+  temp_started:        { text:["Efek sementara: {name}."] },
+  temp_ended:          { text:["{name} mereda."] },
+  body_changed:        { text:["Kondisi tubuhmu: {to}."] },
 };
 let lastReactionKey = null, lastRepeat = 0;
 function fillTpl(tpl, changes){
@@ -570,12 +665,256 @@ function showReactionBar(msg, severity){
   bar._h = setTimeout(()=>{ bar.className = ""; }, 2600);
 }
 
+/* ============================================================
+   SISTEM BARU ARC 1 (fase sistem — konten arc menyusul)
+   - Efek status bertingkat: Ringan/Sedang/Tinggi/Ekstrim (naik/turun 1 tingkat)
+   - Kondisi turunan: [Lemas] (Kelelahan Ekstrim, setara Terluka),
+     [Kebingungan Akut] (Stress Ekstrim — pilihan berikutnya diacak dadu)
+   - Status sementara (durasi hitungan node), emosi transien (meluruh)
+   - Mental dua arah (memburuk & membaik) + efek mekanis per tingkat
+   - Pilihan bersyarat: nomor sama, hasil beda tergantung kondisi (Tutorial #3)
+   - Objective dinamis, favorability, Kondisi Tubuh detail
+   - Node input teks (teka-teki) & keypad angka
+   Semua field baru opsional — save lama tetap terbaca via default.
+   ============================================================ */
+const TIER_NAMES = ["Ringan","Sedang","Tinggi","Ekstrim"];
+const TIER_EFFECTS = ["Stress","Keracunan","Pendarahan","Kelelahan"];
+function tierGet(name){ return (S.tiers && S.tiers[name]!=null) ? S.tiers[name] : -1; }
+function tierSet(name, t){
+  t = parseInt(t);
+  if(!S.tiers) S.tiers = {};
+  if(isNaN(t) || t<0) delete S.tiers[name];
+  else S.tiers[name] = Math.min(3, t);
+}
+function tierUp(name){ const t=tierGet(name); tierSet(name, t<0?0:t+1); }
+function tierDown(name){ const t=tierGet(name); if(t>=0) tierSet(name, t-1); }
+/* Kondisi turunan — dihitung dari tier, bukan disimpan */
+function isLemas(){ return tierGet("Kelelahan")===3; }
+function isBingung(){ return tierGet("Stress")===3; }
+function isWoundedLike(){ return S.status==="wounded" || isLemas(); }
+
+/* Status sementara: [{n, left}] — berkurang 1 tiap pindah node */
+function addTemp(n, nodes){
+  if(!S.temp) S.temp = [];
+  const ex = S.temp.find(t=>t.n===n);
+  if(ex) ex.left = Math.max(ex.left, Math.max(1, nodes||1));
+  else S.temp.push({ n, left: Math.max(1, nodes||1) });
+}
+function tempActive(n){ return !!(S.temp||[]).find(t=>t.n===n && t.left>0); }
+function tickTemp(){
+  if(!S.temp) return;
+  S.temp.forEach(t=>{ t.left--; });
+  S.temp = S.temp.filter(t=>t.left>0);
+}
+
+/* ---------- MENTAL / EMOSI ---------- */
+function mentalWorse(n){ S.mental = Math.min(MENTAL.length-1, S.mental+(n||1)); }
+function mentalBetter(n){ S.mental = Math.max(0, S.mental-(n||1)); }
+/* Emosi transien: {nama: intensitas 1..3}, meluruh 1 tiap pindah node */
+function addEmotion(name, amt){
+  if(!S.emotions) S.emotions = {};
+  const v = Math.max(0, Math.min(3, (S.emotions[name]||0)+(amt||1)));
+  if(v<=0) delete S.emotions[name]; else S.emotions[name] = v;
+}
+function emotionGet(name){ return (S.emotions && S.emotions[name]) || 0; }
+function tickEmotions(){
+  if(!S.emotions) return;
+  Object.keys(S.emotions).forEach(k=>{
+    S.emotions[k]--;
+    if(S.emotions[k]<=0) delete S.emotions[k];
+  });
+}
+/* Goyah: mental Panik/Hancur, atau Takut>=2 — mengunci pilihan yang butuh ketenangan */
+function isShaken(){ return S.mental>=3 || emotionGet("Takut")>=2; }
+
+/* ---------- FAVORABILITY ---------- */
+function favorGet(name){ return (S.favor && S.favor[name]) || 0; }
+function favorAdd(name, n){
+  if(!S.favor) S.favor = {};
+  S.favor[name] = (S.favor[name]||0) + (n||0);
+}
+
+/* ---------- ITEM: kurangi/hapus ---------- */
+function removeItem(id, qty){
+  const it = S.items.find(x=>x.id===id);
+  if(!it) return false;
+  const before = snapshotState();
+  it.qty = (it.qty||1) - (qty||1);
+  if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id);
+  persist();
+  presentReaction(deriveEvents(before, snapshotState(), "item"));
+  return true;
+}
+
+/* ---------- DADU (Kebingungan Akut) ---------- */
+function rollDie(sides){ return 1 + Math.floor(Math.random()*Math.max(1, (sides||6))); }
+
+/* ---------- EVALUATOR KONDISI (pilihan bersyarat) ---------- */
+function condMet(w){
+  if(!w) return true;
+  if(w.wounded!==undefined && isWoundedLike()!==!!w.wounded) return false;
+  if(w.inDanger!==undefined && (S.status==="danger")!==!!w.inDanger) return false;
+  if(w.mentalMax!==undefined && S.mental > +w.mentalMax) return false;
+  if(w.mentalMin!==undefined && S.mental < +w.mentalMin) return false;
+  if(w.tier) for(const k of Object.keys(w.tier)){
+    const c=w.tier[k], t=tierGet(k);
+    if(c.min!==undefined && t < +c.min) return false;
+    if(c.max!==undefined && t > +c.max) return false;
+    if(c.eq!==undefined && t !== +c.eq) return false;
+  }
+  if(w.emotion) for(const k of Object.keys(w.emotion)){
+    const c=w.emotion[k], v=emotionGet(k);
+    if(c.min!==undefined && v < +c.min) return false;
+    if(c.max!==undefined && v > +c.max) return false;
+  }
+  if(w.hasItem && !S.items.some(it=>it.id===w.hasItem)) return false;
+  if(w.favor) for(const k of Object.keys(w.favor)){
+    if(favorGet(k) < +w.favor[k]) return false;
+  }
+  return true;
+}
+/* Selesaikan target sebuah choice: branches (bersyarat) atau target biasa.
+   Cabang pertama yang kondisinya terpenuhi menang — deterministik. */
+function resolveChoiceTarget(c){
+  if(c.branches){
+    for(const b of c.branches){ if(condMet(b.when)) return b.target; }
+    const fb = c.branches.find(b=>!b.when);
+    return fb ? fb.target : null;
+  }
+  return c.target || null;
+}
+
+/* ---------- KUNCI PILIHAN (diperluas) ---------- */
+function isChoiceLocked(c){
+  if(c.blockedIf && (c.blockedIf==="wounded" ? isWoundedLike() : S.status===c.blockedIf)) return true;
+  if(c.requiresItem && !S.items.some(it=>it.id===c.requiresItem)) return true;
+  if(c.requiresEquipped && !S.equipment[c.requiresEquipped]) return true;
+  if(c.requiresEquippedItem && !Object.values(S.equipment).some(e=>e&&e.id===c.requiresEquippedItem)) return true;
+  if(c.requiresMentalMax!==undefined && S.mental > c.requiresMentalMax) return true;
+  if(c.needsCalm && isShaken()) return true;
+  if(c.requiresEmotion && Object.keys(c.requiresEmotion).some(k=>emotionGet(k) < c.requiresEmotion[k])) return true;
+  if(c.blockedByEmotion && Object.keys(c.blockedByEmotion).some(k=>emotionGet(k) >= c.blockedByEmotion[k])) return true;
+  return false;
+}
+function choiceLockNote(c){
+  if(c.blockedIf && (c.blockedIf==="wounded" ? isWoundedLike() : S.status===c.blockedIf))
+    return `<span class="lock">🔒 Tidak bisa dipilih dalam kondisi [Terluka]${isLemas()&&S.status!=="wounded"?" / [Lemas]":""}</span>`;
+  if(c.requiresItem && !S.items.some(it=>it.id===c.requiresItem))
+    return `<span class="lock">🔒 Butuh item: ${esc(c.requiresItemName||c.requiresItem)}</span>`;
+  if(c.requiresEquipped && !S.equipment[c.requiresEquipped])
+    return `<span class="lock">🔒 Butuh ${esc(eqSlotName(c.requiresEquipped))} terpasang</span>`;
+  if(c.requiresEquippedItem && !Object.values(S.equipment).some(e=>e&&e.id===c.requiresEquippedItem))
+    return `<span class="lock">🔒 Butuh "${esc(c.requiresEquippedItemName||c.requiresEquippedItem)}" terpasang</span>`;
+  if(c.requiresMentalMax!==undefined && S.mental > c.requiresMentalMax)
+    return `<span class="lock">🔒 Butuh mental setenang [${esc(MENTAL[c.requiresMentalMax]||"?")}]</span>`;
+  if(c.needsCalm && isShaken())
+    return `<span class="lock">🔒 Kau terlalu goyah untuk ini — butuh ketenangan</span>`;
+  if(c.requiresEmotion)
+    for(const k of Object.keys(c.requiresEmotion))
+      if(emotionGet(k) < c.requiresEmotion[k])
+        return `<span class="lock">🔒 Butuh emosi "${esc(k)}" yang cukup</span>`;
+  if(c.blockedByEmotion)
+    for(const k of Object.keys(c.blockedByEmotion))
+      if(emotionGet(k) >= c.blockedByEmotion[k])
+        return `<span class="lock">🔒 "${esc(k)}" menghalangimu memilih ini</span>`;
+  return "";
+}
+
+/* ---------- MUTASI SAAT MEMASUKI NODE (sistem baru; field lama tetap di render masing-masing) ---------- */
+function applyEnterMutations(n){
+  if(!n) return;
+  if(n.tierUp) n.tierUp.forEach(t=>tierUp(t));
+  if(n.tierDown) n.tierDown.forEach(t=>tierDown(t));
+  if(n.tierSet) Object.keys(n.tierSet).forEach(k=>tierSet(k, n.tierSet[k]));
+  if(n.tierClear) n.tierClear.forEach(k=>tierSet(k, -1));
+  if(n.addTemp) n.addTemp.forEach(t=>addTemp(t.n, t.nodes));
+  if(n.setBody!==undefined) S.body = n.setBody;
+  if(n.clearBody) S.body = null;
+  if(n.mentalWorse) mentalWorse(n.mentalWorse);
+  if(n.mentalBetter) mentalBetter(n.mentalBetter);
+  if(n.addEmotion) n.addEmotion.forEach(e=>addEmotion(e.n, e.amt));
+  if(n.setObjective!==undefined) S.objective = n.setObjective;
+  if(n.clearObjective) S.objective = null;
+  if(n.favor) Object.keys(n.favor).forEach(k=>favorAdd(k, n.favor[k]));
+  if(n.grantItems) n.grantItems.forEach(item=>{
+    const ex = S.items.find(x=>x.id===item.id);
+    if(ex) ex.qty = (ex.qty||1)+1;
+    else S.items.push({ id:item.id, name:item.name, note:item.note||"",
+                        icon:item.icon||"🎒", kind:item.kind||"consumable",
+                        slot:item.slot||null, qty:1 });
+  });
+  if(n.consumeItem) (Array.isArray(n.consumeItem)?n.consumeItem:[n.consumeItem]).forEach(c=>{
+    const id = typeof c==="string" ? c : c.id, qty = (c && c.qty) || 1;
+    const it = S.items.find(x=>x.id===id);
+    if(it){ it.qty = (it.qty||1)-qty; if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id); }
+  });
+}
+
+/* ---------- FORMAT TAMPILAN (status screen) ---------- */
+function fmtEffects(){
+  const parts = S.effects.map(e=>esc(e));
+  Object.keys(S.tiers||{}).forEach(k=>{
+    const lbl = TIER_NAMES[S.tiers[k]];
+    parts.push(`${esc(k)} <span class="tier${lbl}">(${lbl})</span>`);
+  });
+  (S.temp||[]).forEach(t=>{ parts.push(`${esc(t.n)} (Sementara)`); });
+  return parts.length ? parts.join(", ") : "—";
+}
+function fmtEmotions(){
+  const ks = Object.keys(S.emotions||{});
+  if(!ks.length) return "—";
+  return ks.map(k=>`${esc(k)} ${"●".repeat(S.emotions[k])}`).join(", ");
+}
+function fmtFavorCard(){
+  const ks = Object.keys(S.favor||{});
+  if(!ks.length) return "";
+  const rows = ks.map(k=>
+    `<div class="krow"><span>${esc(k)}</span><b class="kval">${S.favor[k]>0?"+":""}${S.favor[k]}</b></div>`).join("");
+  return `<div class="pcard"><div class="pcard-h">💞 HUBUNGAN</div>${rows}</div>`;
+}
+
+/* ---------- SANITASI FIELD BARU (import/restore) ---------- */
+function sanitizeTiers(t){
+  const out = {};
+  if(t && typeof t==="object") TIER_EFFECTS.forEach(k=>{
+    const v = parseInt(t[k]);
+    if(!isNaN(v)) out[k] = Math.max(0, Math.min(3, v));
+  });
+  return out;
+}
+function sanitizeTemp(a){
+  if(!Array.isArray(a)) return [];
+  return a.filter(t=>t && typeof t.n==="string").slice(0,8)
+    .map(t=>({ n:t.n.slice(0,30), left:Math.max(1, Math.min(20, parseInt(t.left)||1)) }));
+}
+function sanitizeEmotions(e){
+  const out = {};
+  if(e && typeof e==="object") Object.keys(e).slice(0,10).forEach(k=>{
+    const kk = String(k).slice(0,20);
+    if(!kk) return;
+    const v = parseInt(e[k]);
+    if(!isNaN(v) && v>0) out[kk] = Math.max(1, Math.min(3, v));
+  });
+  return out;
+}
+function sanitizeFavor(f){
+  const out = {};
+  if(f && typeof f==="object") Object.keys(f).slice(0,20).forEach(k=>{
+    const kk = String(k).slice(0,30);
+    if(!kk) return;
+    const v = parseInt(f[k]);
+    if(!isNaN(v)) out[kk] = Math.max(-999, Math.min(999, v));
+  });
+  return out;
+}
+
 /* ---------- STATE ---------- */
 let S;
 function resetState(){
   S = { node:"title", registered:false, name:"", gender:"",
         deathCount:0, items:[], status:null, mental:0, effects:[],
-        equipment:{ senjata:null } };
+        equipment:{ senjata:null },
+        tiers:{}, temp:[], emotions:{}, favor:{}, objective:null, body:null };
 }
 resetState();
 function restoreState(sv){
@@ -584,6 +923,10 @@ function restoreState(sv){
   S.deathCount = sv.deathCount||0; S.items = sv.items||[];
   S.status = sv.status||null; S.mental = sv.mental||0;
   S.effects = sv.effects||[]; S.equipment = sv.equipment||{ senjata:null };
+  S.tiers = sanitizeTiers(sv.tiers); S.temp = sanitizeTemp(sv.temp);
+  S.emotions = sanitizeEmotions(sv.emotions); S.favor = sanitizeFavor(sv.favor);
+  S.objective = (typeof sv.objective==="string" && sv.objective) ? sv.objective.slice(0,80) : null;
+  S.body = (typeof sv.body==="string" && sv.body) ? sv.body.slice(0,40) : null;
   S.node = sv.node||"opening";
 }
 
@@ -598,6 +941,7 @@ function updateHUD(){
   const b = $("#statusBadge");
   if(S.status==="danger") b.innerHTML = '<span class="badge danger">[Dalam bahaya]</span>';
   else if(S.status==="wounded") b.innerHTML = '<span class="badge wounded">[Terluka]</span>';
+  else if(isLemas()) b.innerHTML = '<span class="badge wounded">[Lemas]</span>';
   else b.innerHTML = "";
 }
 $("#menuBtn").addEventListener("click", ()=>{ showTitle(); }); /* ke menu TIDAK me-reset */
@@ -664,10 +1008,12 @@ function toast(msg){
 /* ---------- EXPORT / IMPORT SAVE FILE ---------- */
 function buildPayload(){
   return {
-    game:"the-asylum", version:1, exportedAt:new Date().toISOString(),
+    game:"the-asylum", version:2, exportedAt:new Date().toISOString(),
     registered:true, name:S.name, gender:S.gender,
     deathCount:S.deathCount, items:S.items, status:S.status,
-    mental:S.mental, effects:S.effects, equipment:S.equipment, node:S.node
+    mental:S.mental, effects:S.effects, equipment:S.equipment, node:S.node,
+    tiers:S.tiers, temp:S.temp, emotions:S.emotions, favor:S.favor,
+    objective:S.objective, body:S.body
   };
 }
 function exportSave(){
@@ -727,6 +1073,10 @@ function importSave(file){
       mental:Math.min(4, Math.max(0, parseInt(data.mental)||0)),
       effects:Array.isArray(data.effects) ? data.effects.map(x=>String(x).slice(0,30)).slice(0,10) : [],
       equipment:sanitizeEquipment(data.equipment),
+      tiers:sanitizeTiers(data.tiers), temp:sanitizeTemp(data.temp),
+      emotions:sanitizeEmotions(data.emotions), favor:sanitizeFavor(data.favor),
+      objective:(typeof data.objective==="string" && data.objective) ? data.objective.slice(0,80) : null,
+      body:(typeof data.body==="string" && data.body) ? data.body.slice(0,40) : null,
       node:(typeof data.node==="string" && NODES[data.node]) ? data.node : "opening"
     };
     try{ localStorage.setItem(SAVE_KEY, JSON.stringify(clean)); }catch(e){}
@@ -866,7 +1216,7 @@ const TUT_STEPS = [
   { t:"Memilih Tindakan",
     h:`Setiap pilihan membuka <b>jalan cerita yang berbeda</b>. Pilihlah dengan cermat — beberapa pilihan menyimpan risiko yang tidak terlihat di awal.<br><br>Kadang muncul situasi khusus bertanda <span class="tag c-white">[Pilihan!]</span>: di momen itu, ceritamu berlanjut mengikuti preferensimu sendiri.` },
   { t:"Kondisimu",
-    h:`Perhatikan tiga hal di layar statusmu:<br>• <b>Situasi</b> — <i>Aman</i>, atau <span class="tag c-yellow">[Dalam bahaya]</span> (salah langkah berikutnya bisa tewas), atau <span class="tag" style="color:#fb923c">[Terluka]</span> (beberapa pilihan terkunci).<br>• <b>Kondisi Mental</b> — <i>Tenang → Tegang → Gelisah → Panik → Hancur</i>. Setiap kematian memperburuknya.<br>• <b>Efek Status</b> — kondisi khusus yang sedang aktif padamu.` },
+    h:`Perhatikan tiga hal di layar statusmu:<br>• <b>Situasi</b> — <i>Aman</i>, atau <span class="tag c-yellow">[Dalam bahaya]</span> (salah langkah berikutnya bisa tewas), atau <span class="tag" style="color:#fb923c">[Terluka]</span> (beberapa pilihan terkunci).<br>• <b>Kondisi Mental</b> — <i>Tenang → Tegang → Gelisah → Panik → Hancur</i>. Kematian memperburuknya, tapi istirahat dan tempat aman bisa <b>memperbaikinya</b>. Saat panik, pilihan yang butuh ketenangan terkunci.<br>• <b>Efek Status</b> — kondisi khusus yang aktif. Banyak yang <b>bertingkat</b>: <i>Ringan → Sedang → Tinggi → Ekstrim</i> (mis. Stress, Keracunan). Di tingkat <b>Ekstrim</b> jadi berbahaya: Kelelahan Ekstrim membuatmu <b>Lemas</b>, Stress Ekstrim membuat pilihanmu <b>diacak dadu</b>.<br>• <b>Emosi</b> — perasaan sesaat (mis. Takut) yang bisa mengunci pilihan nekat.` },
   { t:"Tas & Item",
     h:`Pilihanmu bisa memberimu <b>item</b> — atau tidak sama sekali. Setiap item punya <b>ikonnya masing-masing</b> di dalam tas 🎒.<br><br>Item adalah kunci: beberapa pilihan di masa depan hanya bisa dilewati jika kau membawa item yang tepat. Perhatikan jumlahnya — item bisa berkurang.` },
   { t:"Perlengkapan & Efek",
@@ -922,8 +1272,9 @@ function showStatus(mode, resumeTarget){
   S.node = "status"; updateHUD();
   document.body.style.overflow = "";
   document.onkeydown = null;
-  const sit = S.status==="danger" ? "Dalam bahaya" : S.status==="wounded" ? "Terluka" : "Aman";
-  const tubuh = S.status==="wounded" ? "Terluka" : "Sehat";
+  const sit = S.status==="danger" ? "Dalam bahaya"
+    : S.status==="wounded" ? "Terluka" : (isLemas() ? "Lemas" : "Aman");
+  const tubuh = S.body || (isWoundedLike() ? "Terluka" : "Sehat");
   const eqRows = EQ_SLOTS.map(s=>{
     const cur = S.equipment[s.key];
     const right = cur
@@ -953,7 +1304,8 @@ function showStatus(mode, resumeTarget){
           <div class="krow"><span>Kondisi Tubuh</span><b class="kval">${esc(tubuh)}</b></div>
           <div class="krow"><span>Kondisi Mental</span><b class="kval">${esc(MENTAL[S.mental]||"Tenang")}</b></div>
           ${mentalBar()}
-          <div class="krow"><span>Efek Status</span><b class="kval">${S.effects.length?esc(S.effects.join(", ")):"—"}</b></div>
+          <div class="krow"><span>Efek Status</span><b class="kval">${fmtEffects()}</b></div>
+          <div class="krow"><span>Emosi</span><b class="kval">${fmtEmotions()}</b></div>
         </div>
         <div class="pcard mystery">
           <div class="pcard-h">❓ ?????</div>
@@ -963,8 +1315,9 @@ function showStatus(mode, resumeTarget){
         </div>
         <div class="pcard">
           <div class="pcard-h">🎯 OBJECTIVE</div>
-          <div class="obj">[???]</div>
+          <div class="obj">${S.objective?esc(S.objective):"[???]"}</div>
         </div>
+        ${fmtFavorCard()}
       </div>
       <div class="center btnrow">
         ${mode==="new"
@@ -1002,23 +1355,27 @@ function renderNode(id){
     $("#tapHint").style.display = "none";
     const cbox = $("#choiceBox"); cbox.hidden = false;
     cbox.innerHTML = n.choices.map((c,i)=>{
-      const locked = c.blockedIf && S.status===c.blockedIf;
-      const needItem = c.requiresItem && !S.items.some(it=>it.id===c.requiresItem);
-      const needEq = c.requiresEquipped && !S.equipment[c.requiresEquipped];
-      const needEqItem = c.requiresEquippedItem && !Object.values(S.equipment).some(e=>e&&e.id===c.requiresEquippedItem);
-      const dis = (locked||needItem||needEq||needEqItem) ? "disabled" : "";
-      const lockNote = locked ? `<span class="lock">🔒 Tidak bisa dipilih dalam kondisi [Terluka]</span>`
-        : needItem ? `<span class="lock">🔒 Butuh item: ${esc(c.requiresItemName||c.requiresItem)}</span>`
-        : needEq ? `<span class="lock">🔒 Butuh ${esc(eqSlotName(c.requiresEquipped))} terpasang</span>`
-        : needEqItem ? `<span class="lock">🔒 Butuh "${esc(c.requiresEquippedItemName||c.requiresEquippedItem)}" terpasang</span>` : "";
-      return `<button class="choice" data-i="${i}" style="animation-delay:${0.1+i*0.09}s" ${dis}><span class="num">${i+1}</span><span>${esc(c.text)}${lockNote}</span></button>`;
+      const locked = isChoiceLocked(c);
+      const dis = locked ? "disabled" : "";
+      const lockNote = locked ? choiceLockNote(c) : "";
+      const condTag = c.condNote ? `<span class="condtag">${esc(c.condNote)}</span>` : "";
+      return `<button class="choice" data-i="${i}" style="animation-delay:${0.1+i*0.09}s" ${dis}><span class="num">${i+1}</span><span>${esc(c.text)}${condTag}${lockNote}</span></button>`;
     }).join("");
     cbox.querySelectorAll(".choice:not(:disabled)").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         cbox.querySelectorAll(".choice").forEach(b=>b.disabled=true);
         btn.classList.add("picked");
-        const c = n.choices[+btn.dataset.i];
-        setTimeout(()=>goTarget(c.target), 450);
+        let c = n.choices[+btn.dataset.i];
+        setTimeout(()=>{
+          if(isBingung()){ /* Kebingungan Akut: dadu yang memilih */
+            const avail = n.choices.filter(cc=>!isChoiceLocked(cc));
+            const pick = avail.length ? avail[rollDie(avail.length)-1] : c;
+            toast("🎲 Kebingungan Akut! Dadu memilih: "+pick.text);
+            c = pick;
+          }
+          const t = resolveChoiceTarget(c);
+          if(t) goTarget(t); else toast("Jalan buntu 🩸");
+        }, 450);
       });
     });
   });
@@ -1040,13 +1397,112 @@ function goTarget(target, opts){
   const n = NODES[target];
   if(!n) return;
   const before = snapshotState();
-  S.node = target; persist();
+  S.node = target;
+  tickTemp(); tickEmotions();      /* status sementara & emosi meluruh tiap pindah node */
+  applyEnterMutations(n);         /* sistem baru: tier, body, mental, emosi, objective, favor, item */
+  persist();
   if(n.kind==="result") renderResult(target);
   else if(n.kind==="death") renderDeath(target);
   else if(n.kind==="tbc") renderTBC();
   else if(n.kind==="story") renderStory(target);
+  else if(n.kind==="input") renderInput(target);
+  else if(n.kind==="keypad") renderKeypad(target);
   else renderNode(target);
   if(!opts || !opts.quiet) presentReaction(deriveEvents(before, snapshotState(), "node:"+target));
+}
+
+/* ---------- NODE INPUT TEKS (teka-teki; jawaban salah -> onWrong) ---------- */
+function renderInput(id){
+  const n = NODES[id];
+  S.node = id; updateHUD(); persist();
+  const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
+  app.innerHTML = `
+    <div class="screen">
+      <div class="story" id="storyBox" title="Ketuk untuk mempercepat">${kicker}<div id="twTarget"></div></div>
+      <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
+      <div class="center" id="inputSlot" hidden>
+        <input class="txtinput" id="txtAns" maxlength="40" placeholder="Ketik jawabanmu..." autocomplete="off"/>
+        <button class="big primary" id="btnAns">JAWAB</button>
+      </div>
+    </div>`;
+  const skip = typewriter($("#twTarget"), n.story, ()=>{
+    $("#tapHint").style.display = "none";
+    $("#inputSlot").hidden = false;
+    $("#txtAns").focus();
+  });
+  const sb = $("#storyBox"); sb.style.cursor = "pointer"; sb.addEventListener("click", skip);
+  $("#tapHint").addEventListener("click", skip);
+  let left = n.attempts || 1;
+  function submit(){
+    const v = $("#txtAns").value.trim().toLowerCase();
+    const ok = (n.answers||[]).some(a=>String(a).toLowerCase()===v);
+    if(ok){ toast("Jawaban tepat 🩸"); goTarget(n.onCorrect); return; }
+    left--;
+    if(left>0){
+      toast(`Salah... tersisa ${left} percobaan 🩸`);
+      $("#txtAns").value = ""; $("#txtAns").focus();
+    }else goTarget(n.onWrong);
+  }
+  $("#btnAns").onclick = submit;
+  $("#txtAns").addEventListener("keydown", (e)=>{ if(e.key==="Enter") submit(); });
+  document.onkeydown = (e)=>{
+    if(document.activeElement && document.activeElement.id==="txtAns") return;
+    if(e.key===" "||e.key==="Enter") skip();
+  };
+}
+
+/* ---------- NODE KEYPAD ANGKA (kode salah -> onFail setelah maxAttempts) ---------- */
+function renderKeypad(id){
+  const n = NODES[id];
+  S.node = id; updateHUD(); persist();
+  const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
+  let buf = "", left = n.maxAttempts || 3;
+  app.innerHTML = `
+    <div class="screen">
+      <div class="story" id="storyBox" title="Ketuk untuk mempercepat">${kicker}<div id="twTarget"></div></div>
+      <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
+      <div class="center" id="keySlot" hidden>
+        <div class="keydisp" id="keyDisp"></div>
+        <div class="keypad" id="keyPad"></div>
+        <div class="center btnrow">
+          <button class="mini-btn" id="keyClear">⌫ HAPUS</button>
+          <button class="big primary" id="keyGo">BUKA</button>
+        </div>
+        <div class="taphint">Percobaan tersisa: <b id="keyLeft">${left}</b></div>
+      </div>
+    </div>`;
+  const skip = typewriter($("#twTarget"), n.story, ()=>{
+    $("#tapHint").style.display = "none";
+    $("#keySlot").hidden = false;
+  });
+  const sb = $("#storyBox"); sb.style.cursor = "pointer"; sb.addEventListener("click", skip);
+  $("#tapHint").addEventListener("click", skip);
+  $("#keyPad").innerHTML = [1,2,3,4,5,6,7,8,9,"",0,"→"]
+    .map(d=>d==="" ? "<span></span>"
+      : `<button class="keybtn" data-d="${d}">${d}</button>`).join("");
+  function draw(){ $("#keyDisp").textContent = buf ? "•".repeat(buf.length) : "————"; }
+  draw();
+  $("#keyPad").querySelectorAll(".keybtn").forEach(b=>{
+    b.onclick = ()=>{
+      if(b.dataset.d==="→"){ $("#keyGo").click(); return; }
+      if(buf.length<8){ buf += b.dataset.d; draw(); }
+    };
+  });
+  $("#keyClear").onclick = ()=>{ buf = ""; draw(); };
+  $("#keyGo").onclick = ()=>{
+    if(buf===(n.code||"")){ toast("Klik... terbuka 🩸"); goTarget(n.onSuccess); return; }
+    left--; $("#keyLeft").textContent = left;
+    const d = $("#keyDisp");
+    d.classList.add("err"); setTimeout(()=>d.classList.remove("err"), 450);
+    buf = ""; draw();
+    if(left<=0) goTarget(n.onFail);
+    else toast("BIP! Kode salah 🩸");
+  };
+  document.onkeydown = (e)=>{
+    if(e.key===" "||e.key==="Enter"){ skip(); return; }
+    if(/^[0-9]$/.test(e.key) && buf.length<8){ buf += e.key; draw(); }
+    else if(e.key==="Backspace"){ buf = buf.slice(0,-1); draw(); }
+  };
 }
 
 /* ---------- RENDER STORY LINEAR (prolog / jembatan cerita) ---------- */
