@@ -340,6 +340,47 @@
     border-left:2px solid var(--blood-dim); margin:.1rem 0 .7rem .3rem}
   .story-detail p{margin:0 0 .6rem; font-style:italic}
   .story-detail[hidden]{display:none}
+  /* ===== MENU BARU: tombol ikon-kiri ===== */
+  .mbtn{display:flex; align-items:center; gap:.75rem; width:100%; text-align:left;
+    background:rgba(255,255,255,.03); border:1px solid #3a3a3a; color:var(--bone);
+    padding:.8rem 1.1rem; border-radius:10px; font-size:.92rem; letter-spacing:.1em;
+    cursor:pointer; font-family:inherit; margin-bottom:.6rem}
+  .mbtn .mi{font-size:1.15rem; width:1.7rem; text-align:center; flex:none}
+  .mbtn.primary{background:linear-gradient(180deg,#a31226,#6d0a18); border-color:transparent;
+    color:#fff; font-weight:800; justify-content:center}
+  .mbtn.primary .mi{width:auto}
+  .mbtn:active{transform:scale(.98)}
+  .menugrid{display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.6rem}
+  .menugrid .mbtn{margin-bottom:0; font-size:.8rem; padding:.7rem .8rem}
+  /* ===== TOAST ACHIEVEMENT ===== */
+  #achvToast{position:fixed; top:66px; left:50%; transform:translate(-50%,-14px); z-index:230;
+    background:#151310; border:1px solid #d4a017; border-radius:12px; padding:.7rem 1rem;
+    display:flex; gap:.7rem; align-items:center; max-width:86%; opacity:0; pointer-events:none;
+    transition:opacity .3s ease, transform .3s ease; box-shadow:0 0 26px rgba(212,160,23,.28)}
+  #achvToast.show{opacity:1; transform:translate(-50%,0)}
+  #achvToast .ai{font-size:1.6rem; flex:none}
+  #achvToast .at{font-size:.68rem; color:#d4a017; letter-spacing:.18em; margin-bottom:.15rem}
+  #achvToast .an{font-size:.92rem; color:var(--bone); font-weight:800}
+  #achvToast .ad{font-size:.72rem; color:var(--ash)}
+  /* ===== LAYAR ACHIEVEMENT & KOLEKSI ===== */
+  .stitle{font-size:1.3rem; letter-spacing:.14em; color:var(--bone); text-align:center; margin:.4rem 0 .2rem}
+  .ssub{text-align:center; color:var(--dim); font-size:.8rem; letter-spacing:.1em; margin-bottom:1.2rem}
+  .achv-list{display:flex; flex-direction:column; gap:.55rem; margin-bottom:1.4rem}
+  .achv-row{display:flex; align-items:center; gap:.8rem; padding:.7rem .9rem;
+    background:rgba(255,255,255,.03); border:1px solid #2c2c2c; border-radius:10px; opacity:.45}
+  .achv-row.got{opacity:1; border-color:#d4a017; background:rgba(212,160,23,.06)}
+  .achv-row .achv-ic{font-size:1.5rem; flex:none; width:2rem; text-align:center}
+  .achv-row .achv-tx b{display:block; color:var(--bone); font-size:.9rem; letter-spacing:.04em}
+  .achv-row .achv-tx small{color:var(--ash); font-size:.74rem; line-height:1.5}
+  .achv-row .achv-done{margin-left:auto; color:#d4a017; font-weight:800; flex:none}
+  .coll-grid{display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:1.4rem}
+  .coll-card{background:rgba(255,255,255,.03); border:1px solid #2c2c2c; border-radius:10px;
+    padding:.8rem .6rem; text-align:center}
+  .coll-card.missing{opacity:.4}
+  .coll-card .coll-ic{font-size:1.8rem; display:block; margin-bottom:.35rem}
+  .coll-card b{display:block; font-size:.82rem; color:var(--bone); margin-bottom:.25rem}
+  .coll-card small{font-size:.68rem; color:var(--ash); line-height:1.5}
+  @media (prefers-reduced-motion: reduce){ #achvToast{transition:none} .mbtn:active{transform:none} }
   .mini-btn.armed{border-color:var(--blood); color:var(--blood)}
   @media (prefers-reduced-motion: reduce){
     .efill{transition:none}
@@ -368,6 +409,7 @@
   </div>
 </div>
 <input type="file" id="importFile" accept=".json,application/json" hidden />
+<div id="achvToast"><span class="ai"></span><span><div class="at">🏆 ACHIEVEMENT</div><div class="an"></div><div class="ad"></div></span></div>
 <div id="tutModal" hidden>
   <div class="tutmodal-box">
     <h3 id="tutPopT"></h3>
@@ -1146,10 +1188,11 @@ function deriveEvents(before, after, source){
 }
 /* Satu titik presentasi event: reaksi + popup tutorial kontekstual.
    presentReaction sendiri tetap read-only (tidak memutasi S). */
-function reactAndTut(before, source){
+function reactAndTut(before, source, target){
   const evts = deriveEvents(before, snapshotState(), source);
   presentReaction(evts);
   tutPopForEvents(evts);
+  achvCheck(evts, target || S.node);
 }
 /* Teks reaksi kurasi — variasi terkendali (deterministik), tanpa prosa acak. */
 const REACTIONS = {
@@ -1328,6 +1371,8 @@ function useItem(id){
   if(u.mentalBetter) mentalBetter(u.mentalBetter);
   if(u.mentalWorse) mentalWorse(u.mentalWorse);
   if(u.addEmotion) u.addEmotion.forEach(e=>addEmotion(e.n, e.amt));
+  if(id==="perban_kotor" && u.heal) achvUnlock("wounded_heal");
+  if(id==="surat_terlipat") achvUnlock("reader");
   it.qty = (it.qty||1)-1;
   if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id);
   persist();
@@ -1484,11 +1529,14 @@ function applyEnterMutations(n){
   if(n.clearObjective) S.objective = null;
   if(n.favor) Object.keys(n.favor).forEach(k=>favorAdd(k, n.favor[k]));
   if(n.grantItems) n.grantItems.forEach(item=>{
+    collAdd(item.id);
     const ex = S.items.find(x=>x.id===item.id);
     if(ex){ ex.qty = (ex.qty||1)+1; if(item.use && !ex.use) ex.use = item.use; }
     else S.items.push({ id:item.id, name:item.name, note:item.note||"",
                         icon:item.icon||"🎒", kind:item.kind||"consumable",
-                        slot:item.slot||null, qty:1, use:item.use||null });
+                        slot:item.slot||null, qty:1, use:item.use||null,
+                        story:!!item.story,
+                        storyHint:item.storyHint||null });
   });
   if(n.consumeItem) (Array.isArray(n.consumeItem)?n.consumeItem:[n.consumeItem]).forEach(c=>{
     const id = typeof c==="string" ? c : c.id, qty = (c && c.qty) || 1;
@@ -1642,6 +1690,143 @@ function tutPopForEvents(evts){
   if(usable) tutPop("usable");
   if(objective) tutPop("objective");
   if(favor) tutPop("favor");
+}
+
+/* ============================================================
+   ACHIEVEMENT (14) & KOLEKSI ITEM
+   Tersimpan per-perangkat (tidak ikut terhapus CERITA BARU) ->
+   mendorong replayability. Export/import save membawa salinannya.
+   ============================================================ */
+const ACHV_KEY = "asylum_achv_v1", COLL_KEY = "asylum_coll_v1";
+const ITEM_DEX = [
+  { id:"roti_kering",   icon:"🍞", name:"Roti Kering",    desc:"Tiga potong roti kering dalam kemasan plastik." },
+  { id:"surat_terlipat",icon:"💌", name:"Surat Terlipat", desc:"Surat yang tak pernah terkirim. \u2018Maafkan aku...\u2019" },
+  { id:"perban_kotor",  icon:"🩹", name:"Perban Kotor",   desc:"Kain pembalut bernoda — lebih baik daripada tidak sama sekali." },
+  { id:"cokelat",       icon:"🍫", name:"Cokelat Batangan",desc:"Manis. Penenang yang langka di tempat seperti ini." },
+  { id:"boneka",        icon:"🧸", name:"Boneka Beruang", desc:"Boneka lusuh bermata kancing. Kenapa kau membawanya?" },
+  { id:"gambar_crayon", icon:"🖍️", name:"Gambar Crayon",  desc:"Gambar keluarga dengan crayon — ayah, ibu, dan anak." },
+];
+const ACHV = [
+  { id:"wake_up",      icon:"🌅", name:"Terbangun",           desc:"Mengingat namamu dan memulai cerita." },
+  { id:"first_death",  icon:"🩸", name:"Darah Pertama",       desc:"Mati untuk pertama kalinya." },
+  { id:"five_deaths",  icon:"💀", name:"Lima Kematian",       desc:"Mati 5 kali. Kegelapan mulai mengenalmu." },
+  { id:"trap_victim",  icon:"💡", name:"Terang yang Menipu",  desc:"Tewas berlari menuju lampu yang stabil." },
+  { id:"smart_cross",  icon:"🌑", name:"Bayangan yang Cerdik",desc:"Melewati lorong dalam bayangan dengan selamat." },
+  { id:"frozen",       icon:"🧊", name:"Diam Adalah Hidup",   desc:"Bertahan dari sosok transparan dengan membeku." },
+  { id:"teddy_friend", icon:"🧸", name:"Teman di Kegelapan",  desc:"Mengambil boneka beruang lusuh itu." },
+  { id:"teddy_dropped",icon:"🗑️", name:"Tak Butuh Kenangan",  desc:"Membuang boneka beruang itu." },
+  { id:"explorer",     icon:"🗺️", name:"Semua Pintu Terbuka", desc:"Memeriksa keempat pintu di lorong awal." },
+  { id:"wounded_heal", icon:"🩹", name:"Obat Kotor",          desc:"Menyembuhkan luka dengan perban kotor." },
+  { id:"reader",       icon:"💌", name:"Surat yang Tak Terkirim", desc:"Membaca surat terlipat itu sampai habis." },
+  { id:"empty_tank",   icon:"🪫", name:"Kelelahan Total",     desc:"Energimu mencapai 0 untuk pertama kalinya." },
+  { id:"dice_fate",    icon:"🎲", name:"Dadu Takdir",         desc:"Stress mencapai Ekstrim — pilihanmu diacak dadu." },
+  { id:"lemas_body",   icon:"🥀", name:"Tubuh Menyerah",      desc:"Kelelahan mencapai Ekstrim — tubuhmu lemas." },
+];
+function achvGet(){
+  try{ const o = JSON.parse(localStorage.getItem(ACHV_KEY)); return (o && o.unlocked) ? o : { unlocked:{} }; }
+  catch(e){ return { unlocked:{} }; }
+}
+function achvHas(id){ try{ return !!achvGet().unlocked[id]; }catch(e){ return false; } }
+let achvQueue = [], achvShowing = false;
+function achvUnlock(id){
+  const a = ACHV.find(x=>x.id===id);
+  if(!a || achvHas(id)) return false;
+  try{ const o = achvGet(); o.unlocked[id] = Date.now(); localStorage.setItem(ACHV_KEY, JSON.stringify(o)); }catch(e){}
+  achvQueue.push(a);
+  if(!achvShowing) showNextAchv();
+  return true;
+}
+function showNextAchv(){
+  const a = achvQueue.shift();
+  if(!a){ achvShowing = false; return; }
+  achvShowing = true;
+  const el = $("#achvToast");
+  if(el){
+    el.querySelector(".ai").textContent = a.icon;
+    el.querySelector(".an").textContent = a.name;
+    el.querySelector(".ad").textContent = a.desc;
+    el.classList.add("show");
+    setTimeout(()=>{ el.classList.remove("show"); setTimeout(showNextAchv, 350); }, 2600);
+  } else showNextAchv();
+}
+function collGet(){
+  try{ const o = JSON.parse(localStorage.getItem(COLL_KEY)); return (o && o.items) ? o : { items:{} }; }
+  catch(e){ return { items:{} }; }
+}
+function collAdd(id){
+  if(!id || !ITEM_DEX.some(d=>d.id===id)) return;
+  try{
+    const o = collGet();
+    if(o.items[id]) return;
+    o.items[id] = Date.now();
+    localStorage.setItem(COLL_KEY, JSON.stringify(o));
+  }catch(e){}
+}
+/* Cek achievement dari event + node tujuan. Dipanggil dari reactAndTut. */
+function achvCheck(evts, target){
+  if(!S || !S.registered) return;
+  const has = t => evts.some(e=>e.type===t);
+  if(has("death")){
+    achvUnlock("first_death");
+    if((S.deathCount||0) >= 5) achvUnlock("five_deaths");
+  }
+  if(target==="d5_trap") achvUnlock("trap_victim");
+  if(target==="d5_smart") achvUnlock("smart_cross");
+  if(target==="d3_a2a") achvUnlock("frozen");
+  evts.forEach(e=>{
+    if(e.type==="item_gained" && e.changes.id==="boneka") achvUnlock("teddy_friend");
+    if(e.type==="item_lost" && e.changes.id==="boneka") achvUnlock("teddy_dropped");
+    if(e.type==="energy_tier" && e.changes.to==="empty") achvUnlock("empty_tank");
+    if(e.reactionKey==="derived_lemas") achvUnlock("lemas_body");
+    if(e.reactionKey==="derived_bingung") achvUnlock("dice_fate");
+  });
+  if(S.flags && S.flags.d1 && S.flags.d2 && S.flags.d3 && S.flags.d4) achvUnlock("explorer");
+}
+/* ---------- LAYAR: ACHIEVEMENT ---------- */
+function showAchv(){
+  S.node = "achv"; updateHUD(); document.onkeydown = null;
+  document.body.style.overflow = "";
+  const un = achvGet().unlocked, n = Object.keys(un).length;
+  const rows = ACHV.map(a=>{
+    const got = !!un[a.id];
+    return `<div class="achv-row ${got?"got":""}">
+      <span class="achv-ic">${a.icon}</span>
+      <span class="achv-tx"><b>${esc(a.name)}</b><small>${esc(a.desc)}</small></span>
+      ${got?'<span class="achv-done">✓</span>':""}
+    </div>`;
+  }).join("");
+  app.innerHTML = `<div class="screen">
+    <div class="kicker">Pencapaian</div>
+    <h2 class="stitle">🏆 ACHIEVEMENT</h2>
+    <p class="ssub">${n} / ${ACHV.length} TERBUKA</p>
+    <div class="achv-list">${rows}</div>
+    <button class="mbtn" id="btnBackTitle"><span class="mi">⌂</span><span>KEMBALI</span></button>
+  </div>`;
+  $("#btnBackTitle").onclick = showTitle;
+}
+/* ---------- LAYAR: KOLEKSI ITEM ---------- */
+function showColl(){
+  S.node = "coll"; updateHUD(); document.onkeydown = null;
+  document.body.style.overflow = "";
+  const got = collGet().items;
+  const sorted = ITEM_DEX.slice().sort((a,b)=>((got[b.id]?1:0)-(got[a.id]?1:0)));
+  const n = Object.keys(got).length;
+  const cards = sorted.map(d=>{
+    const has = !!got[d.id];
+    return `<div class="coll-card ${has?"":"missing"}">
+      <span class="coll-ic">${has?d.icon:"❓"}</span>
+      <b>${has?esc(d.name):"???"}</b>
+      <small>${has?esc(d.desc):"Belum ditemukan."}</small>
+    </div>`;
+  }).join("");
+  app.innerHTML = `<div class="screen">
+    <div class="kicker">Arsip</div>
+    <h2 class="stitle">🎒 KOLEKSI ITEM</h2>
+    <p class="ssub">${n} / ${ITEM_DEX.length} DITEMUKAN</p>
+    <div class="coll-grid">${cards}</div>
+    <button class="mbtn" id="btnBackTitle"><span class="mi">⌂</span><span>KEMBALI</span></button>
+  </div>`;
+  $("#btnBackTitle").onclick = showTitle;
 }
 
 /* ---------- STATE ---------- */
@@ -1813,7 +1998,8 @@ function buildPayload(){
     deathCount:S.deathCount, items:S.items, status:S.status,
     mental:S.mental, effects:S.effects, equipment:S.equipment, node:S.node,
     tiers:S.tiers, temp:S.temp, emotions:S.emotions, favor:S.favor,
-    objective:S.objective, body:S.body, energy:S.energy, flags:S.flags
+    objective:S.objective, body:S.body, energy:S.energy, flags:S.flags,
+    achv:achvGet().unlocked, coll:collGet().items
   };
 }
 function exportSave(){
@@ -1839,7 +2025,9 @@ function sanitizeItems(arr){
       kind:it.kind==="equipment"?"equipment":"consumable",
       slot:typeof it.slot==="string"?it.slot.slice(0,20):null,
       qty:Math.min(99,Math.max(1,parseInt(it.qty)||1)),
-      use:(it.use && typeof it.use==="object") ? it.use : null
+      use:(it.use && typeof it.use==="object") ? it.use : null,
+      story:it.story===true,
+      storyHint:typeof it.storyHint==="string" ? it.storyHint.slice(0,160) : null
     }));
 }
 function sanitizeFlags(f){
@@ -1892,6 +2080,15 @@ function importSave(file){
       node:(typeof data.node==="string" && NODES[data.node]) ? data.node : "opening"
     };
     try{ localStorage.setItem(SAVE_KEY, JSON.stringify(clean)); }catch(e){}
+    try{ /* gabungkan achievement & koleksi dari file (union) */
+      const ao = achvGet(), co = collGet();
+      if(data.achv && typeof data.achv==="object")
+        Object.keys(data.achv).slice(0,40).forEach(k=>{ if(!ao.unlocked[k]) ao.unlocked[k] = data.achv[k]||Date.now(); });
+      if(data.coll && typeof data.coll==="object")
+        Object.keys(data.coll).slice(0,60).forEach(k=>{ if(!co.items[k]) co.items[k] = data.coll[k]||Date.now(); });
+      localStorage.setItem(ACHV_KEY, JSON.stringify(ao));
+      localStorage.setItem(COLL_KEY, JSON.stringify(co));
+    }catch(e){}
     restoreState(clean);
     document.body.style.overflow = "";
     toast("Save berhasil di-import 🩸");
@@ -1937,29 +2134,36 @@ function showTitle(){
   const sv = loadSave();
   const tutDone = !!tutGet();
   let btns, sub = "";
+  let mainBtns = "";
   if(!tutDone){
     sub = `<div class="saveinfo">Selesaikan 7 langkah tutorial untuk mulai bermain.</div>`;
-    btns = `<button class="big primary" id="btnTutStart">📖 MULAI TUTORIAL</button>`;
+    mainBtns = `<button class="mbtn primary" id="btnTutStart"><span class="mi">📖</span><span>MULAI TUTORIAL</span></button>`;
   }else if(sv){
     sub = `<div class="saveinfo">Player <b>${esc(sv.name)}</b> · 💀 ${sv.deathCount} · 🎒 ${sv.items.reduce((a,i)=>a+(i.qty||1),0)} item</div>`;
-    btns = `<button class="big primary" id="btnCont">LANJUTKAN</button>
-            <button class="big ghost" id="btnNew">CERITA BARU</button>
-            <button class="big ghost" id="btnTut">📖 BACA TUTORIAL</button>`;
+    mainBtns = `<button class="mbtn primary" id="btnCont"><span class="mi">▶</span><span>LANJUTKAN</span></button>
+      <button class="mbtn" id="btnNew"><span class="mi">📜</span><span>CERITA BARU</span></button>`;
   }else{
-    btns = `<button class="big primary" id="btnStart">MULAI</button>
-            <button class="big ghost" id="btnTut">📖 BACA TUTORIAL</button>`;
+    mainBtns = `<button class="mbtn primary" id="btnStart"><span class="mi">🩸</span><span>MULAI</span></button>`;
   }
   const hasSave = !!(sv || S.registered);
-  const saveBtns = `${hasSave?`<button class="mini-btn js-export">💾 EXPORT SAVE</button>`:""}<button class="mini-btn js-import">📥 IMPORT SAVE</button>`;
+  const menuGrid = tutDone ? `
+      <div class="menugrid">
+        <button class="mbtn" id="btnTut"><span class="mi">📖</span><span>TUTORIAL</span></button>
+        <button class="mbtn" id="btnAchv"><span class="mi">🏆</span><span>ACHIEVEMENT</span></button>
+      </div>
+      <button class="mbtn" id="btnColl"><span class="mi">🎒</span><span>KOLEKSI ITEM</span></button>
+      <div class="menugrid">
+        ${hasSave?`<button class="mbtn" id="btnExport"><span class="mi">💾</span><span>EXPORT</span></button>`:""}
+        <button class="mbtn" id="btnImport"><span class="mi">📥</span><span>IMPORT</span></button>
+      </div>` : "";
   app.innerHTML = `
     <div id="titleScreen"><div class="tube"></div><div class="fog"></div><div class="title-inner screen">
-      <div class="pre">Let's play Some Game~</div>
+      <div class="pre">Beranikah kau masuk?</div>
       <h1>The Asylum</h1>
-      <h2>Part 1 : Awal Mula</h2>
       ${sub}
       <div class="nocheat"><b>PERATURAN MUTLAK</b> — Setiap pilihan yang kau ambil adalah takdir yang harus kau jalani. Tidak ada tombol kembali, tidak ada pengulangan. Jika kau ingin memilih jalan yang berbeda... mulailah lagi dari awal.</div>
-      <div class="btnrow">${btns}</div>
-      <div class="btnrow" style="margin-top:1rem">${saveBtns}</div>
+      ${mainBtns}
+      ${menuGrid}
     </div></div>`;
   const st = $("#btnStart"); if(st) st.onclick = ()=>{ document.body.style.overflow=""; showPact(); };
   const ts = $("#btnTutStart"); if(ts) ts.onclick = ()=>{ document.body.style.overflow=""; showTutorial(); };
@@ -1967,12 +2171,15 @@ function showTitle(){
   if(ct) ct.onclick = ()=>{ restoreState(sv); document.body.style.overflow=""; showStatus("continue", sv.node); };
   const nw = $("#btnNew");
   if(nw) nw.onclick = ()=>{
-    if(confirm("Mulai CERITA BARU? Semua progres (nama, item, death count) akan dihapus permanen.")){
+    if(confirm("Mulai CERITA BARU? Semua progres (nama, item, death count) akan dihapus permanen.\nAchievement & koleksi item tetap tersimpan.")){
       wipeSave(); resetState(); document.body.style.overflow=""; showPact();
     }
   };
-  $("#btnTut").onclick = ()=>{ document.body.style.overflow=""; showTutorial(); };
-  wireSaveButtons();
+  const bt = $("#btnTut"); if(bt) bt.onclick = ()=>{ document.body.style.overflow=""; showTutorial(); };
+  const ba = $("#btnAchv"); if(ba) ba.onclick = ()=>{ document.body.style.overflow=""; showAchv(); };
+  const bc = $("#btnColl"); if(bc) bc.onclick = ()=>{ document.body.style.overflow=""; showColl(); };
+  const be = $("#btnExport"); if(be) be.onclick = exportSave;
+  const bi = $("#btnImport"); if(bi) bi.onclick = ()=>$("#importFile").click();
 }
 
 /* ---------- LAYAR: INGATAN (registrasi — tema amnesia) ---------- */
@@ -1998,6 +2205,7 @@ function showPact(){
     if(!name){ $("#pName").style.borderColor = "var(--blood)"; $("#pName").focus(); return; }
     S.registered = true; S.name = name; S.gender = $("#pGender").value;
     S.node = "status"; persist();
+    achvUnlock("wake_up");
     const b = $("#btnSign"); b.disabled = true; b.textContent = "✦ TERINGAT";
     setTimeout(()=>{ document.body.style.overflow=""; showStatus("new"); }, 1000);
   };
@@ -2257,7 +2465,7 @@ function goTarget(target, opts){
   else if(n.kind==="input") renderInput(target);
   else if(n.kind==="keypad") renderKeypad(target);
   else renderNode(target);
-  if(!opts || !opts.quiet) reactAndTut(before, "node:"+target);
+  if(!opts || !opts.quiet) reactAndTut(before, "node:"+target, target);
 }
 
 /* ---------- NODE INPUT TEKS (teka-teki; jawaban salah -> onWrong) ---------- */
@@ -2393,7 +2601,9 @@ function grantItem(item){
   if(ex) ex.qty = (ex.qty||1)+1;
   else S.items.push({ id:item.id, name:item.name, note:item.note||"",
                       icon:item.icon||"🎒", kind:item.kind||"consumable",
-                      slot:item.slot||null, qty:1, use:item.use||null });
+                      slot:item.slot||null, qty:1, use:item.use||null,
+                      story:!!item.story, storyHint:item.storyHint||null });
+  collAdd(item.id);
   persist();
   reactAndTut(before, "item");
 }
