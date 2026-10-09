@@ -315,8 +315,15 @@
     font-weight:800; letter-spacing:.12em; text-transform:uppercase; border:1px solid;
     background:rgba(0,0,0,.72)}
   .tut-body b.c-black{color:#000}
+  .efloat{position:fixed; z-index:120; color:#facc15; font-weight:800; font-size:.85rem;
+    letter-spacing:.06em; pointer-events:none; text-shadow:0 1px 8px #000;
+    animation:efloat .9s ease-out forwards}
+  @keyframes efloat{from{opacity:1; transform:translateY(0)}to{opacity:0; transform:translateY(-34px)}}
+  .tired-note{font-size:.75rem; color:#fb923c; text-align:center; margin:.6rem 0 0;
+    letter-spacing:.06em}
   @media (prefers-reduced-motion: reduce){
     .efill{transition:none}
+    .efloat{animation:none}
   }
 </style>
 </head>
@@ -384,13 +391,15 @@ const NODES = {
    - Semua cabang bermuara kembali: ke opening, atau maju ke hub_exit
      (jembatan resepsionis -> tbc; fork resepsionis = fase konten berikut).
    - BALANCE (estimasi): tiap klik pilihan = 4 Energi. Jelajah penuh
-     ~17-20 klik = ~70-80 Energi dari 100. Makanan yang ditemukan:
-     Roti +20, Cokelat +25 -> pemain dipaksa makan & kelola tas, tapi
-     tidak pernah bisa santai. Energi 0 -> tiap pilihan menaikkan
-     Kelelahan ( -> Lemas di Ekstrim). Luka (d3_a2b) memaksa pakai
-     Perban Kotor manual dari tas (sembuh + Keracunan 1) atau menanggung
-     [Terluka]. Setiap pintu memungut "pajak" Takut/Stress/Energi —
-     bahkan mundur pun tidak gratis.
+     ~17-20 klik = ~70-80 Energi dari 100. Makanan STRICT: Roti +15,
+     Cokelat +20 -> jelajah penuh + makan semua = ~59 (zona tired,
+     tidak pernah nyaman). Energi 0 -> hanya pilihan canon; bila tidak
+     ada, pilihan TERAKHIR dipaksa (jalan termudah). Tiap pilihan juga
+     menaikkan Kelelahan di 0. Luka (d3_a2b) memaksa pakai Perban Kotor
+     manual dari tas (sembuh + Keracunan 1) atau menanggung [Terluka].
+     Setiap pintu memungut "pajak" Takut/Stress/Energi — bahkan mundur
+     pun tidak gratis. Jebakan lampu butuh Energi ≥15 (tak bisa sprint
+     saat kelelahan).
    ============================================================ */
   opening: {
     kind: "choice",
@@ -404,7 +413,7 @@ const NODES = {
       { text: "Mengecek pintu kedua di kiri", doneFlag: "d2", doneText: "✓ Pintu kedua di kiri", blockedIfFlag: "d2", target: "d2_hub" },
       { text: "Mengecek pintu pertama di kanan", doneFlag: "d3", doneText: "✓ Pintu pertama di kanan", blockedIfFlag: "d3", target: "d3_hub" },
       { text: "Mengecek pintu kedua di kanan", doneFlag: "d4", doneText: "✓ Pintu kedua di kanan", blockedIfFlag: "d4", target: "d4_hub" },
-      { text: "Terus maju meski ragu.", target: "d5_1" }
+      { text: "Terus maju meski ragu.", target: "d5_1", canon: true }
     ]
   },
 
@@ -526,7 +535,7 @@ const NODES = {
       "Kau melipatnya kembali dan menyimpan keduanya. Setidaknya, perutmu tidak akan kosong untuk sementara waktu."
     ],
     grantItems: [
-      { id: "roti_kering", name: "Roti Kering", icon: "🍞", note: "PAKAI: +20 Energi", use: { energy: 20 } },
+      { id: "roti_kering", name: "Roti Kering", icon: "🍞", note: "PAKAI: +15 Energi", use: { energy: 15 } },
       { id: "surat_terlipat", name: "Surat Terlipat", icon: "💌", note: "Surat yang tak terkirim", use: { mentalBetter: 1, addEmotion: [{ n: "Sedih", amt: 1 }] } }
     ],
     setFlag: { d1: true },
@@ -621,7 +630,7 @@ const NODES = {
       "Kau mengambil cokelat itu. Sepatu itu kau biarkan. Kau tidak sanggup menyentuhnya."
     ],
     grantItems: [
-      { id: "cokelat", name: "Cokelat Batangan", icon: "🍫", note: "PAKAI: +25 Energi, -1 Stress", use: { energy: 25, tierDown: ["Stress"] } }
+      { id: "cokelat", name: "Cokelat Batangan", icon: "🍫", note: "PAKAI: +20 Energi, -1 Stress", use: { energy: 20, tierDown: ["Stress"] } }
     ],
     addEmotion: [{ n: "Sedih", amt: 1 }],
     setFlag: { d2c2: true },
@@ -867,8 +876,8 @@ const NODES = {
     ],
     addEmotion: [{ n: "Takut", amt: 1 }],
     choices: [
-      { text: "Berlari ke lampu yang stabil — terang berarti aman", target: "d5_trap" },
-      { text: "Bergerak di antara kedipan, tetap dalam bayangan", target: "d5_smart", requiresMentalMax: 2, condNote: "Butuh fokus (mental ≤ Gelisah)" },
+      { text: "Berlari ke lampu yang stabil — terang berarti aman", target: "d5_trap", requiresEnergy: 15 },
+      { text: "Bergerak di antara kedipan, tetap dalam bayangan", target: "d5_smart", requiresMentalMax: 2, condNote: "Butuh fokus (mental ≤ Gelisah)", canon: true },
       { text: "Berbalik kembali ke persimpangan pintu", target: "d5_back" }
     ]
   },
@@ -984,7 +993,8 @@ function snapshotState(){
            items, equipment, effects:[...S.effects],
            tiers:{...(S.tiers||{})}, temp:(S.temp||[]).map(t=>t.n).sort(),
            emotions:{...(S.emotions||{})}, favor:{...(S.favor||{})},
-           objective:S.objective||null, body:S.body||null };
+           objective:S.objective||null, body:S.body||null,
+           energyTier:energyTier() };
 }
 function itemName(id){
   const it = S.items.find(x=>x.id===id);
@@ -1088,6 +1098,15 @@ function deriveEvents(before, after, source){
   const bt = new Set(before.temp), at = new Set(after.temp);
   at.forEach(t=>{ if(!bt.has(t)) push("temp_started", "low", { name:t }, "temp_started"); });
   bt.forEach(t=>{ if(!at.has(t)) push("temp_ended", "low", { name:t }, "temp_ended"); });
+  /* --- tier energi --- */
+  if(after.energyTier!==before.energyTier){
+    const order = { fit:4, tired:3, weary:2, critical:1, empty:0 };
+    const to = after.energyTier;
+    const d = (order[to]??4) < (order[before.energyTier]??4) ? "down" : "up";
+    const txt = (ENERGY_TIER_TEXT[to]||{})[d] || "";
+    if(txt) push("energy_tier", to==="empty"||to==="critical" ? "high" : "low",
+                 { from:before.energyTier, to, dir:d, tierText:txt }, "energy_tier");
+  }
   /* --- kondisi tubuh --- */
   if(after.body!==before.body && (after.body || before.body))
     push("body_changed", "low",
@@ -1125,6 +1144,7 @@ const REACTIONS = {
   temp_started:        { text:["Efek sementara: {name}."] },
   temp_ended:          { text:["{name} mereda."] },
   body_changed:        { text:["Kondisi tubuhmu: {to}."] },
+  energy_tier:         { text:["{tierText}"] },
 };
 let lastReactionKey = null, lastRepeat = 0;
 function fillTpl(tpl, changes){
@@ -1244,10 +1264,12 @@ function removeItem(id, qty){
 
 /* ---------- ENERGI ---------- */
 /* Setiap pilihan memakai Energi. Makanan memulihkan. Energi 0 -> Kelelahan naik. */
-function spendEnergy(n){
+function spendEnergy(n, x, y){
   if(!S.registered) return;
   if(S.energy==null) S.energy = 100;
-  S.energy = Math.max(0, S.energy - (n==null?4:n));
+  const cost = (n==null?4:n);
+  S.energy = Math.max(0, S.energy - cost);
+  floatEnergy(cost, x, y);
   updateHUD();
   if(S.energy<=0){
     const before = tierGet("Kelelahan");
@@ -1274,6 +1296,49 @@ function useItem(id){
   presentReaction(deriveEvents(before, snapshotState(), "use"));
   updateHUD(); openInventory();
   toast("Kau memakai: "+it.name+" 🩸");
+}
+
+/* ---------- TIER ENERGI (naratif, bukan % acak) ---------- */
+/* fit 60-100: normal. tired 40-59 / weary 20-39 / critical 1-19: tubuh
+   memberat secara cerita. empty 0: hanya pilihan canon yang bisa diambil;
+   kalau tidak ada, pilihan TERAKHIR dipaksa (jalan termudah). */
+function energyTier(){
+  const e = (S.energy==null) ? 100 : S.energy;
+  if(e<=0) return "empty";
+  if(e<20) return "critical";
+  if(e<40) return "weary";
+  if(e<60) return "tired";
+  return "fit";
+}
+const ENERGY_TIER_TEXT = {
+  tired:    { down: "Tubuhmu mulai terasa berat. Napasmu memendek.",
+              up: "Sedikit tenaga kembali ke tubuhmu." },
+  weary:    { down: "Kakimu gemetar. Kau butuh makan — segera.",
+              up: "Kakimu kembali mantap." },
+  critical: { down: "Penglihatanmu berkunang. Sedikit lagi kau tumbang.",
+              up: "Kunang-kunang di matamu mereda." },
+  empty:    { down: "Energimu habis. Tubuhmu bergerak atas kemauannya sendiri — mengikuti jalan termudah.",
+              up: "Tenaga kembali mengalir. Kau bisa berpikir lagi." },
+  fit:      { down: "", up: "Tubuhmu kembali bugar." }
+};
+/* Indikator melayang "-4 ⚡" di titik tap */
+function floatEnergy(n, x, y){
+  try{
+    if(typeof matchMedia!=="undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const s = document.createElement("span");
+    s.className = "efloat";
+    s.textContent = "-" + n + " \u26A1";
+    s.style.left = ((x!=null && x>0) ? x : (window.innerWidth-80)) + "px";
+    s.style.top = ((y!=null && y>0) ? y : 96) + "px";
+    document.body.appendChild(s);
+    setTimeout(()=>{ if(s.remove) s.remove(); }, 950);
+  }catch(e){}
+}
+/* Index pilihan yang dipaksa saat energi 0 (-1 = tidak perlu) */
+function forcedChoiceIdx(choices){
+  if((S.energy==null?100:S.energy)>0) return -1;
+  const anyOpen = choices.some(c=>!isChoiceLocked(c));
+  return anyOpen ? -1 : choices.length-1;
 }
 
 /* ---------- DADU (Kebingungan Akut) ---------- */
@@ -1320,6 +1385,8 @@ function resolveChoiceTarget(c){
 /* ---------- KUNCI PILIHAN (diperluas) ---------- */
 function isChoiceLocked(c){
   if(c.blockedIfFlag && S.flags && S.flags[c.blockedIfFlag]) return true;
+  if((S.energy==null?100:S.energy)<=0 && !c.canon) return true; /* habis: hanya jalan canon */
+  if(c.requiresEnergy!=null && (S.energy==null?100:S.energy) < c.requiresEnergy) return true;
   if(c.blockedIf && (c.blockedIf==="wounded" ? isWoundedLike() : S.status===c.blockedIf)) return true;
   if(c.requiresItem && !S.items.some(it=>it.id===c.requiresItem)) return true;
   if(c.requiresEquipped && !S.equipment[c.requiresEquipped]) return true;
@@ -1333,6 +1400,10 @@ function isChoiceLocked(c){
 function choiceLockNote(c){
   if(c.blockedIfFlag && S.flags && S.flags[c.blockedIfFlag])
     return `<span class="lock">✓ Sudah diperiksa — tidak ada lagi di sana</span>`;
+  if((S.energy==null?100:S.energy)<=0 && !c.canon)
+    return `<span class="lock">⚡ Kau terlalu lelah untuk ini</span>`;
+  if(c.requiresEnergy!=null && (S.energy==null?100:S.energy) < c.requiresEnergy)
+    return `<span class="lock">⚡ Butuh energi ≥ ${c.requiresEnergy}</span>`;
   if(c.blockedIf && (c.blockedIf==="wounded" ? isWoundedLike() : S.status===c.blockedIf))
     return `<span class="lock">🔒 Tidak bisa dipilih dalam kondisi [Terluka]${isLemas()&&S.status!=="wounded"?" / [Lemas]":""}</span>`;
   if(c.requiresItem && !S.items.some(it=>it.id===c.requiresItem))
@@ -1928,20 +1999,34 @@ function renderNode(id){
   const skip = typewriter($("#twTarget"), n.story, ()=>{
     $("#tapHint").style.display = "none";
     const cbox = $("#choiceBox"); cbox.hidden = false;
+    const _fIdx = forcedChoiceIdx(n.choices);
     cbox.innerHTML = n.choices.map((c,i)=>{
-      const locked = isChoiceLocked(c);
+      const locked = isChoiceLocked(c) && i!==_fIdx;
       const dis = locked ? "disabled" : "";
       const lockNote = locked ? choiceLockNote(c) : "";
       const condTag = c.condNote ? `<span class="condtag">${esc(c.condNote)}</span>` : "";
       const label = (c.doneFlag && S.flags && S.flags[c.doneFlag] && c.doneText) ? c.doneText : c.text;
       return `<button class="choice" data-i="${i}" style="animation-delay:${0.1+i*0.09}s" ${dis}><span class="num">${i+1}</span><span>${esc(label)}${condTag}${lockNote}</span></button>`;
     }).join("");
+    if(_fIdx>=0){
+      const fb = cbox.querySelector(`.choice[data-i="${_fIdx}"]`);
+      if(fb){
+        fb.disabled = false;
+        const tag = document.createElement("span");
+        tag.className = "condtag"; tag.textContent = "naluri";
+        fb.querySelector("span:last-child").appendChild(tag);
+      }
+      const note = document.createElement("div");
+      note.className = "tired-note";
+      note.textContent = "⚡ Kau kehabisan energi — tubuhmu hanya mampu mengikuti jalan termudah.";
+      cbox.appendChild(note);
+    }
     cbox.querySelectorAll(".choice:not(:disabled)").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
+      btn.addEventListener("click", (e)=>{
         cbox.querySelectorAll(".choice").forEach(b=>b.disabled=true);
         btn.classList.add("picked");
         let c = n.choices[+btn.dataset.i];
-        spendEnergy(4); /* setiap pilihan memakai Energi */
+        spendEnergy(4, e.clientX, e.clientY); /* setiap pilihan memakai Energi */
         setTimeout(()=>{
           if(isBingung()){ /* Kebingungan Akut: dadu yang memilih */
             const avail = n.choices.filter(cc=>!isChoiceLocked(cc));
@@ -2019,7 +2104,7 @@ function renderInput(id){
       $("#txtAns").value = ""; $("#txtAns").focus();
     }else goTarget(n.onWrong);
   }
-  $("#btnAns").onclick = ()=>{ spendEnergy(4); submit(); };
+  $("#btnAns").onclick = (e)=>{ const r=e.target.getBoundingClientRect(); spendEnergy(4, r.left+r.width/2, r.top); submit(); };
   $("#txtAns").addEventListener("keydown", (e)=>{ if(e.key==="Enter") submit(); });
   document.onkeydown = (e)=>{
     if(document.activeElement && document.activeElement.id==="txtAns") return;
@@ -2065,8 +2150,8 @@ function renderKeypad(id){
     };
   });
   $("#keyClear").onclick = ()=>{ buf = ""; draw(); };
-  $("#keyGo").onclick = ()=>{
-    spendEnergy(4);
+  $("#keyGo").onclick = (e)=>{
+    const r=e.target.getBoundingClientRect(); spendEnergy(4, r.left+r.width/2, r.top);
     if(buf===(n.code||"")){ toast("Klik... terbuka 🩸"); goTarget(n.onSuccess); return; }
     left--; $("#keyLeft").textContent = left;
     const d = $("#keyDisp");
