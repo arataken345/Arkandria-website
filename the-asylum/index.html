@@ -615,8 +615,20 @@ function achvName(a){ return L(a.nameEn, a.name); }
 function achvDesc(a){ return L(a.descEn, a.desc); }
 function dexName(d){ return L(d.nameEn, d.name); }
 function dexDesc(d){ return L(d.descEn, d.desc); }
-function itemNameL(it){ return L(it.nameEn, it.name); }
-function itemNoteL(it){ return L(it.noteEn, it.note||""); }
+/* Katalog EN item — fallback untuk save lama/inventory yg belum punya field EN */
+const ITEM_EN = {
+  "roti_kering":  { nameEn:"Dry Bread", noteEn:"USE: +15 Energy" },
+  "surat_terlipat":{ nameEn:"Folded Letter", noteEn:"The letter that was never sent" },
+  "perban_kotor": { nameEn:"Dirty Bandage", noteEn:"USE: heal wounds, but dirty" },
+  "cokelat":      { nameEn:"Chocolate Bar", noteEn:"USE: +20 Energy, -1 Stress" },
+  "boneka":       { nameEn:"Teddy Bear", noteEn:"A shabby bear \u2014 no idea why you carry it",
+                    storyHintEn:"This shabby teddy bear... why am I carrying it? No idea. But it feels like I should keep it." },
+  "gambar_crayon":{ nameEn:"Crayon Drawing", noteEn:"A family drawing \u2014 USE: reflect on it" }
+};
+function itemNameL(it){ const c=ITEM_EN[it.id]; return L(it.nameEn||(c&&c.nameEn), it.name); }
+function itemNoteL(it){ const c=ITEM_EN[it.id]; return L(it.noteEn||(c&&c.noteEn), it.note||""); }
+function itemStoryHintL(it){ const c=ITEM_EN[it.id];
+  return L(it.storyHintEn||(c&&c.storyHintEn), it.storyHint) || ui("inv_story_fallback"); }
 function tutStepT(s){ return L(s.tEn, s.t); }
 function tutStepH(s){ return L(s.hEn, s.h); }
 function tutPopT(p){ return L(p.tEn, p.t); }
@@ -630,6 +642,42 @@ function tierDisp(k){ return LANG==="en" ? (TIER_DISP[k]||k) : k; }
 function tierLabel(i){ return LANG==="en" ? (TIER_NAMES_EN[i]||"?") : (TIER_NAMES[i]||"?"); }
 const EMOTION_DISP = {"Takut":"Fear","Lega":"Relief","Marah":"Anger","Sedih":"Sorrow"};
 function emotionDisp(k){ return LANG==="en" ? (EMOTION_DISP[k]||k) : k; }
+const DERIVED_DISP = {"Lemas":"Exhausted", "Kebingungan Akut":"Acute Confusion"};
+const DERIVED_NOTE_EN = {
+  "Kelelahan mencapai Ekstrim \u2014 tubuhmu Lemas, setara Terluka.":"Exhaustion reached Extreme \u2014 your body is Exhausted, equal to Wounded.",
+  "Stress mencapai Ekstrim \u2014 pilihanmu berikutnya ditentukan dadu.":"Stress reached Extreme \u2014 your next choice will be decided by the die.",
+  "Rasa lemasmu mereda.":"The heaviness in your limbs fades.",
+  "Pikiranmu kembali jernih.":"Your mind clears again."
+};
+const DIR_DISP = {"naik":"rises", "turun":"recedes"};
+const TIERLBL_DISP = {"Ringan":"Mild","Sedang":"Moderate","Tinggi":"Severe","Ekstrim":"Extreme","Hilang":"Gone"};
+function dispLabel(v){
+  if(typeof v!=="string") return v;
+  let i = MENTAL.indexOf(v); if(i>=0) return MENTAL_EN[i];
+  if(TIERLBL_DISP[v]) return TIERLBL_DISP[v];
+  return v;
+}
+function itemDispName(id){
+  const it = (S.items||[]).find(x=>x.id===id);
+  const o = it || Object.values(S.equipment||{}).find(e=>e&&e.id===id);
+  const c = ITEM_EN[id];
+  return o ? L(o.nameEn||(c&&c.nameEn), o.name) : ((c&&LANG==="en") ? c.nameEn : id);
+}
+/* Lokalisasi nilai display untuk reaction bar (EN). Nilai logika mentah
+   (dir, to, id, reactionKey) TIDAK diubah di sini — hanya yang tampil. */
+function dispChanges(ch){
+  if(LANG!=="en" || !ch) return ch||{};
+  const o = Object.assign({}, ch);
+  if(o.name) o.name = EMOTION_DISP[o.name]||TIER_DISP[o.name]||DERIVED_DISP[o.name]||o.name;
+  if(o.dir) o.dir = DIR_DISP[o.dir]||o.dir;
+  if(o.label!==undefined) o.label = dispLabel(o.label);
+  if(o.from!==undefined) o.from = dispLabel(o.from);
+  if(o.to!==undefined && typeof o.to==="string" && (TIERLBL_DISP[o.to]||MENTAL.indexOf(o.to)>=0)) o.to = dispLabel(o.to);
+  if(o.note && DERIVED_NOTE_EN[o.note]) o.note = DERIVED_NOTE_EN[o.note];
+  if(o.objective && o.objectiveEn) o.objective = o.objectiveEn;
+  if(o.slotName) o.slotName = (o.slot==="senjata") ? ui("eq_weapon") : o.slotName;
+  return o;
+}
 const ENERGY_TIER_TEXT_EN = {
   tired:    { down:"Your body grows heavy. Your breath shortens.",
               up:"A little strength returns to your body." },
@@ -1330,17 +1378,17 @@ function deriveEvents(before, after, source){
   ids.forEach(id=>{
     const b = before.items[id]||0, a = after.items[id]||0;
     if(a > b) push("item_gained", "low",
-                   { id, name:itemName(id), from:b, to:a, qty:a-b }, "item_gained");
+                   { id, name:itemDispName(id), from:b, to:a, qty:a-b }, "item_gained");
     else if(a < b) push("item_lost", "low",
-                   { id, name:itemName(id), from:b, to:a, qty:b-a }, "item_lost");
+                   { id, name:itemDispName(id), from:b, to:a, qty:b-a }, "item_lost");
   });
   Object.keys(after.equipment).forEach(slot=>{
     if(after.equipment[slot] !== before.equipment[slot]){
       const equipped = !!after.equipment[slot];
       push("equipment_changed", "low",
-           { slot, slotName:eqSlotName(slot),
+           { slot, slotName:eqSlotNameL(slot),
              from:before.equipment[slot], to:after.equipment[slot],
-             name:itemName(after.equipment[slot]||before.equipment[slot]) },
+             name:itemDispName(after.equipment[slot]||before.equipment[slot]) },
            equipped ? "equipment_equipped" : "equipment_unequipped");
     }
   });
@@ -1390,7 +1438,7 @@ function deriveEvents(before, after, source){
   if(after.objective!==before.objective)
     push("objective_changed", "moderate",
          { from:before.objective||"—", to:after.objective||"—",
-           objective:after.objective||"" }, "objective_changed");
+           objective:after.objective||"", objectiveEn:after.objectiveEn||null }, "objective_changed");
   /* --- status sementara --- */
   const bt = new Set(before.temp), at = new Set(after.temp);
   at.forEach(t=>{ if(!bt.has(t)) push("temp_started", "low", { name:t }, "temp_started"); });
@@ -1469,7 +1517,7 @@ function presentReaction(events){
   lastReactionKey = key;
   const entry = REACTIONS[key];
   if(!entry) return;
-  showReactionBar(fillTpl(reactVariant(entry, variant), primary.changes), primary.severity);
+  showReactionBar(fillTpl(reactVariant(entry, variant), dispChanges(primary.changes)), primary.severity);
 }
 function showReactionBar(msg, severity){
   let bar = $("#reactionBar");
@@ -2122,7 +2170,7 @@ function openInventory(){
         const storyTap = it.story ? ` data-story="${esc(it.id)}" title="${esc(ui("inv_story_title"))}"` : "";
         const storyDet = it.story
           ? `<div class="story-detail" id="sdet-${esc(it.id)}" hidden>
-               <p>${esc(L(it.storyHintEn, it.storyHint) || ui("inv_story_fallback"))}</p>
+               <p>${esc(itemStoryHintL(it))}</p>
                <button class="mini-btn danger" data-drop="${esc(it.id)}">${ui("inv_drop")}</button>
              </div>` : "";
         return `<div class="inv-item${storyCls}"${storyTap}><span>${esc(it.icon||"🎒")} ${esc(itemNameL(it))}<br/><small>${esc(itemNoteL(it))}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}${use}</span></div>${storyDet}`;
@@ -2251,7 +2299,10 @@ function sanitizeItems(arr){
       qty:Math.min(99,Math.max(1,parseInt(it.qty)||1)),
       use:(it.use && typeof it.use==="object") ? it.use : null,
       story:it.story===true,
-      storyHint:typeof it.storyHint==="string" ? it.storyHint.slice(0,160) : null
+      storyHint:typeof it.storyHint==="string" ? it.storyHint.slice(0,160) : null,
+      nameEn:typeof it.nameEn==="string" ? it.nameEn.slice(0,40) : null,
+      noteEn:typeof it.noteEn==="string" ? it.noteEn.slice(0,80) : null,
+      storyHintEn:typeof it.storyHintEn==="string" ? it.storyHintEn.slice(0,160) : null
     }));
 }
 function sanitizeFlags(f){
