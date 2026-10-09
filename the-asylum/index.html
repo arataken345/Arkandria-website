@@ -259,6 +259,35 @@
   footer{position:relative; z-index:1; text-align:center; padding:1.2rem; font-size:.68rem; letter-spacing:.3em; color:#4a4a4a}
   footer a{color:var(--dim); text-decoration:none} footer a:hover{color:var(--blood)}
   @media (max-width:520px){ .legend{grid-template-columns:1fr} }
+  /* ===== REACTION BAR (sistem reaktif — non-blocking) ===== */
+  #reactionBar{position:fixed; left:50%; bottom:5.2rem; transform:translateX(-50%) translateY(16px);
+    max-width:min(92vw,560px); padding:.7rem 1.25rem; border-radius:12px; z-index:90;
+    background:rgba(10,10,14,.94); border:1px solid #3a3a3a; color:var(--bone);
+    font-size:.88rem; line-height:1.6; text-align:center; opacity:0; pointer-events:none;
+    transition:opacity .3s ease, transform .3s ease}
+  #reactionBar.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  #reactionBar.sev-moderate{border-color:#8a8a8a; box-shadow:0 0 22px rgba(232,228,224,.12)}
+  #reactionBar.sev-high{border-color:var(--blood); box-shadow:0 0 30px rgba(220,20,60,.35); animation:rtremor .5s ease}
+  #reactionBar.sev-critical{border-color:var(--blood); background:rgba(42,5,12,.96);
+    box-shadow:0 0 46px rgba(220,20,60,.5); animation:rshake .6s ease}
+  @keyframes rshake{0%,100%{transform:translateX(-50%)}20%{transform:translateX(calc(-50% - 7px))}
+    40%{transform:translateX(calc(-50% + 7px))}60%{transform:translateX(calc(-50% - 5px))}80%{transform:translateX(calc(-50% + 5px))}}
+  @keyframes rtremor{0%,100%{transform:translateX(-50%)}50%{transform:translateX(calc(-50% - 3px))}}
+  /* ===== TUTORIAL STEPPER ===== */
+  .tut-progress{font-size:.68rem; font-weight:800; letter-spacing:.3em; text-indent:.3em;
+    text-transform:uppercase; color:var(--dim); text-align:center; margin-bottom:.6rem}
+  .tut-dots{display:flex; gap:.45rem; justify-content:center; margin-bottom:1.6rem}
+  .tut-dots span{width:8px; height:8px; border-radius:50%; background:#3a3a3a; transition:background .2s}
+  .tut-dots span.on{background:var(--blood); box-shadow:0 0 8px var(--blood-dim)}
+  .tut-dots span.done{background:#6e6e6e}
+  .tut h2{text-align:center; margin-bottom:1.1rem}
+  .tut-body{max-width:620px; margin:0 auto 2rem; color:var(--ash); line-height:1.9; font-size:.98rem}
+  .tut-body b{color:var(--bone)} .tut-body .tag{font-weight:800}
+  @media (prefers-reduced-motion: reduce){
+    #reactionBar.sev-high, #reactionBar.sev-critical{animation:none}
+    #reactionBar{transition:none}
+    .tut-dots span{transition:none}
+  }
 </style>
 </head>
 <body>
@@ -379,16 +408,6 @@ const NODES = {
   tbc: { kind: "tbc" }
 };
 
-const TUTORIAL = [
-  ["1", "Kau adalah seorang <b>player</b> yang terbangun di dalam ceritanya. Kedepannya, kau akan dihadapkan dengan berbagai macam pilihan yang membuatmu harus berfikir dengan cermat dan cerdik. Tujuanmu adalah <b>bertahan hidup</b>!"],
-  ["2", "Dalam perjalananmu, kau akan terus dihadapkan dengan sebuah pilihan-pilihan yang berbeda. Setiap kau memilih pilihan, akan menghasilkan jalan cerita yang berbeda-beda. Maka dari itu, <b>pilihlah dengan cermat</b>!"],
-  ["3", "Pilihan yang di akhir memiliki <span class='tag c-yellow'>[Dalam bahaya]</span> maka itu artinya kau terancam tewas jika seandainya kau memilih pilihan yang salah di pilihan berikutnya. Namun jika kau benar memilih, kau akan kembali aman."],
-  ["4", "Pilihan yang berakhiran <span class='tag' style='color:#fb923c'>[Terluka]</span> akan membuatmu dalam bahaya, jika kau sekali lagi salah memilih, kau tewas, dan kondisi [Terluka] akan membuatmu <b>tidak bisa memilih beberapa pilihan</b> yang lain."],
-  ["5", "Pilihan yang berakhiran <b>Tewas</b> berarti kau telah gagal untuk melanjutkan ceritanya. Namun jangan khawatir, karena kau adalah seorang <b>\"Player\"</b> kau bisa <b>bangkit di tempat</b> untuk melanjutkan ceritanya. Namun di atas kepalamu akan muncul angka, angka tersebut akan terus bertambah setiap kau tewas, hal ini disebut sebagai <b>\"Death Count\"</b>. Jagalah death count-mu tetap rendah, karena itu akan menentukan <b>\"Akhir\"</b> dari dirimu."],
-  ["6", "Pilihan yang kau ambil akan memberikanmu berbagai <b>item</b> (atau bahkan tak dapat apapun sama sekali), item-item tersebut akan menjadi barang krusial yang menentukanmu dalam mengambil pilihan kedepannya. Dapatkanlah item terbaik dengan cara memikirkan situasinya sebelum memilih."],
-  ["7", "Akan ada semacam situasi khusus kedepannya yang akan ditandai dengan <span class='tag c-white'>[Pilihan!]</span>, situasi ini muncul disaat-saat khusus dan kamu sebagai player akan diberikan kesempatan untuk melanjutkan cerita dengan preferensimu!"],
-  ["8", "<b>PERLENGKAPAN</b> berbeda dengan <b>inventori</b>: senjata dan perlengkapan khusus harus di-<b>EQUIP</b> agar bisa dipakai \u2014 beberapa pilihan hanya bisa dilewati jika perlengkapan yang tepat terpasang. Setiap item punya ikonnya masing-masing di dalam tas."]
-];
 
 const LEGEND = [
   ["c-gray", "Teks <b>abu-abu</b> adalah teks cerita."],
@@ -429,6 +448,127 @@ function loadSave(){
   }catch(e){ return null; }
 }
 function wipeSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+
+/* ---------- EVENT FOUNDATION (reaktif — read-only, tidak memutasi S) ---------- */
+/* Snapshot: bentuk ringkas state yang dilacak untuk perbandingan before/after. */
+function snapshotState(){
+  const items = {};
+  S.items.forEach(it=>{ items[it.id] = (items[it.id]||0) + (it.qty||1); });
+  const equipment = {};
+  Object.keys(S.equipment).forEach(k=>{ equipment[k] = S.equipment[k] ? S.equipment[k].id : null; });
+  return { status:S.status, mental:S.mental, deathCount:S.deathCount,
+           items, equipment, effects:[...S.effects] };
+}
+function itemName(id){
+  const it = S.items.find(x=>x.id===id);
+  if(it) return it.name;
+  for(const k of Object.keys(S.equipment)){
+    const e = S.equipment[k];
+    if(e && e.id===id) return e.name;
+  }
+  return id;
+}
+let evtSeq = 0;
+/* deriveEvents: bandingkan before/after -> daftar event semantik. Hanya dari
+   perubahan nyata; tidak ada event palsu. Severity dari aturan eksplisit. */
+function deriveEvents(before, after, source){
+  const evts = [];
+  const push = (type, severity, changes, reactionKey)=>{
+    evts.push({ id:"ev"+(++evtSeq), type, severity, changes,
+                source, context:{ node:S.node }, reactionKey });
+  };
+  if(after.deathCount > before.deathCount)
+    push("death", "critical",
+         { from:before.deathCount, to:after.deathCount, deathCount:after.deathCount },
+         "death");
+  if(after.status !== before.status){
+    const to = after.status;
+    const sev = (to==="danger"||to==="wounded") ? "high" : "moderate";
+    push("status_changed", sev, { from:before.status, to }, "status_"+(to||"safe"));
+  }
+  if(after.mental !== before.mental){
+    const worse = after.mental > before.mental;
+    push("mental_changed", worse ? (after.mental>=4 ? "high" : "moderate") : "low",
+         { from:before.mental, to:after.mental, label:MENTAL[after.mental]||"" },
+         "mental_"+(worse?"worse":"better"));
+  }
+  const ids = new Set([...Object.keys(before.items), ...Object.keys(after.items)]);
+  ids.forEach(id=>{
+    const b = before.items[id]||0, a = after.items[id]||0;
+    if(a > b) push("item_gained", "low",
+                   { id, name:itemName(id), from:b, to:a, qty:a-b }, "item_gained");
+    else if(a < b) push("item_lost", "low",
+                   { id, name:itemName(id), from:b, to:a, qty:b-a }, "item_lost");
+  });
+  Object.keys(after.equipment).forEach(slot=>{
+    if(after.equipment[slot] !== before.equipment[slot]){
+      const equipped = !!after.equipment[slot];
+      push("equipment_changed", "low",
+           { slot, slotName:eqSlotName(slot),
+             from:before.equipment[slot], to:after.equipment[slot],
+             name:itemName(after.equipment[slot]||before.equipment[slot]) },
+           equipped ? "equipment_equipped" : "equipment_unequipped");
+    }
+  });
+  after.effects.forEach(ef=>{
+    if(!before.effects.includes(ef))
+      push("effect_started", "moderate", { effect:ef }, "effect_started");
+  });
+  return evts;
+}
+/* Teks reaksi kurasi — variasi terkendali (deterministik), tanpa prosa acak. */
+const REACTIONS = {
+  death:               { text:["Kegelapan menelanmu. Namun sebagai Player, kau bangkit kembali — Death Count: {deathCount}.",
+                               "Kau tewas. Kegelapan melepaskanmu kembali, dengan harga: Death Count {deathCount}."] },
+  status_danger:       { text:["Hawa di sekitarmu berubah — kau dalam bahaya.",
+                               "Sesuatu mengawasimu. Bahaya mengintai."] },
+  status_wounded:      { text:["Tubuhmu terluka. Beberapa pilihan tak bisa kau ambil.",
+                               "Luka itu membatasi gerakmu."] },
+  status_safe:         { text:["Kau bisa bernapas lega... untuk sekarang."] },
+  mental_worse:        { text:["Kegelisahan merayap di benakmu. ({label})",
+                               "Pikiranmu semakin gelap. ({label})"] },
+  mental_better:       { text:["Ketenangan kembali menyelimutimu. ({label})"] },
+  item_gained:         { text:["Kau mendapatkan: {name}.",
+                               "Sesuatu kini ada di tasmu: {name}."] },
+  item_lost:           { text:["Kehilangan: {name}."] },
+  equipment_equipped:  { text:["{name} terpasang di {slotName}."] },
+  equipment_unequipped:{ text:["{name} dilepas dari {slotName}."] },
+  effect_started:      { text:["Efek baru menyelimutimu: {effect}."] },
+};
+let lastReactionKey = null, lastRepeat = 0;
+function fillTpl(tpl, changes){
+  return tpl.replace(/\{(\w+)\}/g, (_,k)=> (changes[k]!==undefined && changes[k]!==null) ? changes[k] : "");
+}
+/* presentReaction: batch event jadi satu rangkaian koheren, prioritas kritis
+   dulu, non-blocking, tidak pernah memutasi state. */
+function presentReaction(events){
+  if(!events || !events.length) return;
+  const order = { critical:0, high:1, moderate:2, low:3 };
+  const sorted = [...events].sort((a,b)=>(order[a.severity]??3)-(order[b.severity]??3));
+  const primary = sorted[0];
+  const key = primary.reactionKey;
+  let variant = 0;
+  if(key===lastReactionKey){ lastRepeat++; variant = lastRepeat % 2; }
+  else lastRepeat = 0;
+  lastReactionKey = key;
+  const entry = REACTIONS[key];
+  if(!entry) return;
+  showReactionBar(fillTpl(entry.text[variant % entry.text.length], primary.changes), primary.severity);
+}
+function showReactionBar(msg, severity){
+  let bar = $("#reactionBar");
+  if(!bar){
+    bar = document.createElement("div");
+    bar.id = "reactionBar";
+    bar.setAttribute("role","status");
+    bar.setAttribute("aria-live","polite");
+    document.body.appendChild(bar);
+  }
+  bar.className = "show sev-"+severity;
+  bar.textContent = msg;
+  clearTimeout(bar._h);
+  bar._h = setTimeout(()=>{ bar.className = ""; }, 2600);
+}
 
 /* ---------- STATE ---------- */
 let S;
@@ -481,6 +621,7 @@ function openInventory(){
 function equipItem(id){
   const it = S.items.find(x=>x.id===id);
   if(!it || it.kind!=="equipment") return;
+  const before = snapshotState();
   const slot = it.slot || "senjata";
   const cur = S.equipment[slot];
   if(cur){ /* slot terisi: kembalikan dulu ke tas */
@@ -492,16 +633,19 @@ function equipItem(id){
   if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id);
   S.equipment[slot] = { id:it.id, name:it.name, note:it.note||"", icon:it.icon||"🗡", kind:"equipment", slot };
   persist();
+  presentReaction(deriveEvents(before, snapshotState(), "equipment"));
 }
 /* LEPAS: kembalikan perlengkapan ke tas */
 function unequipItem(slot){
   const cur = S.equipment[slot];
   if(!cur) return;
+  const before = snapshotState();
   const ex = S.items.find(x=>x.id===cur.id);
   if(ex) ex.qty = (ex.qty||1)+1;
   else S.items.push({ ...cur, qty:1 });
   S.equipment[slot] = null;
   persist();
+  presentReaction(deriveEvents(before, snapshotState(), "equipment"));
 }
 $("#invBtn").addEventListener("click", openInventory);
 $("#invClose").addEventListener("click", ()=>{ $("#invModal").hidden = true; });
@@ -629,15 +773,19 @@ function showTitle(){
   document.body.style.overflow = "hidden";
   document.onkeydown = null;
   const sv = loadSave();
+  const tutDone = !!tutGet();
   let btns, sub = "";
-  if(sv){
+  if(!tutDone){
+    sub = `<div class="saveinfo">Selesaikan 7 langkah tutorial untuk mulai bermain.</div>`;
+    btns = `<button class="big primary" id="btnTutStart">📖 MULAI TUTORIAL</button>`;
+  }else if(sv){
     sub = `<div class="saveinfo">Player <b>${esc(sv.name)}</b> · 💀 ${sv.deathCount} · 🎒 ${sv.items.reduce((a,i)=>a+(i.qty||1),0)} item</div>`;
     btns = `<button class="big primary" id="btnCont">LANJUTKAN</button>
             <button class="big ghost" id="btnNew">CERITA BARU</button>
-            <button class="big ghost" id="btnTut">TUTORIAL</button>`;
+            <button class="big ghost" id="btnTut">📖 BACA TUTORIAL</button>`;
   }else{
     btns = `<button class="big primary" id="btnStart">MULAI</button>
-            <button class="big ghost" id="btnTut">TUTORIAL</button>`;
+            <button class="big ghost" id="btnTut">📖 BACA TUTORIAL</button>`;
   }
   const hasSave = !!(sv || S.registered);
   const saveBtns = `${hasSave?`<button class="mini-btn js-export">💾 EXPORT SAVE</button>`:""}<button class="mini-btn js-import">📥 IMPORT SAVE</button>`;
@@ -652,6 +800,7 @@ function showTitle(){
       <div class="btnrow" style="margin-top:1rem">${saveBtns}</div>
     </div></div>`;
   const st = $("#btnStart"); if(st) st.onclick = ()=>{ document.body.style.overflow=""; showPact(); };
+  const ts = $("#btnTutStart"); if(ts) ts.onclick = ()=>{ document.body.style.overflow=""; showTutorial(); };
   const ct = $("#btnCont");
   if(ct) ct.onclick = ()=>{ restoreState(sv); document.body.style.overflow=""; showStatus("continue", sv.node); };
   const nw = $("#btnNew");
@@ -693,20 +842,69 @@ function showPact(){
   $("#pName").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("#btnSign").click(); });
 }
 
-/* ---------- LAYAR: TUTORIAL ---------- */
-function showTutorial(){
-  S.node = "tutorial"; updateHUD();
+/* ---------- TUTORIAL 7 LANGKAH (progresif, satu langkah per layar) ---------- */
+const TUT_KEY = "asylum_tutorial_v1";
+const TUT_VERSION = 1;
+function tutGet(){
+  try{
+    const raw = localStorage.getItem(TUT_KEY);
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    return (o && o.v===TUT_VERSION && o.done===true) ? o : null;
+  }catch(e){ return null; }
+}
+function tutSetDone(){
+  try{ localStorage.setItem(TUT_KEY, JSON.stringify({v:TUT_VERSION, done:true, at:Date.now()})); }
+  catch(e){ /* localStorage gagal: tutorial tetap bisa dipakai sesi ini, tidak diklaim permanen */ }
+}
+/* Isi disusun dari TUTORIAL/LEGEND yang sudah ada — tanpa mekanik baru. */
+const TUT_STEPS = [
+  { t:"Selamat Datang di The Asylum",
+    h:`Kau adalah seorang <b>player</b> yang terbangun di dalam ceritanya. Ke depannya, kau akan dihadapkan pada berbagai pilihan yang menuntutmu berpikir cermat dan cerdik.<br><br>Tujuanmu hanya satu: <b>bertahan hidup</b>. Setiap pilihan adalah takdir yang harus kau jalani — tidak ada tombol kembali.` },
+  { t:"Membaca Situasi",
+    h:`Setiap adegan ditulis sebagai <b>teks cerita</b> — bacalah dengan teliti, karena petunjuk sering tersembunyi di detail kecil.<br><br><b>Arti warna teks:</b><br>${LEGEND.map(([c,t])=>`• <span class="${c}">${t}</span>`).join("<br>")}` },
+  { t:"Memilih Tindakan",
+    h:`Setiap pilihan membuka <b>jalan cerita yang berbeda</b>. Pilihlah dengan cermat — beberapa pilihan menyimpan risiko yang tidak terlihat di awal.<br><br>Kadang muncul situasi khusus bertanda <span class="tag c-white">[Pilihan!]</span>: di momen itu, ceritamu berlanjut mengikuti preferensimu sendiri.` },
+  { t:"Kondisimu",
+    h:`Perhatikan tiga hal di layar statusmu:<br>• <b>Situasi</b> — <i>Aman</i>, atau <span class="tag c-yellow">[Dalam bahaya]</span> (salah langkah berikutnya bisa tewas), atau <span class="tag" style="color:#fb923c">[Terluka]</span> (beberapa pilihan terkunci).<br>• <b>Kondisi Mental</b> — <i>Tenang → Tegang → Gelisah → Panik → Hancur</i>. Setiap kematian memperburuknya.<br>• <b>Efek Status</b> — kondisi khusus yang sedang aktif padamu.` },
+  { t:"Tas & Item",
+    h:`Pilihanmu bisa memberimu <b>item</b> — atau tidak sama sekali. Setiap item punya <b>ikonnya masing-masing</b> di dalam tas 🎒.<br><br>Item adalah kunci: beberapa pilihan di masa depan hanya bisa dilewati jika kau membawa item yang tepat. Perhatikan jumlahnya — item bisa berkurang.` },
+  { t:"Perlengkapan & Efek",
+    h:`<b>PERLENGKAPAN</b> berbeda dengan <b>inventori</b>: senjata dan perlengkapan khusus harus di-<b>EQUIP</b> agar bisa dipakai — kelola lewat tas 🎒.<br><br>Beberapa pilihan hanya bisa dilewati jika perlengkapan yang tepat <b>terpasang</b>. Efek status yang aktif juga tercatat di layar statusmu.` },
+  { t:"Kematian & Progres",
+    h:`Pilihan yang berakhir <b>Tewas</b> berarti kau gagal — tapi sebagai <b>"Player"</b>, kau bisa <b>bangkit di tempat</b>. Setiap kematian menaikkan <b>Death Count</b> di atas kepalamu; jagalah tetap rendah, karena itu menentukan <b>"Akhir"</b> dirimu.<br><br>Progres tersimpan otomatis di perangkatmu. Kau juga bisa <b>export/import</b> save sebagai file.` },
+];
+let tutIdx = 0;
+function showTutorial(){ showTutorialStep(0); } /* entry — SENGAJA tidak menyentuh S */
+function showTutorialStep(i){
+  tutIdx = Math.max(0, Math.min(TUT_STEPS.length-1, i));
+  const st = TUT_STEPS[tutIdx], last = tutIdx===TUT_STEPS.length-1;
   document.body.style.overflow = "";
-  document.onkeydown = null;
+  document.onkeydown = (e)=>{
+    if(e.key==="ArrowRight" && !last) showTutorialStep(tutIdx+1);
+    else if(e.key==="ArrowLeft" && tutIdx>0) showTutorialStep(tutIdx-1);
+  };
+  const dots = TUT_STEPS.map((_,k)=>
+    `<span class="${k===tutIdx?"on":k<tutIdx?"done":""}" aria-hidden="true"></span>`).join("");
   app.innerHTML = `
     <div class="screen tut">
-      <h2>Tutorial</h2>
-      <ol>${TUTORIAL.map(([n,t])=>`<li><b>${n}.</b> ${t}</li>`).join("")}</ol>
-      <h2 style="font-size:1.15rem">Arti Warna Teks</h2>
-      <div class="legend">${LEGEND.map(([c,t])=>`<div><span class="${c}">${t}</span></div>`).join("")}</div>
-      <div class="center"><button class="big ghost" id="btnBack">↩ KEMBALI</button></div>
+      <div class="tut-progress">Langkah ${tutIdx+1} dari ${TUT_STEPS.length}</div>
+      <div class="tut-dots" aria-hidden="true">${dots}</div>
+      <h2 id="tutHead" tabindex="-1">${st.t}</h2>
+      <div class="tut-body">${st.h}</div>
+      <div class="center btnrow">
+        ${tutIdx>0?`<button class="big ghost" id="tutBack">← KEMBALI</button>`:""}
+        ${!last?`<button class="big primary" id="tutNext">LANJUT →</button>`
+               :`<button class="big primary" id="tutStart">▶ MULAI BERMAIN</button>`}
+      </div>
+      <div class="center" style="margin-top:1rem"><button class="mini-btn" id="tutMenu">⌂ MENU</button></div>
     </div>`;
-  $("#btnBack").onclick = showTitle;
+  const nx = $("#tutNext"); if(nx) nx.onclick = ()=>showTutorialStep(tutIdx+1);
+  const bk = $("#tutBack"); if(bk) bk.onclick = ()=>showTutorialStep(tutIdx-1);
+  const mn = $("#tutMenu"); if(mn) mn.onclick = ()=>showTitle();
+  const go = $("#tutStart");
+  if(go) go.onclick = ()=>{ tutSetDone(); showTitle(); };
+  const head = $("#tutHead"); if(head) head.focus({preventScroll:true});
 }
 
 /* ---------- LAYAR: PLAYER STATUS (UI kartu) ---------- */
@@ -838,15 +1036,17 @@ function renderNode(id){
   };
 }
 
-function goTarget(target){
+function goTarget(target, opts){
   const n = NODES[target];
   if(!n) return;
+  const before = snapshotState();
   S.node = target; persist();
   if(n.kind==="result") renderResult(target);
   else if(n.kind==="death") renderDeath(target);
   else if(n.kind==="tbc") renderTBC();
   else if(n.kind==="story") renderStory(target);
   else renderNode(target);
+  if(!opts || !opts.quiet) presentReaction(deriveEvents(before, snapshotState(), "node:"+target));
 }
 
 /* ---------- RENDER STORY LINEAR (prolog / jembatan cerita) ---------- */
@@ -880,12 +1080,14 @@ function renderStory(id){
 
 /* ---------- RENDER HASIL ---------- */
 function grantItem(item){
+  const before = snapshotState();
   const ex = S.items.find(it=>it.id===item.id);
   if(ex) ex.qty = (ex.qty||1)+1;
   else S.items.push({ id:item.id, name:item.name, note:item.note||"",
                       icon:item.icon||"🎒", kind:item.kind||"consumable",
                       slot:item.slot||null, qty:1 });
   persist();
+  presentReaction(deriveEvents(before, snapshotState(), "item"));
 }
 function renderResult(id){
   const n = NODES[id];
@@ -946,11 +1148,13 @@ function renderDeath(id){
   const rb = $("#resBox"); rb.style.cursor = "pointer"; rb.addEventListener("click", skip);
   $("#tapHint").addEventListener("click", skip);
   $("#btnRevive").onclick = ()=>{
+    const before = snapshotState();
     S.deathCount++;
     S.mental = Math.min(MENTAL.length-1, S.mental+1); /* mental memburuk tiap kematian */
     S.status = null;
     persist();
-    goTarget(n.next);
+    presentReaction(deriveEvents(before, snapshotState(), "revive"));
+    goTarget(n.next, {quiet:true}); /* event sudah dipresentasikan di atas */
   };
 }
 
