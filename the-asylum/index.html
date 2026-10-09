@@ -1790,8 +1790,8 @@ function showAchv(){
   const rows = ACHV.map(a=>{
     const got = !!un[a.id];
     return `<div class="achv-row ${got?"got":""}">
-      <span class="achv-ic">${a.icon}</span>
-      <span class="achv-tx"><b>${esc(a.name)}</b><small>${esc(a.desc)}</small></span>
+      <span class="achv-ic">${got?a.icon:"🔒"}</span>
+      <span class="achv-tx"><b>${got?esc(a.name):"???"}</b><small>${got?esc(a.desc):"???"}</small></span>
       ${got?'<span class="achv-done">✓</span>':""}
     </div>`;
   }).join("");
