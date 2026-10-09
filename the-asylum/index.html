@@ -327,21 +327,20 @@
   #tutModal{position:fixed; inset:0; z-index:200; display:flex; align-items:center;
     justify-content:center; background:rgba(0,0,0,.74); padding:1.2rem}
   #tutModal[hidden]{display:none}
-  /* ===== TOAST KECIL TENGAH (item story) ===== */
-  #storyToast{position:fixed; left:50%; top:42%; transform:translate(-50%,-50%) scale(.96);
-    z-index:220; background:rgba(10,10,16,.94); border:1px solid var(--blood-dim);
-    color:var(--bone); padding:.75rem 1.15rem; border-radius:10px; font-size:.85rem;
-    max-width:82%; text-align:center; line-height:1.7; opacity:0; pointer-events:none;
-    transition:opacity .25s ease, transform .25s ease;
-    box-shadow:0 0 30px rgba(0,0,0,.6)}
-  #storyToast.show{opacity:1; transform:translate(-50%,-50%) scale(1)}
-  @media (prefers-reduced-motion: reduce){ #storyToast{transition:none} }
   .tutmodal-box{max-width:440px; width:100%; background:#101016;
     border:1px solid var(--blood-dim); border-radius:14px; padding:1.6rem; text-align:center;
     box-shadow:0 0 40px rgba(220,20,60,.18)}
   .tutmodal-box h3{margin:0 0 .8rem; color:var(--bone); font-size:1.05rem; letter-spacing:.06em}
   .tutmodal-box p{color:var(--ash); line-height:1.85; font-size:.92rem; margin:0 0 1.4rem}
   .tutmodal-box p b{color:var(--bone)}
+  /* ===== ITEM STORY: tap utk expand ===== */
+  .inv-item.story-item{cursor:pointer}
+  .inv-item.story-item:active{background:rgba(255,255,255,.04)}
+  .story-detail{padding:.55rem .8rem; font-size:.82rem; color:var(--ash); line-height:1.7;
+    border-left:2px solid var(--blood-dim); margin:.1rem 0 .7rem .3rem}
+  .story-detail p{margin:0 0 .6rem; font-style:italic}
+  .story-detail[hidden]{display:none}
+  .mini-btn.armed{border-color:var(--blood); color:var(--blood)}
   @media (prefers-reduced-motion: reduce){
     .efill{transition:none}
     .efloat{animation:none}
@@ -369,7 +368,6 @@
   </div>
 </div>
 <input type="file" id="importFile" accept=".json,application/json" hidden />
-<div id="storyToast"></div>
 <div id="tutModal" hidden>
   <div class="tutmodal-box">
     <h3 id="tutPopT"></h3>
@@ -1320,13 +1318,7 @@ function spendEnergy(n, x, y){
 /* Pakai item manual dari tas (makan, perban, dll). */
 function useItem(id){
   const it = S.items.find(x=>x.id===id);
-  if(!it) return;
-  /* Item story-related: belum waktunya dipakai — hanya pesan misterius. */
-  if(it.story){
-    storyToast(it.storyHint || "Item ini apaan? Kenapa aku membawanya? Entahlah... Mungkin nanti ada gunanya.");
-    return;
-  }
-  if(!it.use) return;
+  if(!it || !it.use) return;
   const before = snapshotState();
   const u = it.use;
   if(u.energy) S.energy = Math.min(100, Math.max(0, (S.energy||0)+u.energy));
@@ -1715,9 +1707,16 @@ function openInventory(){
     ? S.items.map(it=>{
         const eq = it.kind==="equipment"
           ? `<button class="mini-btn" data-equip="${esc(it.id)}">EQUIP</button>` : "";
-        const use = (it.use || it.story)
+        const use = it.use
           ? `<button class="mini-btn" data-use="${esc(it.id)}">PAKAI</button>` : "";
-        return `<div class="inv-item"><span>${esc(it.icon||"🎒")} ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}${use}</span></div>`;
+        const storyCls = it.story ? " story-item" : "";
+        const storyTap = it.story ? ` data-story="${esc(it.id)}" title="Ketuk untuk melihat"` : "";
+        const storyDet = it.story
+          ? `<div class="story-detail" id="sdet-${esc(it.id)}" hidden>
+               <p>${esc(it.storyHint || "Item ini apaan? Kenapa aku membawanya? Entahlah... Mungkin nanti ada gunanya.")}</p>
+               <button class="mini-btn danger" data-drop="${esc(it.id)}">BUANG</button>
+             </div>` : "";
+        return `<div class="inv-item${storyCls}"${storyTap}><span>${esc(it.icon||"🎒")} ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}${use}</span></div>${storyDet}`;
       }).join("")
     : `<div class="inv-empty">Kosong.<br/>Kau tidak membawa apa-apa.</div>`;
   $("#invModal").hidden = false;
@@ -1727,6 +1726,33 @@ function openInventory(){
   list.querySelectorAll("[data-use]").forEach(b=>{
     b.onclick = ()=>{ useItem(b.dataset.use); };
   });
+  list.querySelectorAll("[data-story]").forEach(row=>{
+    row.onclick = ()=>{
+      const det = document.getElementById("sdet-"+row.dataset.story);
+      if(det) det.hidden = !det.hidden;
+    };
+  });
+  list.querySelectorAll("[data-drop]").forEach(b=>{
+    b.onclick = (e)=>{
+      e.stopPropagation();
+      if(b.dataset.arm==="1"){ dropItem(b.dataset.drop); return; }
+      b.dataset.arm = "1";
+      b.textContent = "YAKIN? TAP LAGI";
+      b.classList.add("armed");
+      setTimeout(()=>{ if(b.isConnected){ b.dataset.arm=""; b.textContent="BUANG"; b.classList.remove("armed"); } }, 3000);
+    };
+  });
+}
+/* BUANG: singkirkan item story (pilihan final — bisa mengunci branch masa depan) */
+function dropItem(id){
+  const it = S.items.find(x=>x.id===id);
+  if(!it) return;
+  const before = snapshotState();
+  S.items = S.items.filter(x=>x.id!==id);
+  persist();
+  reactAndTut(before, "drop");
+  updateHUD(); openInventory();
+  toast("Kau membuang: "+it.name+".");
 }
 /* EQUIP: pindah 1 item equipment dari tas ke slot perlengkapan */
 function equipItem(id){
@@ -1770,15 +1796,6 @@ $("#tutPopOk").addEventListener("click", dismissTutPop);
 $("#tutModal").addEventListener("click", (e)=>{ if(e.target.id==="tutModal") dismissTutPop(); });
 
 /* ---------- TOAST ---------- */
-let _storyToastT = null;
-function storyToast(msg){
-  const el = $("#storyToast");
-  if(!el) return;
-  el.textContent = msg;
-  el.classList.add("show");
-  if(_storyToastT) clearTimeout(_storyToastT);
-  _storyToastT = setTimeout(()=>el.classList.remove("show"), 2200);
-}
 function toast(msg){
   let t = $("#toast");
   if(!t){ t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
