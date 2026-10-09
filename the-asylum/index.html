@@ -321,6 +321,16 @@
   @keyframes efloat{from{opacity:1; transform:translateY(0)}to{opacity:0; transform:translateY(-34px)}}
   .tired-note{font-size:.75rem; color:#fb923c; text-align:center; margin:.6rem 0 0;
     letter-spacing:.06em}
+  /* ===== POPUP TUTORIAL KONTEKSTUAL ===== */
+  #tutModal{position:fixed; inset:0; z-index:200; display:flex; align-items:center;
+    justify-content:center; background:rgba(0,0,0,.74); padding:1.2rem}
+  #tutModal[hidden]{display:none}
+  .tutmodal-box{max-width:440px; width:100%; background:#101016;
+    border:1px solid var(--blood-dim); border-radius:14px; padding:1.6rem; text-align:center;
+    box-shadow:0 0 40px rgba(220,20,60,.18)}
+  .tutmodal-box h3{margin:0 0 .8rem; color:var(--bone); font-size:1.05rem; letter-spacing:.06em}
+  .tutmodal-box p{color:var(--ash); line-height:1.85; font-size:.92rem; margin:0 0 1.4rem}
+  .tutmodal-box p b{color:var(--bone)}
   @media (prefers-reduced-motion: reduce){
     .efill{transition:none}
     .efloat{animation:none}
@@ -345,6 +355,13 @@
   </div>
 </div>
 <input type="file" id="importFile" accept=".json,application/json" hidden />
+<div id="tutModal" hidden>
+  <div class="tutmodal-box">
+    <h3 id="tutPopT"></h3>
+    <p id="tutPopH"></p>
+    <button class="big primary" id="tutPopOk">MENGERTI</button>
+  </div>
+</div>
 <main id="app"></main>
 <footer><a href="/">ARKANDRIA</a> · THE ASYLUM PART 1</footer>
 <script>
@@ -1113,6 +1130,13 @@ function deriveEvents(before, after, source){
          { from:before.body||"—", to:after.body||"—" }, "body_changed");
   return evts;
 }
+/* Satu titik presentasi event: reaksi + popup tutorial kontekstual.
+   presentReaction sendiri tetap read-only (tidak memutasi S). */
+function reactAndTut(before, source){
+  const evts = deriveEvents(before, snapshotState(), source);
+  presentReaction(evts);
+  tutPopForEvents(evts);
+}
 /* Teks reaksi kurasi — variasi terkendali (deterministik), tanpa prosa acak. */
 const REACTIONS = {
   death:               { text:["Kegelapan menelanmu. Namun sebagai Player, kau bangkit kembali — Death Count: {deathCount}.",
@@ -1258,7 +1282,7 @@ function removeItem(id, qty){
   it.qty = (it.qty||1) - (qty||1);
   if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id);
   persist();
-  presentReaction(deriveEvents(before, snapshotState(), "item"));
+  reactAndTut(before, "item");
   return true;
 }
 
@@ -1293,7 +1317,7 @@ function useItem(id){
   it.qty = (it.qty||1)-1;
   if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id);
   persist();
-  presentReaction(deriveEvents(before, snapshotState(), "use"));
+  reactAndTut(before, "use");
   updateHUD(); openInventory();
   toast("Kau memakai: "+it.name+" 🩸");
 }
@@ -1517,6 +1541,93 @@ function sanitizeFavor(f){
   return out;
 }
 
+/* ============================================================
+   POPUP TUTORIAL KONTEKSTUAL (progressive disclosure)
+   Tiap sistem dijelaskan SAAT PERTAMA KALI muncul — bukan di awal.
+   Status tampil disimpan di key tutorial (sekali per perangkat).
+   ============================================================ */
+const TUTPOP = {
+  tier:      { t:"📊 STATUS BERTINGKAT",
+               h:"Efek seperti <b>Stress</b>, <b>Keracunan</b>, <b>Kelelahan</b> punya 4 tingkat: <i>Ringan → Sedang → Tinggi → Ekstrim</i>. Pilihanmu bisa menaikkan/menurunkannya satu tingkat.<br><br>Di tingkat <b>Ekstrim</b> jadi berbahaya: Kelelahan Ekstrim membuatmu <b>Lemas</b> (setara Terluka), Stress Ekstrim membuat pilihanmu <b>diacak dadu</b>!" },
+  energy:    { t:"⚡ ENERGI",
+               h:"Setiap pilihan menguras <b>4 Energi</b> — perhatikan angka melayangnya. Makan untuk memulihkan: buka tas 🎒 lalu tekan <b>PAKAI</b> pada makanan.<br><br>Energi habis? Tiap pilihan menaikkan Kelelahan, dan di 0 kau <b>dipaksa mengikuti jalan termudah</b>." },
+  emotion:   { t:"💭 EMOSI",
+               h:"Perasaan sesaat — <b>Takut</b>, <b>Lega</b>, <b>Sedih</b> — muncul dari kejadian dan memudar seiring waktu.<br><br>Saat kau <b>goyah</b> (Panik atau Takut tinggi), pilihan yang butuh ketenangan akan terkunci." },
+  wounded:   { t:"🩸 TERLUKA",
+               h:"Kau <b>Terluka</b> — beberapa pilihan kini terkunci.<br><br>Tidak ada yang menyembuhkanmu otomatis di sini. Buka tas 🎒 dan tekan <b>PAKAI</b> pada perban — atau tanggung lukanya." },
+  condchoice:{ t:"🔀 PILIHAN BERSYARAT",
+               h:"Nomor sama, <b>hasil beda</b> — tergantung kondisimu saat memilih (terluka? panik? kelelahan?).<br><br>Selalu cek statusmu sebelum memilih. Pilihan semacam ini ditandai khusus." },
+  input:     { t:"⌨️ TEKA-TEKI",
+               h:"Ketik jawabanmu pada kolom yang tersedia.<br><br>Salah menjawab <b>ada konsekuensinya</b> — pikir baik-baik." },
+  keypad:    { t:"🔢 PANEL ANGKA",
+               h:"Masukkan kode yang benar lewat tombol angka.<br><br>Terlalu banyak salah percobaan akan <b>berakibat fatal</b>." },
+  objective: { t:"🎯 OBJECTIVE",
+               h:"Tujuan barumu tercatat di <b>layar status</b>.<br><br>Selesaikan untuk bertahan hidup." },
+  favor:     { t:"💞 HUBUNGAN",
+               h:"Tindakanmu mengubah pandangan seseorang padamu — tercatat di layar status.<br><br>Hubungan bisa menjadi kunci... atau jerat." },
+  temp:      { t:"⏳ EFEK SEMENTARA",
+               h:"Efek ini hanya bertahan <b>beberapa adegan</b>, lalu hilang sendiri.<br><br>Manfaatkan waktunya." },
+  lemas:     { t:"🥀 LEMAS",
+               h:"Kelelahanmu mencapai <b>Ekstrim</b>. Tubuhmu lemas — setara <b>Terluka</b>: pilihan fisik terkunci.<br><br>Makan dan istirahatlah sebelum lanjut." },
+  bingung:   { t:"🎲 KEBINGUNGAN AKUT",
+               h:"Stress-mu mencapai <b>Ekstrim</b>!<br><br>Pilihanmu berikutnya <b>ditentukan dadu</b>, bukan olehmu. Tenangkan dirimu." },
+  usable:    { t:"🎒 PAKAI ITEM",
+               h:"Item ini bisa <b>dipakai langsung dari tas</b>: makanan, perban, dan lainnya.<br><br>Buka 🎒 kapan saja dan tekan <b>PAKAI</b>. Kelola sumber dayamu baik-baik — tidak ada yang gratis di sini." }
+};
+let tutQueue = [], tutShowing = false;
+function tutPop(key){
+  if(!S || !S.registered) return;
+  try{ if(tutSeenGet()[key]) return; }catch(e){ return; }
+  tutSeenSet(key);
+  tutQueue.push(key);
+  if(!tutShowing) showNextTutPop();
+}
+function showNextTutPop(){
+  const key = tutQueue.shift();
+  if(!key){ tutShowing = false; return; }
+  const d = TUTPOP[key];
+  if(!d){ showNextTutPop(); return; }
+  tutShowing = true;
+  $("#tutPopT").textContent = d.t;
+  $("#tutPopH").innerHTML = d.h;
+  $("#tutModal").hidden = false;
+}
+function dismissTutPop(){
+  $("#tutModal").hidden = true;
+  showNextTutPop();
+}
+/* Pindai event -> popup yg relevan, berurutan dari yg paling mendesak. */
+function tutPopForEvents(evts){
+  if(!evts || !evts.length) return;
+  let energy=false, wounded=false, tier=false, lemas=false, bingung=false,
+      emotion=false, temp=false, usable=false, objective=false, favor=false;
+  evts.forEach(e=>{
+    if(e.type==="energy_tier" && e.changes.to!=="fit") energy = true;
+    if(e.type==="status_changed" && e.changes.to==="wounded") wounded = true;
+    if(e.type==="tier_changed") tier = true;
+    if(e.reactionKey==="derived_lemas") lemas = true;
+    if(e.reactionKey==="derived_bingung") bingung = true;
+    if(e.type==="emotion_changed" && e.changes.dir==="naik") emotion = true;
+    if(e.type==="temp_started") temp = true;
+    if(e.type==="objective_changed") objective = true;
+    if(e.type==="favor_changed") favor = true;
+    if(e.type==="item_gained"){
+      const it = S.items.find(x=>x.id===e.changes.id);
+      if(it && it.use) usable = true;
+    }
+  });
+  if(energy) tutPop("energy");
+  if(wounded) tutPop("wounded");
+  if(tier) tutPop("tier");
+  if(lemas) tutPop("lemas");
+  if(bingung) tutPop("bingung");
+  if(emotion) tutPop("emotion");
+  if(temp) tutPop("temp");
+  if(usable) tutPop("usable");
+  if(objective) tutPop("objective");
+  if(favor) tutPop("favor");
+}
+
 /* ---------- STATE ---------- */
 let S;
 function resetState(){
@@ -1609,7 +1720,7 @@ function equipItem(id){
   if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id);
   S.equipment[slot] = { id:it.id, name:it.name, note:it.note||"", icon:it.icon||"🗡", kind:"equipment", slot };
   persist();
-  presentReaction(deriveEvents(before, snapshotState(), "equipment"));
+  reactAndTut(before, "equipment");
 }
 /* LEPAS: kembalikan perlengkapan ke tas */
 function unequipItem(slot){
@@ -1621,11 +1732,13 @@ function unequipItem(slot){
   else S.items.push({ ...cur, qty:1 });
   S.equipment[slot] = null;
   persist();
-  presentReaction(deriveEvents(before, snapshotState(), "equipment"));
+  reactAndTut(before, "equipment");
 }
 $("#invBtn").addEventListener("click", openInventory);
 $("#invClose").addEventListener("click", ()=>{ $("#invModal").hidden = true; });
 $("#invModal").addEventListener("click", (e)=>{ if(e.target.id==="invModal") e.target.hidden = true; });
+$("#tutPopOk").addEventListener("click", dismissTutPop);
+$("#tutModal").addEventListener("click", (e)=>{ if(e.target.id==="tutModal") dismissTutPop(); });
 
 /* ---------- TOAST ---------- */
 function toast(msg){
@@ -1848,8 +1961,26 @@ function tutGet(){
   }catch(e){ return null; }
 }
 function tutSetDone(){
-  try{ localStorage.setItem(TUT_KEY, JSON.stringify({v:TUT_VERSION, done:true, at:Date.now()})); }
+  try{
+    let o = {};
+    try{ o = JSON.parse(localStorage.getItem(TUT_KEY)) || {}; }catch(e){}
+    o.v = TUT_VERSION; o.done = true; o.at = Date.now();
+    localStorage.setItem(TUT_KEY, JSON.stringify(o));
+  }
   catch(e){ /* localStorage gagal: tutorial tetap bisa dipakai sesi ini, tidak diklaim permanen */ }
+}
+/* Popup yg sudah pernah tampil — disimpan di key tutorial (sekali per perangkat). */
+function tutSeenGet(){
+  try{ const o = JSON.parse(localStorage.getItem(TUT_KEY)); return (o && o.seen) || {}; }
+  catch(e){ return {}; }
+}
+function tutSeenSet(key){
+  try{
+    let o = {};
+    try{ o = JSON.parse(localStorage.getItem(TUT_KEY)) || {}; }catch(e){}
+    o.seen = o.seen || {}; o.seen[key] = true;
+    localStorage.setItem(TUT_KEY, JSON.stringify(o));
+  }catch(e){}
 }
 /* Isi disusun dari TUTORIAL/LEGEND yang sudah ada — tanpa mekanik baru. */
 const TUT_STEPS = [
@@ -1860,11 +1991,11 @@ const TUT_STEPS = [
   { t:"Memilih Tindakan",
     h:`Setiap pilihan membuka <b>jalan cerita yang berbeda</b>. Pilihlah dengan cermat — beberapa pilihan menyimpan risiko yang tidak terlihat di awal.<br><br>Kadang muncul situasi khusus bertanda <span class="tag c-white">[Pilihan!]</span>: di momen itu, ceritamu berlanjut mengikuti preferensimu sendiri.` },
   { t:"Kondisimu",
-    h:`Perhatikan tiga hal di layar statusmu:<br>• <b>Situasi</b> — <i>Aman</i>, atau <span class="tag c-yellow">[Dalam bahaya]</span> (salah langkah berikutnya bisa tewas), atau <span class="tag" style="color:#fb923c">[Terluka]</span> (beberapa pilihan terkunci).<br>• <b>Kondisi Mental</b> — <i>Tenang → Tegang → Gelisah → Panik → Hancur</i>. Kematian memperburuknya, tapi istirahat dan tempat aman bisa <b>memperbaikinya</b>. Saat panik, pilihan yang butuh ketenangan terkunci.<br>• <b>Efek Status</b> — kondisi khusus yang aktif. Banyak yang <b>bertingkat</b>: <i>Ringan → Sedang → Tinggi → Ekstrim</i> (mis. Stress, Keracunan). Di tingkat <b>Ekstrim</b> jadi berbahaya: Kelelahan Ekstrim membuatmu <b>Lemas</b>, Stress Ekstrim membuat pilihanmu <b>diacak dadu</b>.<br>• <b>Emosi</b> — perasaan sesaat (mis. Takut) yang bisa mengunci pilihan nekat.` },
+    h:`Perhatikan layar statusmu:<br>• <b>Situasi</b> — <i>Aman</i>, <span class="tag c-yellow">[Dalam bahaya]</span>, atau <span class="tag" style="color:#fb923c">[Terluka]</span> (beberapa pilihan terkunci).<br>• <b>Kondisi Mental</b> — <i>Tenang → Hancur</i>. Bisa memburuk <i>dan</i> membaik.<br>• <b>⚡ Energi</b> — setiap pilihan mengurasnya. Makan untuk memulihkan.<br><br>Detail tiap sistem akan <b>dijelaskan saat pertama kali muncul</b> — tidak perlu menghafal sekarang.` },
   { t:"Tas & Item",
-    h:`Pilihanmu bisa memberimu <b>item</b> — atau tidak sama sekali. Setiap item punya <b>ikonnya masing-masing</b> di dalam tas 🎒.<br><br>Item adalah kunci: beberapa pilihan di masa depan hanya bisa dilewati jika kau membawa item yang tepat. Perhatikan jumlahnya — item bisa berkurang.` },
-  { t:"Perlengkapan & Efek",
-    h:`<b>PERLENGKAPAN</b> berbeda dengan <b>inventori</b>: senjata dan perlengkapan khusus harus di-<b>EQUIP</b> agar bisa dipakai — kelola lewat tas 🎒.<br><br>Beberapa pilihan hanya bisa dilewati jika perlengkapan yang tepat <b>terpasang</b>. Efek status yang aktif juga tercatat di layar statusmu.` },
+    h:`Pilihanmu bisa memberimu <b>item</b> — masing-masing dengan <b>ikonnya sendiri</b> di tas 🎒.<br><br>Beberapa item bisa <b>dipakai langsung</b> dari tas (makanan, perban...). Kau akan diberi tahu saat mendapatkannya.` },
+  { t:"Perlengkapan",
+    h:`<b>PERLENGKAPAN</b> berbeda dengan <b>inventori</b>: senjata dan perlengkapan khusus harus di-<b>EQUIP</b> agar bisa dipakai — kelola lewat tas 🎒.<br><br>Beberapa pilihan hanya bisa dilewati jika perlengkapan yang tepat <b>terpasang</b>.` },
   { t:"Kematian & Progres",
     h:`Pilihan yang berakhir <b>Tewas</b> berarti kau gagal — tapi sebagai <b>"Player"</b>, kau bisa <b>bangkit di tempat</b>. Setiap kematian menaikkan <b>Death Count</b> di atas kepalamu; jagalah tetap rendah, karena itu menentukan <b>"Akhir"</b> dirimu.<br><br>Progres tersimpan otomatis di perangkatmu. Kau juga bisa <b>export/import</b> save sebagai file.` },
 ];
@@ -1998,6 +2129,7 @@ function renderNode(id){
   </div>`;
   const skip = typewriter($("#twTarget"), n.story, ()=>{
     $("#tapHint").style.display = "none";
+    if(n.choices.some(c=>c.condNote || c.branches)) tutPop("condchoice");
     const cbox = $("#choiceBox"); cbox.hidden = false;
     const _fIdx = forcedChoiceIdx(n.choices);
     cbox.innerHTML = n.choices.map((c,i)=>{
@@ -2069,13 +2201,14 @@ function goTarget(target, opts){
   else if(n.kind==="input") renderInput(target);
   else if(n.kind==="keypad") renderKeypad(target);
   else renderNode(target);
-  if(!opts || !opts.quiet) presentReaction(deriveEvents(before, snapshotState(), "node:"+target));
+  if(!opts || !opts.quiet) reactAndTut(before, "node:"+target);
 }
 
 /* ---------- NODE INPUT TEKS (teka-teki; jawaban salah -> onWrong) ---------- */
 function renderInput(id){
   const n = NODES[id];
   S.node = id; updateHUD(); persist();
+  tutPop("input");
   const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
   app.innerHTML = `
     <div class="screen">
@@ -2116,6 +2249,7 @@ function renderInput(id){
 function renderKeypad(id){
   const n = NODES[id];
   S.node = id; updateHUD(); persist();
+  tutPop("keypad");
   const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
   let buf = "", left = n.maxAttempts || 3;
   app.innerHTML = `
@@ -2205,7 +2339,7 @@ function grantItem(item){
                       icon:item.icon||"🎒", kind:item.kind||"consumable",
                       slot:item.slot||null, qty:1, use:item.use||null });
   persist();
-  presentReaction(deriveEvents(before, snapshotState(), "item"));
+  reactAndTut(before, "item");
 }
 function renderResult(id){
   const n = NODES[id];
@@ -2271,7 +2405,7 @@ function renderDeath(id){
     S.mental = Math.min(MENTAL.length-1, S.mental+1); /* mental memburuk tiap kematian */
     S.status = null;
     persist();
-    presentReaction(deriveEvents(before, snapshotState(), "revive"));
+    reactAndTut(before, "revive");
     goTarget(n.next, {quiet:true}); /* event sudah dipresentasikan di atas */
   };
 }
