@@ -405,6 +405,7 @@
   </div>
   <div class="stat" id="energyStat">⚡<span class="ebar"><span class="efill"></span></span></div>
   <button class="statbtn" id="invBtn" title="Cek inventori">🎒 <b id="itemCount">0</b></button>
+  <button class="statbtn" id="muteBtn" title="Suara on/off">🔊</button>
   <div class="stat"><button id="menuBtn" title="Menu utama (progres tersimpan)">⌂ MENU</button></div>
 </div>
 <div id="statusPill" hidden></div>
@@ -428,6 +429,844 @@
 </div>
 <main id="app"></main>
 <footer><a href="/">ARKANDRIA</a> · <span id="footAsylum">THE ASYLUM PART 1</span></footer>
+<script>
+/* ===== The Asylum — Audio Engine =====
+ * 100%% Web Audio synthesis. Nol aset audio.
+ * Global: AudioSys, AMBIENT_KEYS, SFX_KEYS.
+ * Tempel isi file ini ke dalam <script> game.
+ */
+
+
+/* ---------- audio-parts/core.js ---------- */
+// core.js — PART 1 of audio-engine.js (concatenated: core + amb1 + amb2 + sfx1 + sfx2 + footer)
+// Top-level code (NOT a module, NOT an IIFE) so later parts can access helpers & AudioSys.
+// No document/window/localStorage access at top-level (all wrapped in functions + try/catch).
+
+// ---------------------------------------------------------------- helpers
+function _bag(){
+  const nodes=[];
+  const timers=[];
+  return {
+    add:function(n){ nodes.push(n); return n; },
+    every:function(fn,ms){ const id=setInterval(fn,ms); timers.push({id:id,kind:"i"}); return id; },
+    after:function(fn,ms){ const id=setTimeout(fn,ms); timers.push({id:id,kind:"t"}); return id; },
+    stop:function(){
+      for(let i=0;i<timers.length;i++){ const t=timers[i]; try{ if(t.kind==="i") clearInterval(t.id); else clearTimeout(t.id); }catch(e){} }
+      timers.length=0;
+      for(let i=0;i<nodes.length;i++){ const n=nodes[i]; try{ if(n&&typeof n.stop==="function") n.stop(); }catch(e){} try{ if(n&&typeof n.disconnect==="function") n.disconnect(); }catch(e){} }
+      nodes.length=0;
+    }
+  };
+}
+
+let _noiseBuf=null;
+function _nb(ctx){
+  if(_noiseBuf) return _noiseBuf;
+  const len=Math.floor(ctx.sampleRate*2);
+  const buf=ctx.createBuffer(1,len,ctx.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<len;i++){ d[i]=Math.random()*2-1; }
+  _noiseBuf=buf;
+  return buf;
+}
+function _nz(ctx){ const s=ctx.createBufferSource(); s.buffer=_nb(ctx); s.loop=true; return s; }
+function _osc(ctx,type,freq){ const o=ctx.createOscillator(); o.type=type; o.frequency.value=freq; return o; }
+function _g(ctx,v){ const g=ctx.createGain(); g.gain.value=v; return g; }
+function _lfo(ctx,rate,depth,param){
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type="sine"; o.frequency.value=rate; g.gain.value=depth;
+  o.connect(g); g.connect(param); o.start();
+  let dead=false;
+  return { stop:function(){ if(dead)return; dead=true; try{o.stop()}catch(e){} try{o.disconnect()}catch(e){} try{g.disconnect()}catch(e){} } };
+}
+function _pluck(p,t,peak,a,d){ p.setValueAtTime(0.0001,t); p.exponentialRampToValueAtTime(Math.max(peak,0.0001),t+a); p.exponentialRampToValueAtTime(0.0001,t+a+d); }
+function _swell(p,t,peak,a,h,r){ p.setValueAtTime(0.0001,t); p.exponentialRampToValueAtTime(Math.max(peak,0.0001),t+a); p.setValueAtTime(Math.max(peak,0.0001),t+a+h); p.exponentialRampToValueAtTime(0.0001,t+a+h+r); }
+
+// ---------------------------------------------------------------- key lists (EXACT)
+const AMBIENT_KEYS = ["title","corridor","doorhub","saferoom","darkstare","teddyroom","steeldoor","reception","leftcorridor","hall","crates","death","none"];
+const SFX_KEYS = ["ui_click","ui_hover","type_tick","choice_appear","pickup","achievement","death_sting","heal","dice_roll","paper_rustle","door_creak","metal_clang","whisper","footstep","energy_low","teddy"];
+
+// ---------------------------------------------------------------- AudioSys
+let _ac=null,_master=null,_ambBus=null,_sfxBus=null;
+let _muted=false;
+try{ if(typeof localStorage!=="undefined") _muted=localStorage.getItem("asylum_mute_v1")==="1"; }catch(e){}
+const _AMBF={}, _SFXF={};
+let _curKey=null,_curInst=null,_curGain=null;
+
+function _ctx(){
+  if(!_ac){
+    const W=typeof window!=="undefined"?window:{};
+    const AC=W.AudioContext||W.webkitAudioContext;
+    if(!AC) throw new Error("no webaudio");
+    _ac=new AC();
+    _master=_ac.createGain(); _master.gain.value=_muted?0:0.9; _master.connect(_ac.destination);
+    _ambBus=_ac.createGain(); _ambBus.gain.value=1; _ambBus.connect(_master);
+    _sfxBus=_ac.createGain(); _sfxBus.gain.value=1; _sfxBus.connect(_master);
+  }
+  if(_ac.state==="suspended"){ _ac.resume().catch(function(){}); }
+  return _ac;
+}
+
+function setAmbient(key){
+  try{
+    if(AMBIENT_KEYS.indexOf(key)<0) return;
+    if(key===_curKey) return;
+    const prevInst=_curInst, prevGain=_curGain;
+    _curKey=key; _curInst=null; _curGain=null;
+    if(prevGain){
+      try{
+        const ctx=_ctx();
+        const t=ctx.currentTime;
+        prevGain.gain.cancelScheduledValues(t);
+        prevGain.gain.setValueAtTime(prevGain.gain.value,t);
+        prevGain.gain.linearRampToValueAtTime(0.0001,t+2);
+        setTimeout(function(){
+          try{ if(prevInst&&typeof prevInst.stop==="function") prevInst.stop(); }catch(e){}
+          try{ prevGain.disconnect(); }catch(e){}
+        },2200);
+      }catch(e){}
+    }
+    if(key==="none") return;
+    const fn=_AMBF[key];
+    if(!fn) return;
+    const ctx=_ctx();
+    const gn=ctx.createGain();
+    gn.gain.value=0.0001;
+    gn.connect(_ambBus);
+    const inst=fn(ctx,gn);
+    _curInst=inst; _curGain=gn;
+    const t=ctx.currentTime;
+    gn.gain.cancelScheduledValues(t);
+    gn.gain.setValueAtTime(0.0001,t);
+    gn.gain.linearRampToValueAtTime(1,t+2);
+  }catch(e){}
+}
+
+function sfx(name,opts){
+  try{
+    opts=opts||{};
+    const fn=_SFXF[name];
+    if(!fn) return;
+    const ctx=_ctx();
+    const gn=ctx.createGain();
+    gn.gain.value=(opts.gain||1);
+    gn.connect(_sfxBus);
+    const inst=fn(ctx,gn,{rate:opts.rate||1,gain:opts.gain||1});
+    const dur=(inst&&typeof inst.dur==="number")?inst.dur:0;
+    setTimeout(function(){
+      try{ if(inst&&typeof inst.stop==="function") inst.stop(); }catch(e){}
+      try{ gn.disconnect(); }catch(e){}
+    },dur*1000+600);
+  }catch(e){}
+}
+
+let _hbId=null,_hbOn=false;
+function heartbeat(on){
+  on=!!on;
+  if(on===_hbOn) return;
+  _hbOn=on;
+  if(on){
+    try{
+      const ctx=_ctx();
+      const beatMs=60000/72;
+      function thump(t,vol){
+        try{
+          const o=ctx.createOscillator(), g=ctx.createGain();
+          o.type="sine";
+          o.frequency.setValueAtTime(58,t);
+          o.frequency.exponentialRampToValueAtTime(38,t+0.18);
+          _pluck(g.gain,t,0.5*vol,0.008,0.22);
+          o.connect(g); g.connect(_sfxBus);
+          o.start(t); o.stop(t+0.4);
+        }catch(e){}
+      }
+      _hbId=setInterval(function(){
+        try{
+          const t=_ctx().currentTime;
+          thump(t,1);
+          thump(t+0.28,0.7);
+        }catch(e){}
+      },beatMs);
+    }catch(e){ _hbOn=false; }
+  }else{
+    if(_hbId!==null){ try{ clearInterval(_hbId); }catch(e){} _hbId=null; }
+  }
+}
+
+function toggleMute(){
+  _muted=!_muted;
+  try{ if(typeof localStorage!=="undefined") localStorage.setItem("asylum_mute_v1",_muted?"1":"0"); }catch(e){}
+  try{ if(_master) _master.gain.setTargetAtTime(_muted?0:0.9,_ac.currentTime,0.05); }catch(e){}
+  return _muted;
+}
+function isMuted(){ return _muted; }
+
+let _initDone=false;
+function init(){
+  if(_initDone) return;
+  _initDone=true;
+  try{
+    if(typeof document!=="undefined"){
+      const unlock=function(){ try{ _ctx(); }catch(e){} };
+      document.addEventListener("pointerdown",unlock);
+      document.addEventListener("keydown",unlock);
+    }
+  }catch(e){}
+}
+
+const AudioSys={ init:init, toggleMute:toggleMute, isMuted:isMuted, setAmbient:setAmbient, sfx:sfx, heartbeat:heartbeat, _regAmb:function(k,f){_AMBF[k]=f;}, _regSfx:function(n,f){_SFXF[n]=f;} };
+
+if(typeof globalThis!=="undefined"){ globalThis.AudioSys=AudioSys; globalThis.AMBIENT_KEYS=AMBIENT_KEYS; globalThis.SFX_KEYS=SFX_KEYS; }
+
+
+/* ---------- audio-parts/amb1.js ---------- */
+// AMBIENCE-1 factories — concatenated into audio-engine.js. Uses shared helpers from core.js.
+
+function amb_title(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Dark detuned drone: two sines beating against each other
+  const dg = _g(ctx, 0.04);             B.add(dg);
+  const o1 = _osc(ctx, 'sine', 55);     B.add(o1);
+  const o2 = _osc(ctx, 'sine', 55.5);   B.add(o2);
+  o1.connect(dg); o2.connect(dg); dg.connect(out);
+  o1.start(t); o2.start(t);
+  // Distant wind: lowpass noise with a very slow breathing LFO
+  const nz = _nz(ctx);                  B.add(nz);
+  const lp = ctx.createBiquadFilter();  B.add(lp);
+  lp.type = 'lowpass'; lp.frequency.value = 400;
+  const wg = _g(ctx, 0.025);            B.add(wg);
+  nz.connect(lp); lp.connect(wg); wg.connect(out);
+  nz.start(t);
+  B.add(_lfo(ctx, 0.07, 0.015, wg.gain));
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("title", amb_title);
+
+function amb_corridor(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Neon buzz: quiet saw through a soft lowpass, with a faint flicker
+  const saw = _osc(ctx, 'sawtooth', 120); B.add(saw);
+  const lp = ctx.createBiquadFilter();    B.add(lp);
+  lp.type = 'lowpass'; lp.frequency.value = 500;
+  const hg = _g(ctx, 0.02);               B.add(hg);
+  saw.connect(lp); lp.connect(hg); hg.connect(out);
+  saw.start(t);
+  B.add(_lfo(ctx, 0.6, 0.004, hg.gain));
+  // Low electrical hum underneath
+  const lo = _osc(ctx, 'sine', 60); B.add(lo);
+  const lg = _g(ctx, 0.015);         B.add(lg);
+  lo.connect(lg); lg.connect(out);
+  lo.start(t);
+  // Random water drips every 2-6s: sine pitch-drop, very quiet
+  const drip = () => {
+    const tt = ctx.currentTime;
+    const o = _osc(ctx, 'sine', 900); B.add(o);
+    const g = _g(ctx, 0);             B.add(g);
+    o.connect(g); g.connect(out);
+    o.frequency.setValueAtTime(900, tt);
+    o.frequency.exponentialRampToValueAtTime(400, tt + 0.15);
+    _pluck(g.gain, tt, 0.05, 0.005, 0.15);
+    o.start(tt); o.stop(tt + 0.4);
+    B.after(drip, 2000 + Math.random() * 4000);
+  };
+  B.after(drip, 1500 + Math.random() * 2500);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("corridor", amb_corridor);
+
+function amb_doorhub(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Tense near-silence: barely-there low rumble bed
+  const nz = _nz(ctx);                 B.add(nz);
+  const lp = ctx.createBiquadFilter(); B.add(lp);
+  lp.type = 'lowpass'; lp.frequency.value = 200;
+  const bg = _g(ctx, 0.02);            B.add(bg);
+  nz.connect(lp); lp.connect(bg); bg.connect(out);
+  nz.start(t);
+  // Shared wood-creak voice path
+  const clp = ctx.createBiquadFilter(); B.add(clp);
+  clp.type = 'lowpass'; clp.frequency.value = 350;
+  const cg = _g(ctx, 0);                B.add(cg);
+  clp.connect(cg); cg.connect(out);
+  // Random faint creaks every 7-14s: shuddering pitch fall
+  const creak = () => {
+    const tt = ctx.currentTime + 0.05;
+    const o = _osc(ctx, 'sawtooth', 90); B.add(o);
+    o.connect(clp);
+    o.frequency.setValueAtTime(90, tt);
+    o.frequency.exponentialRampToValueAtTime(70, tt + 0.8);
+    B.add(_lfo(ctx, 9, 8, o.frequency));
+    _swell(cg.gain, tt, 0.035, 0.25, 0.3, 0.35);
+    o.start(tt); o.stop(tt + 1.0);
+    B.after(creak, 7000 + Math.random() * 7000);
+  };
+  B.after(creak, 4000 + Math.random() * 5000);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("doorhub", amb_doorhub);
+
+function amb_saferoom(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Room breath: near-silent lowpassed noise
+  const nz = _nz(ctx);                 B.add(nz);
+  const lp = ctx.createBiquadFilter(); B.add(lp);
+  lp.type = 'lowpass'; lp.frequency.value = 150;
+  const bg = _g(ctx, 0.015);           B.add(bg);
+  nz.connect(lp); lp.connect(bg); bg.connect(out);
+  nz.start(t);
+  // Distant clock tick-tock every 1.2s, barely audible
+  let hi = true;
+  B.every(() => {
+    const tt = ctx.currentTime;
+    const o = _osc(ctx, 'sine', hi ? 2000 : 1600); B.add(o);
+    const g = _g(ctx, 0);                           B.add(g);
+    o.connect(g); g.connect(out);
+    _pluck(g.gain, tt, 0.02, 0.002, 0.02);
+    o.start(tt); o.stop(tt + 0.1);
+    hi = !hi;
+  }, 1200);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("saferoom", amb_saferoom);
+
+function amb_darkstare(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Something breathing in the dark: 40Hz sine with a 0.15Hz breath LFO
+  const o = _osc(ctx, 'sine', 40); B.add(o);
+  const bg = _g(ctx, 0.05);        B.add(bg);
+  o.connect(bg); bg.connect(out);
+  o.start(t);
+  B.add(_lfo(ctx, 0.15, 0.035, bg.gain));
+  // Shared bandpass path for the occasional cold swell
+  const bp = ctx.createBiquadFilter(); B.add(bp);
+  bp.type = 'bandpass'; bp.frequency.value = 300; bp.Q.value = 1.2;
+  const sg = _g(ctx, 0);               B.add(sg);
+  bp.connect(sg); sg.connect(out);
+  // Slow swell every ~9s, like a presence shifting in the dark
+  B.every(() => {
+    const tt = ctx.currentTime + 0.05;
+    const n = _nz(ctx); B.add(n);
+    n.connect(bp);
+    _swell(sg.gain, tt, 0.04, 1.5, 0.5, 2.0);
+    n.start(tt); n.stop(tt + 4.5);
+  }, 9000);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("darkstare", amb_darkstare);
+
+function amb_teddyroom(ctx, out){
+  const B = _bag();
+  // Out-of-tune music box: broken children's phrase, very quiet
+  const PHRASE = [659.26, 783.99, 880.0, 783.99]; // E5 G5 A5 G5
+  B.every(() => {
+    if (Math.random() < 0.25) return; // sometimes it stays silent
+    const tt = ctx.currentTime + 0.05;
+    PHRASE.forEach((f, i) => {
+      const t0 = tt + i * 0.5;
+      const o = _osc(ctx, 'triangle', f * 1.007); B.add(o);
+      const g = _g(ctx, 0);                       B.add(g);
+      o.connect(g); g.connect(out);
+      _pluck(g.gain, t0, 0.03, 0.01, 1.2);
+      o.start(t0); o.stop(t0 + 1.6);
+    });
+  }, 4000);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("teddyroom", amb_teddyroom);
+
+
+/* ---------- audio-parts/amb2.js ---------- */
+// AMBIENCE-2 factories — concatenated into audio-engine.js. Uses shared helpers from core.js.
+
+function amb_steeldoor(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Low inharmonic metal drone, very quiet
+  const o1 = _osc(ctx, 'sine', 98);   B.add(o1);
+  const o2 = _osc(ctx, 'sine', 147.3); B.add(o2);
+  const g = _g(ctx, 0.03);            B.add(g);
+  o1.connect(g); o2.connect(g); g.connect(out);
+  o1.start(t); o2.start(t);
+  // Random metal groans every 6-12s
+  const groan = () => {
+    const tt = ctx.currentTime;
+    const saw = _osc(ctx, 'sawtooth', 180); B.add(saw);
+    const bp = ctx.createBiquadFilter();    B.add(bp);
+    bp.type = 'bandpass'; bp.frequency.value = 800;
+    const gg = _g(ctx, 0);                  B.add(gg);
+    saw.connect(bp); bp.connect(gg); gg.connect(out);
+    saw.frequency.setValueAtTime(180, tt);
+    saw.frequency.exponentialRampToValueAtTime(120, tt + 1.0);
+    _pluck(gg.gain, tt, 0.03, 0.15, 0.85);
+    saw.start(tt); saw.stop(tt + 1.2);
+    B.after(groan, 6000 + Math.random() * 6000);
+  };
+  B.after(groan, 4000 + Math.random() * 4000);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("steeldoor", amb_steeldoor);
+
+function amb_reception(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Distant paper hiss
+  const n1 = _nz(ctx); B.add(n1);
+  const bp = ctx.createBiquadFilter(); B.add(bp);
+  bp.type = 'bandpass'; bp.frequency.value = 3000;
+  const g1 = _g(ctx, 0.02); B.add(g1);
+  n1.connect(bp); bp.connect(g1); g1.connect(out); n1.start(t);
+  // Corridor wind: lowpass noise with slow LFO
+  const n2 = _nz(ctx); B.add(n2);
+  const lp = ctx.createBiquadFilter(); B.add(lp);
+  lp.type = 'lowpass'; lp.frequency.value = 500;
+  const g2 = _g(ctx, 0.04); B.add(g2);
+  n2.connect(lp); lp.connect(g2); g2.connect(out); n2.start(t);
+  B.add(_lfo(ctx, 0.1, 0.02, g2.gain));
+  // Electrical hum
+  const hum = _osc(ctx, 'sine', 60); B.add(hum);
+  const gh = _g(ctx, 0.02); B.add(gh);
+  hum.connect(gh); gh.connect(out); hum.start(t);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("reception", amb_reception);
+
+function amb_leftcorridor(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Cold filtered wind, oppressive quiet — almost nothing else
+  const n = _nz(ctx); B.add(n);
+  const bp = ctx.createBiquadFilter(); B.add(bp);
+  bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 4;
+  const g = _g(ctx, 0.05); B.add(g);
+  n.connect(bp); bp.connect(g); g.connect(out); n.start(t);
+  B.add(_lfo(ctx, 0.07, 300, bp.frequency));
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("leftcorridor", amb_leftcorridor);
+
+function amb_hall(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Low growl layer
+  const saw = _osc(ctx, 'sawtooth', 55); B.add(saw);
+  const lp = ctx.createBiquadFilter();   B.add(lp);
+  lp.type = 'lowpass'; lp.frequency.value = 200;
+  const gg = _g(ctx, 0.06);              B.add(gg);
+  saw.connect(lp); lp.connect(gg); gg.connect(out); saw.start(t);
+  // Friction: noise bandpass with slow random-ish LFO
+  const n = _nz(ctx); B.add(n);
+  const bp = ctx.createBiquadFilter(); B.add(bp);
+  bp.type = 'bandpass'; bp.frequency.value = 1200;
+  const gf = _g(ctx, 0.04); B.add(gf);
+  n.connect(bp); bp.connect(gf); gf.connect(out); n.start(t);
+  B.add(_lfo(ctx, 0.05, 0.015, gf.gain));
+  // Distant moans every 5-10s
+  const moan = () => {
+    const tt = ctx.currentTime;
+    const o = _osc(ctx, 'sine', 220); B.add(o);
+    const go = _g(ctx, 0);            B.add(go);
+    o.connect(go); go.connect(out);
+    o.frequency.setValueAtTime(220, tt);
+    o.frequency.exponentialRampToValueAtTime(180, tt + 1.5);
+    _swell(go.gain, tt, 0.03, 0.4, 0.7, 0.4);
+    o.start(tt); o.stop(tt + 1.8);
+    B.after(moan, 5000 + Math.random() * 5000);
+  };
+  B.after(moan, 3000 + Math.random() * 3000);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("hall", amb_hall);
+
+function amb_crates(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Everything muffled through heavy lowpass; faint heartbeat
+  const bus = _g(ctx, 1); B.add(bus);
+  const lp = ctx.createBiquadFilter(); B.add(lp);
+  lp.type = 'lowpass'; lp.frequency.value = 300;
+  bus.connect(lp); lp.connect(out);
+  const n = _nz(ctx); B.add(n);
+  const gn = _g(ctx, 0.03); B.add(gn);
+  n.connect(gn); gn.connect(bus); n.start(t);
+  // Double-thump heartbeat every 0.9s
+  const thump = () => {
+    const tt = ctx.currentTime;
+    [0, 0.28].forEach(dl => {
+      const o = _osc(ctx, 'sine', 60); B.add(o);
+      const gt = _g(ctx, 0);           B.add(gt);
+      o.connect(gt); gt.connect(bus);
+      _pluck(gt.gain, tt + dl, 0.05, 0.01, 0.18);
+      o.start(tt + dl); o.stop(tt + dl + 0.3);
+    });
+    B.after(thump, 900);
+  };
+  B.after(thump, 900);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("crates", amb_crates);
+
+function amb_death(ctx, out){
+  const B = _bag();
+  const t = ctx.currentTime;
+  // Swallowing dissonant swell every 14s; near-silence between
+  const swell = () => {
+    const tt = ctx.currentTime;
+    const total = 5 + 2 + 4; // attack + hold + release
+    const n = _nz(ctx); B.add(n);
+    const lp = ctx.createBiquadFilter(); B.add(lp);
+    lp.type = 'lowpass'; lp.frequency.value = 800;
+    const gn = _g(ctx, 0); B.add(gn);
+    n.connect(lp); lp.connect(gn); gn.connect(out);
+    _swell(gn.gain, tt, 0.06, 5, 2, 4);
+    n.start(tt); n.stop(tt + total + 0.1);
+    [110, 116.5].forEach(f => {
+      const o = _osc(ctx, 'sine', f); B.add(o);
+      const go = _g(ctx, 0);          B.add(go);
+      o.connect(go); go.connect(out);
+      _swell(go.gain, tt, 0.03, 5, 2, 4);
+      o.start(tt); o.stop(tt + total + 0.1);
+    });
+    B.after(swell, 14000);
+  };
+  B.after(swell, 1000);
+  return { stop(){ B.stop(); } };
+}
+AudioSys._regAmb("death", amb_death);
+
+
+/* ---------- audio-parts/sfx1.js ---------- */
+// sfx1.js — UI & feedback SFX untuk audio engine "The Asylum"
+// Part file: digabung dengan core.js + part lain menjadi audio-engine.js.
+// Menggunakan shared helpers dari core SAJA: _bag, _nb, _nz, _osc, _g,
+// _lfo, _pluck, _swell. Tidak ada akses document/window/localStorage.
+// Aturan: peak tiap sfx <= ~0.5 (pre-gain, dikali (opts.gain||1));
+// opts.rate (default 1): semua frekuensi x r, semua durasi / r.
+// Return wajib: { stop(), dur }.
+
+"use strict";
+
+// 1. Klik kayu pendek: noise burst bandpass 900Hz + sine knock 700Hz.
+function sfx_ui_click(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = opts.gain || 1;
+
+  const n = _nz(ctx); B.add(n);
+  const bp = ctx.createBiquadFilter(); B.add(bp);
+  bp.type = "bandpass"; bp.frequency.value = 900 * r; bp.Q.value = 1.2;
+  const ng = _g(ctx, 0); B.add(ng);
+  n.connect(bp); bp.connect(ng); ng.connect(out);
+  _pluck(ng.gain, t, 0.28 * g, 0.003 / r, 0.05 / r);
+  n.start(t); n.stop(t + 0.1 / r);
+
+  const o = _osc(ctx, "sine", 700 * r); B.add(o);
+  const og = _g(ctx, 0); B.add(og);
+  o.connect(og); og.connect(out);
+  _pluck(og.gain, t, 0.3 * g, 0.003 / r, 0.05 / r);
+  o.start(t); o.stop(t + 0.12 / r);
+
+  return { stop(){ B.stop(); }, dur: 0.15 };
+}
+
+// 2. Blip hover SANGAT pelan: sine 1250Hz.
+function sfx_ui_hover(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = opts.gain || 1;
+
+  const o = _osc(ctx, "sine", 1250 * r); B.add(o);
+  const og = _g(ctx, 0); B.add(og);
+  o.connect(og); og.connect(out);
+  _pluck(og.gain, t, 0.06 * g, 0.005 / r, 0.05 / r);
+  o.start(t); o.stop(t + 0.1 / r);
+
+  return { stop(){ B.stop(); }, dur: 0.08 };
+}
+
+// 3. Ketikan mesin tik redup: noise burst bandpass 2200Hz + sine 180Hz.
+function sfx_type_tick(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = opts.gain || 1;
+
+  const n = _nz(ctx); B.add(n);
+  const bp = ctx.createBiquadFilter(); B.add(bp);
+  bp.type = "bandpass"; bp.frequency.value = 2200 * r; bp.Q.value = 1.0;
+  const ng = _g(ctx, 0); B.add(ng);
+  n.connect(bp); bp.connect(ng); ng.connect(out);
+  _pluck(ng.gain, t, 0.22 * g, 0.002 / r, 0.03 / r);
+  n.start(t); n.stop(t + 0.08 / r);
+
+  const o = _osc(ctx, "sine", 180 * r); B.add(o);
+  const og = _g(ctx, 0); B.add(og);
+  o.connect(og); og.connect(out);
+  _pluck(og.gain, t, 0.24 * g, 0.002 / r, 0.04 / r);
+  o.start(t); o.stop(t + 0.1 / r);
+
+  return { stop(){ B.stop(); }, dur: 0.12 };
+}
+
+// 4. Whoosh halus: noise -> bandpass ramp 600->2400Hz, swell 0.35s.
+function sfx_choice_appear(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = opts.gain || 1;
+
+  const n = _nz(ctx); B.add(n);
+  const bp = ctx.createBiquadFilter(); B.add(bp);
+  bp.type = "bandpass"; bp.Q.value = 1.4;
+  bp.frequency.setValueAtTime(600 * r, t);
+  bp.frequency.exponentialRampToValueAtTime(2400 * r, t + 0.35 / r);
+  const ng = _g(ctx, 0); B.add(ng);
+  n.connect(bp); bp.connect(ng); ng.connect(out);
+  _swell(ng.gain, t, 0.18 * g, 0.12 / r, 0.11 / r, 0.27 / r);
+  n.start(t); n.stop(t + 0.6 / r);
+
+  return { stop(){ B.stop(); }, dur: 0.5 };
+}
+
+// 5. Chime gelap: triangle 392Hz + 466Hz (minor 3rd).
+function sfx_pickup(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = opts.gain || 1;
+
+  [392, 466].forEach(function(f){
+    const o = _osc(ctx, "triangle", f * r); B.add(o);
+    const og = _g(ctx, 0); B.add(og);
+    o.connect(og); og.connect(out);
+    _pluck(og.gain, t, 0.25 * g, 0.005 / r, 0.5 / r);
+    o.start(t); o.stop(t + 0.8 / r);
+  });
+
+  return { stop(){ B.stop(); }, dur: 0.8 };
+}
+
+// 6. Chime misterius minor: A4 -> C5 -> E5, staggered 0.12s.
+function sfx_achievement(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = opts.gain || 1;
+
+  [440, 523.25, 659.25].forEach(function(f, i){
+    const tt = t + (0.12 * i) / r;
+    const o = _osc(ctx, "triangle", f * r); B.add(o);
+    const og = _g(ctx, 0); B.add(og);
+    o.connect(og); og.connect(out);
+    _pluck(og.gain, tt, 0.22 * g, 0.008 / r, 0.8 / r);
+    o.start(tt); o.stop(tt + 1.0 / r);
+  });
+
+  return { stop(){ B.stop(); }, dur: 1.2 };
+}
+
+// 7. Hit disonan BESAR: cluster rendah sawtooth via lowpass + noise crash.
+//    Kedua sumber masuk satu bus envelope peak 0.5 (agar total <= 0.5).
+function sfx_death_sting(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = opts.gain || 1;
+
+  const bus = _g(ctx, 0); B.add(bus);
+  bus.connect(out);
+  _pluck(bus.gain, t, 0.5 * g, 0.005 / r, 1.2 / r);
+
+  const lp = ctx.createBiquadFilter(); B.add(lp);
+  lp.type = "lowpass"; lp.frequency.value = 420 * r;
+  [55, 58.3, 110.5].forEach(function(f){
+    const o = _osc(ctx, "sawtooth", f * r); B.add(o);
+    const og = _g(ctx, 0.5); B.add(og);
+    o.connect(og); og.connect(lp);
+    o.start(t); o.stop(t + 1.5 / r);
+  });
+  lp.connect(bus);
+
+  const n = _nz(ctx); B.add(n);
+  const nlp = ctx.createBiquadFilter(); B.add(nlp);
+  nlp.type = "lowpass"; nlp.frequency.value = 900 * r;
+  const ng = _g(ctx, 0.7); B.add(ng);
+  n.connect(nlp); nlp.connect(ng); ng.connect(bus);
+  n.start(t); n.stop(t + 1.3 / r);
+
+  return { stop(){ B.stop(); }, dur: 1.6 };
+}
+
+// 8. Nada hangat naik: sine gliss 330->495Hz (perfect fifth up).
+function sfx_heal(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = opts.gain || 1;
+
+  const o = _osc(ctx, "sine", 330 * r); B.add(o);
+  o.frequency.setValueAtTime(330 * r, t);
+  o.frequency.exponentialRampToValueAtTime(495 * r, t + 0.6 / r);
+  const og = _g(ctx, 0); B.add(og);
+  o.connect(og); og.connect(out);
+  _swell(og.gain, t, 0.25 * g, 0.15 / r, 0.3 / r, 0.45 / r);
+  o.start(t); o.stop(t + 1.0 / r);
+
+  return { stop(){ B.stop(); }, dur: 0.9 };
+}
+
+AudioSys._regSfx("ui_click", sfx_ui_click);
+AudioSys._regSfx("ui_hover", sfx_ui_hover);
+AudioSys._regSfx("type_tick", sfx_type_tick);
+AudioSys._regSfx("choice_appear", sfx_choice_appear);
+AudioSys._regSfx("pickup", sfx_pickup);
+AudioSys._regSfx("achievement", sfx_achievement);
+AudioSys._regSfx("death_sting", sfx_death_sting);
+AudioSys._regSfx("heal", sfx_heal);
+
+
+/* ---------- audio-parts/sfx2.js ---------- */
+// sfx2.js — SFX part 2 (100% Web Audio synthesis). Uses shared helpers from core.js:
+// _bag, _nb, _nz, _osc, _g, _lfo, _pluck, _swell. Must pass `node --check`.
+// Peaks ≤ ~0.5 before opts.gain; every peak multiplied by (opts.gain||1).
+// opts.rate: frequencies × r, durations ÷ r.
+
+function sfx_dice_roll(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = (opts.gain || 1);
+  const bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+  bp.frequency.value = 3000; bp.Q.value = 1.2; B.add(bp); bp.connect(out);
+  let prev = 0;
+  for (let i = 0; i < 6; i++){
+    const dt = Math.min(0.5, prev + 0.05 + Math.random() * 0.12);
+    prev = dt;
+    const st = t + dt / r;
+    const src = _nz(ctx); B.add(src); src.connect(bp);
+    const gg = _g(ctx, 0); B.add(gg); src.connect(gg); gg.connect(bp);
+    _pluck(gg.gain, st, 0.2 * g, 0.002, 0.02 / r);
+    src.start(st); src.stop(st + 0.08 / r);
+  }
+  return { stop(){ B.stop(); }, dur: 0.7 / r };
+}
+AudioSys._regSfx("dice_roll", sfx_dice_roll);
+
+function sfx_paper_rustle(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = (opts.gain || 1);
+  const src = _nz(ctx); B.add(src); src.start(t);
+  const bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+  bp.frequency.value = 4000; bp.Q.value = 0.8; B.add(bp);
+  src.connect(bp); bp.connect(out);
+  const lfo = _lfo(ctx, 25 * r, 0.5, bp.frequency); // flutter wobble
+  const gg = _g(ctx, 0); B.add(gg); bp.connect(gg); gg.connect(out);
+  _swell(gg.gain, t, 0.2 * g, 0.04 / r, 0.27 / r, 0.04 / r);
+  B.after(() => { lfo.stop(); }, (0.4 / r) * 1000);
+  return { stop(){ lfo.stop(); B.stop(); }, dur: 0.5 / r };
+}
+AudioSys._regSfx("paper_rustle", sfx_paper_rustle);
+
+function sfx_door_creak(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = (opts.gain || 1);
+  const osc = _osc(ctx, "sawtooth", 140 * r); B.add(osc);
+  osc.frequency.setValueAtTime(140 * r, t);
+  osc.frequency.exponentialRampToValueAtTime(90 * r, t + 0.8 / r);
+  const stick = _lfo(ctx, 8 * r, 18 * r, osc.frequency); // stick-slip judder
+  const lp = ctx.createBiquadFilter(); lp.type = "lowpass";
+  lp.frequency.value = 600; B.add(lp);
+  const gg = _g(ctx, 0); B.add(gg);
+  osc.connect(lp); lp.connect(gg); gg.connect(out);
+  _swell(gg.gain, t, 0.22 * g, 0.15 / r, 0.5 / r, 0.15 / r);
+  osc.start(t); osc.stop(t + 0.9 / r);
+  B.after(() => { stick.stop(); }, (0.95 / r) * 1000);
+  return { stop(){ stick.stop(); B.stop(); }, dur: 1.0 / r };
+}
+AudioSys._regSfx("door_creak", sfx_door_creak);
+
+function sfx_metal_clang(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = (opts.gain || 1);
+  const partials = [211, 347, 529];
+  const amps = [1.0, 0.55, 0.32];
+  for (let i = 0; i < partials.length; i++){
+    const osc = _osc(ctx, "sine", partials[i] * r); B.add(osc);
+    const gg = _g(ctx, 0); B.add(gg);
+    osc.connect(gg); gg.connect(out);
+    _pluck(gg.gain, t, 0.3 * g * amps[i], 0.003, 0.6 / r);
+    osc.start(t); osc.stop(t + 0.8 / r);
+  }
+  return { stop(){ B.stop(); }, dur: 0.9 / r };
+}
+AudioSys._regSfx("metal_clang", sfx_metal_clang);
+
+function sfx_whisper(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = (opts.gain || 1);
+  const src = _nz(ctx); B.add(src); src.start(t);
+  const mk = (freq, phase) => {
+    const bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+    bp.frequency.value = freq; bp.Q.value = 2.5; B.add(bp);
+    const gg = _g(ctx, 0.5); B.add(gg);
+    src.connect(bp); bp.connect(gg); gg.connect(out);
+    _swell(gg.gain, t, 0.16 * g, 0.2 / r, 0.5 / r, 0.2 / r);
+    return gg.gain;
+  };
+  const g1 = mk(1200 * r, 0), g2 = mk(2400 * r, 1);
+  // opposing-phase 4Hz tremolo on the two formants
+  const o1 = _osc(ctx, "sine", 4 * r); const d1 = _g(ctx, 0.5); B.add(o1); B.add(d1);
+  o1.connect(d1); d1.connect(g1); o1.start(t); o1.stop(t + 1.0 / r);
+  const o2 = _osc(ctx, "sine", 4 * r); const d2 = _g(ctx, 0.5); B.add(o2); B.add(d2);
+  o2.connect(d2); d2.connect(g2); o2.start(t, 0.125 / r); o2.stop(t + 1.0 / r);
+  return { stop(){ B.stop(); }, dur: 1.1 / r };
+}
+AudioSys._regSfx("whisper", sfx_whisper);
+
+function sfx_footstep(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = (opts.gain || 1);
+  // low thud
+  const osc = _osc(ctx, "sine", 70 * r); B.add(osc);
+  const gg = _g(ctx, 0); B.add(gg);
+  osc.connect(gg); gg.connect(out);
+  _pluck(gg.gain, t, 0.35 * g, 0.004, 0.12 / r);
+  osc.start(t); osc.stop(t + 0.2 / r);
+  // shoe tap
+  const src = _nz(ctx); B.add(src); src.start(t);
+  const lp = ctx.createBiquadFilter(); lp.type = "lowpass";
+  lp.frequency.value = 400; B.add(lp);
+  const tg = _g(ctx, 0); B.add(tg);
+  src.connect(lp); lp.connect(tg); tg.connect(out);
+  _pluck(tg.gain, t, 0.25 * g, 0.002, 0.05 / r);
+  src.stop(t + 0.12 / r);
+  return { stop(){ B.stop(); }, dur: 0.3 / r };
+}
+AudioSys._regSfx("footstep", sfx_footstep);
+
+function sfx_energy_low(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = (opts.gain || 1);
+  const lp = ctx.createBiquadFilter(); lp.type = "lowpass";
+  lp.frequency.value = 900; B.add(lp); lp.connect(out);
+  for (let i = 0; i < 2; i++){
+    const st = t + (i * 0.27) / r;
+    const osc = _osc(ctx, "square", 180 * r); B.add(osc);
+    const gg = _g(ctx, 0); B.add(gg);
+    osc.connect(gg); gg.connect(lp);
+    _pluck(gg.gain, st, 0.12 * g, 0.005, 0.12 / r);
+    osc.start(st); osc.stop(st + 0.2 / r);
+  }
+  return { stop(){ B.stop(); }, dur: 0.6 / r };
+}
+AudioSys._regSfx("energy_low", sfx_energy_low);
+
+function sfx_teddy(ctx, out, opts){
+  const B = _bag(); const t = ctx.currentTime; const r = opts.rate || 1;
+  const g = (opts.gain || 1);
+  // music box: E5, G5, C6 with slight detune
+  const notes = [659.25, 783.99, 1046.50];
+  for (let i = 0; i < notes.length; i++){
+    const st = t + (i * 0.25) / r;
+    const osc = _osc(ctx, "triangle", notes[i] * r * 1.006); B.add(osc);
+    const gg = _g(ctx, 0); B.add(gg);
+    osc.connect(gg); gg.connect(out);
+    _pluck(gg.gain, st, 0.2 * g, 0.004, 1.0 / r);
+    osc.start(st); osc.stop(st + 1.2 / r);
+  }
+  return { stop(){ B.stop(); }, dur: 1.6 / r };
+}
+AudioSys._regSfx("teddy", sfx_teddy);
+
+</script>
 <script>
 "use strict";
 
@@ -1865,6 +2704,7 @@ function applyEnterMutations(n){
   if(n.clearObjective){ S.objective = null; S.objectiveEn = null; }
   if(n.favor) Object.keys(n.favor).forEach(k=>favorAdd(k, n.favor[k]));
   if(n.grantItems) n.grantItems.forEach(item=>{
+    try{ if(globalThis.AudioSys) AudioSys.sfx(item.id==="boneka" ? "teddy" : "pickup"); }catch(e){}
     collAdd(item.id);
     const ex = S.items.find(x=>x.id===item.id);
     if(ex){ ex.qty = (ex.qty||1)+1; if(item.use && !ex.use) ex.use = item.use; }
@@ -2078,6 +2918,7 @@ function achvUnlock(id){
   try{ const o = achvGet(); o.unlocked[id] = Date.now(); localStorage.setItem(ACHV_KEY, JSON.stringify(o)); }catch(e){}
   achvQueue.push(a);
   if(!achvShowing) showNextAchv();
+  try{ if(globalThis.AudioSys) AudioSys.sfx("achievement"); }catch(e){}
   return true;
 }
 function showNextAchv(){
@@ -2468,6 +3309,7 @@ function typewriter(container, paragraphs, done){
   timer = setInterval(()=>{
     if(pi >= ps.length){ end(); return; }
     ci += 1; /* ~31 huruf/detik — sepelan manusia membaca */
+    if(ci % 3 === 0){ try{ if(globalThis.AudioSys) AudioSys.sfx("type_tick"); }catch(e){} }
     ps[pi].textContent = paragraphs[pi].slice(0, ci);
     if(ci >= paragraphs[pi].length){ pi++; ci = 0; }
   }, 32);
@@ -2483,6 +3325,13 @@ const BG_FILES = {
   hall:"img/bg_hall.jpg", crates:"img/bg_crates.jpg", death:"img/bg_death.jpg"
 };
 let bgCur = null, bgFlip = false, bgPreloaded = false;
+let lastET = null;
+/* SFX khusus per node */
+const NODE_SFX = {
+  rec_papers_1:"paper_rustle", rec_papers_read:"paper_rustle", rec_papers_photos:"paper_rustle",
+  rec_left_door:"door_creak", rec_left_door_2:"door_creak", rec_left_push:"metal_clang",
+  s12_c:"whisper", s12_peek:"whisper"
+};
 function bgFor(id){
   if(!id) return "corridor";
   if(/^d1_/.test(id)) return "saferoom";
@@ -2504,6 +3353,7 @@ function setBG(key){
   bgFlip = !bgFlip;
   el.style.backgroundImage = 'url("' + BG_FILES[key] + '")';
   el.style.opacity = "1"; other.style.opacity = "0";
+  try{ if(globalThis.AudioSys) AudioSys.setAmbient(key); }catch(e){}
 }
 function bgPreloadAll(){
   if(bgPreloaded) return; bgPreloaded = true;
@@ -2512,6 +3362,7 @@ function bgPreloadAll(){
 function showTitle(){
   S.node = "title"; updateHUD();
   setBG("title"); bgPreloadAll();
+  try{ if(globalThis.AudioSys) AudioSys.heartbeat(false); }catch(e){}
   document.body.style.overflow = "hidden";
   document.onkeydown = null;
   const sv = loadSave();
@@ -2842,6 +3693,16 @@ function goTarget(target, opts){
   S.node = target;
   tickTemp(); decayTick();            /* temp: tiap node; emosi+mental: tick acak 5-10 pilihan */
   if(n.kind!=="death") setBG(bgFor(target));
+  try{
+    if(globalThis.AudioSys){
+      AudioSys.heartbeat(S.status==="danger"||S.status==="wounded");
+      const _et = energyTier();
+      if((_et==="critical"||_et==="empty") && _et!==lastET) AudioSys.sfx("energy_low");
+      lastET = _et;
+      const _nsfx = NODE_SFX[target];
+      if(_nsfx) AudioSys.sfx(_nsfx);
+    }
+  }catch(e){}
   applyEnterMutations(n);         /* sistem baru: tier, body, mental, emosi, objective, favor, item */
   if(n.tutPop) tutPop(n.tutPop);      /* popup tutorial kontekstual dari node */
   persist();
@@ -2983,6 +3844,7 @@ function renderStory(id){
 
 /* ---------- RENDER HASIL ---------- */
 function grantItem(item){
+  try{ if(globalThis.AudioSys) AudioSys.sfx(item.id==="boneka" ? "teddy" : "pickup"); }catch(e){}
   const before = snapshotState();
   const ex = S.items.find(it=>it.id===item.id);
   if(ex) ex.qty = (ex.qty||1)+1;
@@ -3033,6 +3895,7 @@ function renderDeath(id){
   const n = NODES[id];
   updateHUD(); persist();
   setBG("death");
+  try{ if(globalThis.AudioSys){ AudioSys.sfx("death_sting"); AudioSys.heartbeat(false); } }catch(e){}
   document.body.classList.remove("dying"); void document.body.offsetWidth;
   document.body.classList.add("dying");
   setTimeout(()=>document.body.classList.remove("dying"), 950);
@@ -3137,6 +4000,19 @@ const NODES_I18N = {"prolog1": {"story": ["Kau terbangun di ujung sebuah lorong 
 
 (function init(){
   applyStaticLang();
+  try{
+    if(globalThis.AudioSys){
+      AudioSys.init();
+      const mb = document.getElementById("muteBtn");
+      const syncMute = ()=>{ if(mb) mb.textContent = AudioSys.isMuted() ? "🔇" : "🔊"; };
+      if(mb) mb.addEventListener("click", ev=>{ ev.stopPropagation(); AudioSys.toggleMute(); syncMute(); });
+      syncMute();
+      document.addEventListener("click", ev=>{
+        if(ev.target && ev.target.closest && ev.target.closest("button") && ev.target.id!=="muteBtn")
+          AudioSys.sfx("ui_click");
+      });
+    }
+  }catch(e){}
   const sv = loadSave();
   if(sv && sv.registered) showTitle(); /* pemain kembali → judul (LANJUTKAN) */
   else goTarget("prolog1");            /* buka website → prolog → judul */
