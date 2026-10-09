@@ -47,6 +47,8 @@
   #hud .stat{display:flex; align-items:center; gap:.4rem; color:var(--ash)}
   #hud .stat b{color:var(--bone); font-weight:800}
   #hud #deathStat b{color:var(--blood)}
+  #hud .hud-col{display:flex; flex-direction:column; align-items:flex-start; gap:.32rem}
+  #statusBtn{font-size:.66rem; letter-spacing:.1em; padding:.24rem .6rem}
   #hud .badge{
     padding:.15rem .55rem; border-radius:999px; font-size:.68rem; font-weight:800;
     letter-spacing:.12em; text-transform:uppercase; border:1px solid;
@@ -348,7 +350,10 @@
 </head>
 <body>
 <div id="hud" hidden>
-  <div class="stat" id="deathStat">💀 <span>Death Count</span>&nbsp;<b id="deathCount">0</b></div>
+  <div class="hud-col">
+    <div class="stat" id="deathStat">💀 <span>Death Count</span>&nbsp;<b id="deathCount">0</b></div>
+    <button class="statbtn" id="statusBtn" title="Lihat status player">👤 STATUS</button>
+  </div>
   <div class="stat" id="energyStat">⚡<span class="ebar"><span class="efill"></span></span></div>
   <button class="statbtn" id="invBtn" title="Cek inventori">🎒 <b id="itemCount">0</b></button>
   <div class="stat"><button id="menuBtn" title="Menu utama (progres tersimpan)">⌂ MENU</button></div>
@@ -1752,6 +1757,11 @@ function unequipItem(slot){
   reactAndTut(before, "equipment");
 }
 $("#invBtn").addEventListener("click", openInventory);
+$("#statusBtn").addEventListener("click", ()=>{
+  if(!S || !S.registered) return;
+  const back = (S.node && S.node!=="status" && NODES[S.node]) ? S.node : "opening";
+  showStatus("check", back); /* cek status kapan saja, kembali ke node semula */
+});
 $("#invClose").addEventListener("click", ()=>{ $("#invModal").hidden = true; });
 $("#invModal").addEventListener("click", (e)=>{ if(e.target.id==="invModal") e.target.hidden = true; });
 $("#tutPopOk").addEventListener("click", dismissTutPop);
