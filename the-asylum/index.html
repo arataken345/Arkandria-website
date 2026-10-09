@@ -47,6 +47,8 @@
   #hud .stat{display:flex; align-items:center; gap:.4rem; color:var(--ash)}
   #hud .stat b{color:var(--bone); font-weight:800}
   #hud #deathStat b{color:var(--blood)}
+  #hud .hud-col{display:flex; flex-direction:column; align-items:flex-start; gap:.32rem}
+  #statusBtn{font-size:.66rem; letter-spacing:.1em; padding:.24rem .6rem}
   #hud .badge{
     padding:.15rem .55rem; border-radius:999px; font-size:.68rem; font-weight:800;
     letter-spacing:.12em; text-transform:uppercase; border:1px solid;
@@ -143,7 +145,7 @@
   button.primary:disabled{opacity:.5; cursor:default; transform:none; box-shadow:none}
   button.ghost{background:transparent; border:1px solid #555; color:var(--bone)}
   button.ghost:hover{border-color:var(--bone)}
-  /* Pact (kontrak kegelapan) */
+  /* Registrasi (tema ingatan/amnesia) */
   .pact{max-width:580px}
   .kicker{font-size:.68rem; letter-spacing:.4em; text-indent:.4em; color:var(--blood); text-transform:uppercase; margin-bottom:1.1rem; font-weight:800; text-align:center}
   .pact-title{
@@ -325,6 +327,15 @@
   #tutModal{position:fixed; inset:0; z-index:200; display:flex; align-items:center;
     justify-content:center; background:rgba(0,0,0,.74); padding:1.2rem}
   #tutModal[hidden]{display:none}
+  /* ===== TOAST KECIL TENGAH (item story) ===== */
+  #storyToast{position:fixed; left:50%; top:42%; transform:translate(-50%,-50%) scale(.96);
+    z-index:220; background:rgba(10,10,16,.94); border:1px solid var(--blood-dim);
+    color:var(--bone); padding:.75rem 1.15rem; border-radius:10px; font-size:.85rem;
+    max-width:82%; text-align:center; line-height:1.7; opacity:0; pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    box-shadow:0 0 30px rgba(0,0,0,.6)}
+  #storyToast.show{opacity:1; transform:translate(-50%,-50%) scale(1)}
+  @media (prefers-reduced-motion: reduce){ #storyToast{transition:none} }
   .tutmodal-box{max-width:440px; width:100%; background:#101016;
     border:1px solid var(--blood-dim); border-radius:14px; padding:1.6rem; text-align:center;
     box-shadow:0 0 40px rgba(220,20,60,.18)}
@@ -339,7 +350,10 @@
 </head>
 <body>
 <div id="hud" hidden>
-  <div class="stat" id="deathStat">💀 <span>Death Count</span>&nbsp;<b id="deathCount">0</b></div>
+  <div class="hud-col">
+    <div class="stat" id="deathStat">💀 <span>Death Count</span>&nbsp;<b id="deathCount">0</b></div>
+    <button class="statbtn" id="statusBtn" title="Lihat status player">👤 STATUS</button>
+  </div>
   <div class="stat" id="energyStat">⚡<span class="ebar"><span class="efill"></span></span></div>
   <button class="statbtn" id="invBtn" title="Cek inventori">🎒 <b id="itemCount">0</b></button>
   <div class="stat"><button id="menuBtn" title="Menu utama (progres tersimpan)">⌂ MENU</button></div>
@@ -355,6 +369,7 @@
   </div>
 </div>
 <input type="file" id="importFile" accept=".json,application/json" hidden />
+<div id="storyToast"></div>
 <div id="tutModal" hidden>
   <div class="tutmodal-box">
     <h3 id="tutPopT"></h3>
@@ -815,7 +830,8 @@ const NODES = {
       "Kau memeluknya erat-erat. Entah kenapa, benda ini terasa penting."
     ],
     grantItems: [
-      { id: "boneka", name: "Boneka Beruang", icon: "🧸", note: "+1 Boneka beruang — PAKAI: tenangkan diri", kind: "consumable", use: { mentalBetter: 1 } }
+      { id: "boneka", name: "Boneka Beruang", icon: "🧸", story: true, note: "Boneka lusuh — entah kenapa kau membawanya",
+      storyHint: "Boneka beruang lusuh ini... kenapa aku membawanya? Entahlah. Tapi rasanya aku harus menyimpannya." }
     ],
     addEmotion: [{ n: "Lega", amt: 1 }, { n: "Takut", amt: 1 }],
     setFlag: { d4: true },
@@ -1304,7 +1320,13 @@ function spendEnergy(n, x, y){
 /* Pakai item manual dari tas (makan, perban, dll). */
 function useItem(id){
   const it = S.items.find(x=>x.id===id);
-  if(!it || !it.use) return;
+  if(!it) return;
+  /* Item story-related: belum waktunya dipakai — hanya pesan misterius. */
+  if(it.story){
+    storyToast(it.storyHint || "Item ini apaan? Kenapa aku membawanya? Entahlah... Mungkin nanti ada gunanya.");
+    return;
+  }
+  if(!it.use) return;
   const before = snapshotState();
   const u = it.use;
   if(u.energy) S.energy = Math.min(100, Math.max(0, (S.energy||0)+u.energy));
@@ -1691,7 +1713,7 @@ function openInventory(){
     ? S.items.map(it=>{
         const eq = it.kind==="equipment"
           ? `<button class="mini-btn" data-equip="${esc(it.id)}">EQUIP</button>` : "";
-        const use = it.use
+        const use = (it.use || it.story)
           ? `<button class="mini-btn" data-use="${esc(it.id)}">PAKAI</button>` : "";
         return `<div class="inv-item"><span>${esc(it.icon||"🎒")} ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}${use}</span></div>`;
       }).join("")
@@ -1735,12 +1757,26 @@ function unequipItem(slot){
   reactAndTut(before, "equipment");
 }
 $("#invBtn").addEventListener("click", openInventory);
+$("#statusBtn").addEventListener("click", ()=>{
+  if(!S || !S.registered) return;
+  const back = (S.node && S.node!=="status" && NODES[S.node]) ? S.node : "opening";
+  showStatus("check", back); /* cek status kapan saja, kembali ke node semula */
+});
 $("#invClose").addEventListener("click", ()=>{ $("#invModal").hidden = true; });
 $("#invModal").addEventListener("click", (e)=>{ if(e.target.id==="invModal") e.target.hidden = true; });
 $("#tutPopOk").addEventListener("click", dismissTutPop);
 $("#tutModal").addEventListener("click", (e)=>{ if(e.target.id==="tutModal") dismissTutPop(); });
 
 /* ---------- TOAST ---------- */
+let _storyToastT = null;
+function storyToast(msg){
+  const el = $("#storyToast");
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add("show");
+  if(_storyToastT) clearTimeout(_storyToastT);
+  _storyToastT = setTimeout(()=>el.classList.remove("show"), 2200);
+}
 function toast(msg){
   let t = $("#toast");
   if(!t){ t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
@@ -1920,22 +1956,22 @@ function showTitle(){
   wireSaveButtons();
 }
 
-/* ---------- LAYAR: KONTRAK KEGELAPAN (registrasi) ---------- */
+/* ---------- LAYAR: INGATAN (registrasi — tema amnesia) ---------- */
 function showPact(){
   S.node = "pact"; updateHUD();
   document.body.style.overflow = "hidden";
   document.onkeydown = null;
   app.innerHTML = `
     <div id="titleScreen"><div class="tube"></div><div class="fog"></div><div class="title-inner screen pact">
-      <div class="kicker">Perjanjian</div>
-      <h2 class="pact-title">KONTRAK KEGELAPAN</h2>
-      <p class="pact-flavor">Sebelum kakimu melangkah ke dalam lorong ini, kegelapan menuntut sebuah perjanjian.<br/><br/>Di hadapan sesuatu yang <b>tak bernama</b> — yang mengamatimu dari balik kegelapan — kau diminta menandatangani kontrak ini dengan <b>darahmu sendiri</b>.<br/><br/>Nama yang kau tulis akan menjadi namamu di dalam cerita. Tak ada jalan kembali setelah tinta mengering.</p>
-      <label>Nama Player<input id="pName" maxlength="24" placeholder="Tulis namamu..." autocomplete="off"/></label>
+      <div class="kicker">Ingatan</div>
+      <h2 class="pact-title">INGATAN YANG HILANG</h2>
+      <p class="pact-flavor">Kau terbangun tanpa apa-apa. Tidak ada nama. Tidak ada masa lalu. Hanya perban, kegelapan, dan detak jantungmu sendiri.<br/><br/>Pejamkan mata. Selami kekosongan itu — jauh di dalam sana, di antara kepingan yang hancur, ada sesuatu yang masih tersisa.<br/><br/>Sebuah nama. <b>Namamu</b>.<br/><br/>Coba ingat... siapa dirimu?</p>
+      <label>Namamu adalah<input id="pName" maxlength="24" placeholder="Sebuah nama muncul di benakmu..." autocomplete="off"/></label>
       <label>Jenis Kelamin
         <select id="pGender"><option>Laki-laki</option><option>Perempuan</option></select>
       </label>
-      <div class="btnrow" style="margin-top:1.4rem"><button class="big primary" id="btnSign">✒ TANDATANGANI DENGAN DARAH</button></div>
-      <p class="pact-warn">Dengan menandatangani, jiwamu terikat pada cerita ini.<br/>Pilihanmu final. Kematianmu tercatat.</p>
+      <div class="btnrow" style="margin-top:1.4rem"><button class="big primary" id="btnSign">✦ ITU NAMAKU</button></div>
+      <p class="pact-warn">Dengan mengingat siapa dirimu, cerita ini menjadi milikmu.<br/>Pilihanmu final. Kematianmu tercatat.</p>
     </div></div>`;
   $("#pName").focus();
   $("#btnSign").onclick = ()=>{
@@ -1943,7 +1979,7 @@ function showPact(){
     if(!name){ $("#pName").style.borderColor = "var(--blood)"; $("#pName").focus(); return; }
     S.registered = true; S.name = name; S.gender = $("#pGender").value;
     S.node = "status"; persist();
-    const b = $("#btnSign"); b.disabled = true; b.textContent = "🩸 TERSEGEL";
+    const b = $("#btnSign"); b.disabled = true; b.textContent = "✦ TERINGAT";
     setTimeout(()=>{ document.body.style.overflow=""; showStatus("new"); }, 1000);
   };
   $("#pName").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("#btnSign").click(); });
