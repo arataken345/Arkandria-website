@@ -160,11 +160,32 @@
   }
   .pact input:focus,.pact select:focus{outline:none; border-color:var(--blood); box-shadow:0 0 14px rgba(220,20,60,.25)}
   .pact-warn{margin-top:1.3rem; font-size:.74rem; color:#7a5a5a; line-height:1.9; text-align:center}
-  /* Player status */
-  .pstat{background:#0a0a0c; border:1px solid #2c2c30; border-radius:12px; padding:1.3rem 1rem; overflow-x:auto; margin-bottom:1.5rem}
-  .pstat pre{font-family:ui-monospace,"Cascadia Mono",Menlo,Consolas,monospace; font-size:.78rem; line-height:1.8; color:var(--ash); white-space:pre}
-  .pstat .hd{color:var(--blood); font-weight:800}
-  .pstat .val{color:var(--bone); font-weight:600}
+  /* Player status sheet */
+  .psheet{background:rgba(12,12,15,.92); border:1px solid #2b2b30; border-radius:16px; padding:1.4rem 1.2rem; margin-bottom:1.5rem; box-shadow:0 0 40px rgba(0,0,0,.6)}
+  .phead{display:flex; gap:1rem; align-items:center; margin-bottom:1.2rem}
+  .pavatar{width:3.4rem; height:3.4rem; flex:none; border-radius:50%; background:radial-gradient(circle at 35% 30%, #3a0d16, #120308); border:1px solid var(--blood); display:flex; align-items:center; justify-content:center; font-family:"Special Elite",cursive; font-size:1.5rem; color:var(--blood)}
+  .pname{font-family:"Special Elite",cursive; font-size:1.4rem; letter-spacing:.06em; color:var(--bone)}
+  .pmeta{font-size:.78rem; color:var(--dim); letter-spacing:.08em; margin-top:.25rem}
+  .pmeta b{color:var(--blood)}
+  .pcard{border:1px solid #26262b; border-radius:12px; padding:1rem 1.1rem; margin-bottom:.9rem; background:rgba(255,255,255,.015)}
+  .pcard-h{font-size:.72rem; font-weight:800; letter-spacing:.28em; color:var(--blood); margin-bottom:.7rem}
+  .pcard.mystery .pcard-h{color:#8b7bd8}
+  .pcard-note{font-size:.7rem; color:var(--dim); margin-top:.7rem; line-height:1.7}
+  .eqrow{display:flex; justify-content:space-between; align-items:center; gap:.6rem; padding:.55rem 0; border-bottom:1px dashed #222; font-size:.9rem}
+  .eqrow:last-of-type{border-bottom:none}
+  .eq-right{display:flex; align-items:center; gap:.6rem}
+  .eq-item{color:var(--bone); font-weight:600}
+  .eq-empty{color:var(--dim); font-size:.82rem}
+  .krow{display:flex; justify-content:space-between; gap:.8rem; padding:.42rem 0; font-size:.88rem; color:var(--ash)}
+  .kval{color:var(--bone); font-weight:600; text-align:right}
+  .mbar{display:flex; gap:.35rem; margin:.55rem 0 .7rem}
+  .mseg{flex:1; height:.5rem; border-radius:3px; background:#222}
+  .obj{font-family:"Special Elite",cursive; color:var(--dim); letter-spacing:.14em; text-align:center; padding:.4rem 0}
+  .mini-btn{background:rgba(220,20,60,.12); border:1px solid var(--blood); color:#ff8fa3; font-size:.66rem; font-weight:800; letter-spacing:.14em; padding:.42rem .8rem; border-radius:6px; cursor:pointer; font-family:inherit}
+  .mini-btn:hover{background:rgba(220,20,60,.25)}
+  .mini-btn.danger{background:transparent; border-color:#555; color:var(--dim)}
+  .mini-btn.danger:hover{border-color:var(--blood); color:var(--blood)}
+  .inv-right{display:flex; align-items:center; gap:.7rem}
   /* Inventory modal */
   .modal{position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.72); backdrop-filter:blur(3px)}
   .modal[hidden]{display:none}
@@ -233,7 +254,7 @@
   .stats b{display:block; font-size:1.4rem; color:var(--bone); margin-top:.2rem}
   footer{position:relative; z-index:1; text-align:center; padding:1.2rem; font-size:.68rem; letter-spacing:.3em; color:#4a4a4a}
   footer a{color:var(--dim); text-decoration:none} footer a:hover{color:var(--blood)}
-  @media (max-width:520px){ .legend{grid-template-columns:1fr} .pstat pre{font-size:.68rem} }
+  @media (max-width:520px){ .legend{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -264,19 +285,42 @@
 
 /* ---------- DATA CERITA ---------- */
 const NODES = {
+  prolog1: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kamu terbangun di ujung lorong gelap yang bau dan lembap. Segalanya terasa kotor, penuh puing-puing dan pecahan kaca. Beberapa pintu rusak dan tergantung miring, membuat bayangan-bayangan aneh di bawah cahaya redup.",
+      "Di dinding ada coretan-coretan \u2014 seperti pesan atau peringatan, tetapi hampir semuanya susah untuk dibaca.",
+      "Lalu, kamu melihat tanganmu. Keduanya dibalut perban kotor. Tapi kamu nggak merasakan ada rasa sakit sama sekali.",
+      "Disaat kamu mencoba mengingat apa yang terjadi, kepalamu terasa kosong. Kamu nggak ingat apa-apa. Nggak tahu ini di mana, kenapa kamu di sini, atau harus ngapain."
+    ],
+    next: "title"
+  },
+
+  prolog2: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Setelah berjalan ke depan dengan kebingungan sesaat, kini di depanmu terlihat empat pintu \u2014 masing-masing menampilkan kesannya tersendiri.",
+      "Pintu paling kiri tertutup rapat. Engselnya berkarat, tapi gagangnya terlihat agak bersih dari debu, seperti baru saja dipakai. Pintu kedua di kiri tampak terbuka lebar dan setengah rusak.",
+      "Kemudian, pintu pertama di sisi kanan berayun pelan, berderit kecil meski tak ada angin sedikit pun \u2014 seperti ada yang meniupnya. Pintu kedua lebih tenang dan normal, tapi dari celahnya kamu bisa lihat bayangan samar terletak di atas meja.",
+      "Lorong terus berlanjut, tapi suasananya makin tidak nyaman. Lampu-lampu berkedip tak menentu, dan entah dari mana, kamu sempat dengar suara gemerisik... lalu hening total."
+    ],
+    next: "opening"
+  },
+
   opening: {
     kind: "choice",
     kicker: "Part 1 : Awal Mula",
     story: [
-      "Kau terbangun dengan kepala yang berat. Udara dingin menusuk kulit, dan bau anyir besi tua memenuhi hidungmu.",
-      "Di depanmu terdapat 4 pintu, pintu di ujung kiri tampak tertutup rapat namun kedua pintu di kanan tampak terbuka.",
-      "Kau akan pergi kemana?"
+      "Apa yang akan kamu lakukan?"
     ],
     choices: [
-      { text: "Pintu pertama di kiri", target: "r_kiri1" },
-      { text: "Pintu pertama di kanan", target: "r_kanan1" },
-      { text: "Pintu kedua di kanan", target: "r_kanan2" },
-      { text: "Tak memilih yang manapun dan kau memutuskan melangkah maju", target: "r_maju" }
+      { text: "Mengecek pintu pertama di kiri", target: "r_kiri1" },
+      { text: "Mengecek pintu kedua di kiri", target: "r_kiri2" },
+      { text: "Mengecek pintu pertama di kanan", target: "r_kanan1" },
+      { text: "Mengecek pintu kedua di kanan", target: "r_kanan2" },
+      { text: "Terus maju meski ragu.", target: "r_maju" }
     ]
   },
 
@@ -285,6 +329,16 @@ const NODES = {
     story: [
       "Kau masuk ke pintu pertama di kiri, kau hanya melihat banyak sekali meja dan kursi yang tersebar dan hancur dimana-mana.",
       "Kau tak tampak menemukan hal yang bisa berguna, tapi aman."
+    ],
+    next: "tbc"
+  },
+
+  r_kiri2: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau melangkah menuju pintu kedua di kiri yang terbuka lebar dan setengah rusak.",
+      "Namun kegelapan di balik pintu ini belum terungkap. (Cerita bagian ini masih ditulis \u2014 segera hadir.)"
     ],
     next: "tbc"
   },
@@ -304,7 +358,7 @@ const NODES = {
     story: [
       "Pintu kedua di kanan, kau bisa melihat ada sebuah kotak yang mencolok di atas meja. Kau maju dan membukanya dan mendapatkan sebuah boneka beruang berwarna merah muda."
     ],
-    item: { id: "boneka", name: "Boneka Beruang", note: "+1 Boneka beruang" },
+    item: { id: "boneka", name: "Boneka Beruang", note: "+1 Boneka beruang", icon: "🧸", kind: "consumable" },
     next: "tbc"
   },
 
@@ -327,7 +381,8 @@ const TUTORIAL = [
   ["4", "Pilihan yang berakhiran <span class='tag' style='color:#fb923c'>[Terluka]</span> akan membuatmu dalam bahaya, jika kau sekali lagi salah memilih, kau tewas, dan kondisi [Terluka] akan membuatmu <b>tidak bisa memilih beberapa pilihan</b> yang lain."],
   ["5", "Pilihan yang berakhiran <b>Tewas</b> berarti kau telah gagal untuk melanjutkan ceritanya. Namun jangan khawatir, karena kau adalah seorang <b>\"Player\"</b> kau bisa <b>bangkit di tempat</b> untuk melanjutkan ceritanya. Namun di atas kepalamu akan muncul angka, angka tersebut akan terus bertambah setiap kau tewas, hal ini disebut sebagai <b>\"Death Count\"</b>. Jagalah death count-mu tetap rendah, karena itu akan menentukan <b>\"Akhir\"</b> dari dirimu."],
   ["6", "Pilihan yang kau ambil akan memberikanmu berbagai <b>item</b> (atau bahkan tak dapat apapun sama sekali), item-item tersebut akan menjadi barang krusial yang menentukanmu dalam mengambil pilihan kedepannya. Dapatkanlah item terbaik dengan cara memikirkan situasinya sebelum memilih."],
-  ["7", "Akan ada semacam situasi khusus kedepannya yang akan ditandai dengan <span class='tag c-white'>[Pilihan!]</span>, situasi ini muncul disaat-saat khusus dan kamu sebagai player akan diberikan kesempatan untuk melanjutkan cerita dengan preferensimu!"]
+  ["7", "Akan ada semacam situasi khusus kedepannya yang akan ditandai dengan <span class='tag c-white'>[Pilihan!]</span>, situasi ini muncul disaat-saat khusus dan kamu sebagai player akan diberikan kesempatan untuk melanjutkan cerita dengan preferensimu!"],
+  ["8", "<b>PERLENGKAPAN</b> berbeda dengan <b>inventori</b>: senjata dan perlengkapan khusus harus di-<b>EQUIP</b> agar bisa dipakai \u2014 beberapa pilihan hanya bisa dilewati jika perlengkapan yang tepat terpasang. Setiap item punya ikonnya masing-masing di dalam tas."]
 ];
 
 const LEGEND = [
@@ -341,6 +396,15 @@ const LEGEND = [
 
 const MENTAL = ["Tenang", "Tegang", "Gelisah", "Panik", "Hancur"];
 
+/* Slot perlengkapan (EQUIP) — terpisah dari inventori */
+const EQ_SLOTS = [
+  { key: "senjata", name: "Senjata", icon: "🗡" }
+];
+function eqSlotName(key){
+  const s = EQ_SLOTS.find(x=>x.key===key);
+  return s ? s.name : key;
+}
+
 /* ---------- SAVE (localStorage — hanya CERITA BARU yang me-reset) ---------- */
 const SAVE_KEY = "asylum_save_v1";
 function persist(){
@@ -349,7 +413,7 @@ function persist(){
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       registered: true, name: S.name, gender: S.gender,
       deathCount: S.deathCount, items: S.items, status: S.status,
-      mental: S.mental, effects: S.effects, node: S.node
+      mental: S.mental, effects: S.effects, equipment: S.equipment, node: S.node
     }));
   }catch(e){}
 }
@@ -365,7 +429,8 @@ function wipeSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 let S;
 function resetState(){
   S = { node:"title", registered:false, name:"", gender:"",
-        deathCount:0, items:[], status:null, mental:0, effects:[] };
+        deathCount:0, items:[], status:null, mental:0, effects:[],
+        equipment:{ senjata:null } };
 }
 resetState();
 function restoreState(sv){
@@ -373,7 +438,8 @@ function restoreState(sv){
   S.registered = true; S.name = sv.name||""; S.gender = sv.gender||"";
   S.deathCount = sv.deathCount||0; S.items = sv.items||[];
   S.status = sv.status||null; S.mental = sv.mental||0;
-  S.effects = sv.effects||[]; S.node = sv.node||"opening";
+  S.effects = sv.effects||[]; S.equipment = sv.equipment||{ senjata:null };
+  S.node = sv.node||"opening";
 }
 
 const $ = (s)=>document.querySelector(s);
@@ -381,7 +447,7 @@ const app = $("#app"), hud = $("#hud");
 function esc(t){ const d=document.createElement("div"); d.textContent=t; return d.innerHTML; }
 
 function updateHUD(){
-  hud.hidden = ["title","tutorial","pact","status"].includes(S.node);
+  hud.hidden = !S.registered || S.node==="status";
   $("#deathCount").textContent = S.deathCount;
   $("#itemCount").textContent = S.items.reduce((a,i)=>a+(i.qty||1),0);
   const b = $("#statusBadge");
@@ -395,9 +461,42 @@ $("#menuBtn").addEventListener("click", ()=>{ showTitle(); }); /* ke menu TIDAK 
 function openInventory(){
   const list = $("#invList");
   list.innerHTML = S.items.length
-    ? S.items.map(it=>`<div class="inv-item"><span>🎒 ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><b>+${it.qty||1}</b></div>`).join("")
+    ? S.items.map(it=>{
+        const eq = it.kind==="equipment"
+          ? `<button class="mini-btn" data-equip="${esc(it.id)}">EQUIP</button>` : "";
+        return `<div class="inv-item"><span>${esc(it.icon||"🎒")} ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}</span></div>`;
+      }).join("")
     : `<div class="inv-empty">Kosong.<br/>Kau tidak membawa apa-apa.</div>`;
   $("#invModal").hidden = false;
+  list.querySelectorAll("[data-equip]").forEach(b=>{
+    b.onclick = ()=>{ equipItem(b.dataset.equip); openInventory(); updateHUD(); };
+  });
+}
+/* EQUIP: pindah 1 item equipment dari tas ke slot perlengkapan */
+function equipItem(id){
+  const it = S.items.find(x=>x.id===id);
+  if(!it || it.kind!=="equipment") return;
+  const slot = it.slot || "senjata";
+  const cur = S.equipment[slot];
+  if(cur){ /* slot terisi: kembalikan dulu ke tas */
+    const ex = S.items.find(x=>x.id===cur.id);
+    if(ex) ex.qty = (ex.qty||1)+1;
+    else S.items.push({ ...cur, qty:1 });
+  }
+  it.qty = (it.qty||1)-1;
+  if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id);
+  S.equipment[slot] = { id:it.id, name:it.name, note:it.note||"", icon:it.icon||"🗡", kind:"equipment", slot };
+  persist();
+}
+/* LEPAS: kembalikan perlengkapan ke tas */
+function unequipItem(slot){
+  const cur = S.equipment[slot];
+  if(!cur) return;
+  const ex = S.items.find(x=>x.id===cur.id);
+  if(ex) ex.qty = (ex.qty||1)+1;
+  else S.items.push({ ...cur, qty:1 });
+  S.equipment[slot] = null;
+  persist();
 }
 $("#invBtn").addEventListener("click", openInventory);
 $("#invClose").addEventListener("click", ()=>{ $("#invModal").hidden = true; });
@@ -444,12 +543,12 @@ function showTitle(){
       <h1>The Asylum</h1>
       <h2>Part 1 : Awal Mula</h2>
       ${sub}
-      <div class="nocheat"><b>Gaboleh Curang!</b> Pilihan awal yang kau pilih adalah apa yang kau jalani sekarang! Jika kau ingin memilih ulang maka kau harus memulai dari awal lagi.</div>
+      <div class="nocheat"><b>PERATURAN MUTLAK</b> — Setiap pilihan yang kau ambil adalah takdir yang harus kau jalani. Tidak ada tombol kembali, tidak ada pengulangan. Jika kau ingin memilih jalan yang berbeda... mulailah lagi dari awal.</div>
       <div class="btnrow">${btns}</div>
     </div></div>`;
   const st = $("#btnStart"); if(st) st.onclick = ()=>{ document.body.style.overflow=""; showPact(); };
   const ct = $("#btnCont");
-  if(ct) ct.onclick = ()=>{ restoreState(sv); document.body.style.overflow=""; showStatus("continue"); };
+  if(ct) ct.onclick = ()=>{ restoreState(sv); document.body.style.overflow=""; showStatus("continue", sv.node); };
   const nw = $("#btnNew");
   if(nw) nw.onclick = ()=>{
     if(confirm("Mulai CERITA BARU? Semua progres (nama, item, death count) akan dihapus permanen.")){
@@ -504,51 +603,65 @@ function showTutorial(){
   $("#btnBack").onclick = showTitle;
 }
 
-/* ---------- LAYAR: PLAYER STATUS ---------- */
-function statusArt(){
-  const R = (t)=>`<span class="hd">${t}</span>`;
-  const V = (t)=>`<span class="val">${esc(String(t))}</span>`;
-  const sit = S.status==="danger" ? "Dalam bahaya" : S.status==="wounded" ? "Terluka" : "Aman";
-  const tubuh = S.status==="wounded" ? "Terluka" : "Sehat";
-  let slots = "";
-  for(let i=0;i<4;i++){
-    slots += S.items[i]
-      ? `› ${i+1}. ${V(S.items[i].name)}   +${S.items[i].qty||1}\n`
-      : `› ${i+1}. [Slot Kosong]\n`;
+/* ---------- LAYAR: PLAYER STATUS (UI kartu) ---------- */
+function mentalBar(){
+  const colors = ["#4ade80","#a3e635","#facc15","#fb923c","#ef4444"];
+  const c = colors[Math.min(S.mental,4)];
+  let segs = "";
+  for(let i=0;i<5;i++){
+    segs += `<span class="mseg"${i<=S.mental?` style="background:${c};box-shadow:0 0 8px ${c}"`:""}></span>`;
   }
-  return `${R("⋟─────────────────────────────╮")}
-${R("›  PLAYER STATUS")}
-${R("⋟─────────────────────────────┤")}
-› Nama Player   : ${V(S.name)}
-› Jenis Kelamin : ${V(S.gender)}
-› Death Count   : ${V(S.deathCount)}
-› Power         : ${V("?")}
-› ???           : ${V("?")}
-› ???           : ${V("?")}
-${R("⋟─────────────────────────────┤")}
-${R("›  PERLENGKAPAN")}
-${R("⋟─────────────────────────────┤")}
-${slots}${R("⋟─────────────────────────────┤")}
-${R("›  KONDISI PLAYER")}
-${R("⋟─────────────────────────────┤")}
-› Situasi       : ${V(sit)}
-› Kondisi Tubuh : ${V(tubuh)}
-› Kondisi Mental: ${V(MENTAL[S.mental]||"Tenang")}
-› Efek Status   : ${V(S.effects.length?S.effects.join(", "):"—")}
-${R("⋟─────────────────────────────┤")}
-${R("›  OBJECTIVE")}
-${R("⋟─────────────────────────────┤")}
-› ${V("[???]")}
-${R("╰─────────────────────────────⋞")}`;
+  return `<div class="mbar">${segs}</div>`;
 }
 
-function showStatus(mode){
+function showStatus(mode, resumeTarget){
   S.node = "status"; updateHUD();
   document.body.style.overflow = "";
   document.onkeydown = null;
+  const sit = S.status==="danger" ? "Dalam bahaya" : S.status==="wounded" ? "Terluka" : "Aman";
+  const tubuh = S.status==="wounded" ? "Terluka" : "Sehat";
+  const eqRows = EQ_SLOTS.map(s=>{
+    const cur = S.equipment[s.key];
+    const right = cur
+      ? `<span class="eq-item">${esc(cur.icon||"")} ${esc(cur.name)}</span><button class="mini-btn danger" data-unequip="${s.key}">LEPAS</button>`
+      : `<span class="eq-empty">— Kosong —</span>`;
+    return `<div class="eqrow"><span>${s.icon} ${esc(s.name)}</span><span class="eq-right">${right}</span></div>`;
+  }).join("");
+  const initial = (S.name.trim()[0]||"?").toUpperCase();
   app.innerHTML = `
     <div class="screen">
-      <div class="pstat"><pre>${statusArt()}</pre></div>
+      <div class="psheet">
+        <div class="phead">
+          <div class="pavatar">${esc(initial)}</div>
+          <div>
+            <div class="pname">${esc(S.name)}</div>
+            <div class="pmeta">${esc(S.gender)} · 💀 Death Count: <b>${S.deathCount}</b></div>
+          </div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-h">🛡 PERLENGKAPAN</div>
+          ${eqRows}
+          <div class="pcard-note">Senjata & perlengkapan harus di-EQUIP untuk dipakai — kelola lewat 🎒 inventori.</div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-h">❤ KONDISI</div>
+          <div class="krow"><span>Situasi</span><b class="kval">${esc(sit)}</b></div>
+          <div class="krow"><span>Kondisi Tubuh</span><b class="kval">${esc(tubuh)}</b></div>
+          <div class="krow"><span>Kondisi Mental</span><b class="kval">${esc(MENTAL[S.mental]||"Tenang")}</b></div>
+          ${mentalBar()}
+          <div class="krow"><span>Efek Status</span><b class="kval">${S.effects.length?esc(S.effects.join(", ")):"—"}</b></div>
+        </div>
+        <div class="pcard mystery">
+          <div class="pcard-h">❓ ?????</div>
+          <div class="krow"><span>Power</span><b class="kval">?</b></div>
+          <div class="krow"><span>???</span><b class="kval">?</b></div>
+          <div class="krow"><span>???</span><b class="kval">?</b></div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-h">🎯 OBJECTIVE</div>
+          <div class="obj">[???]</div>
+        </div>
+      </div>
       <div class="center btnrow">
         ${mode==="new"
           ? `<button class="big primary" id="btnEnter">▶ MASUK KE CERITA</button>`
@@ -556,17 +669,14 @@ function showStatus(mode){
              <button class="big ghost" id="btnMenu2">⌂ MENU</button>`}
       </div>
     </div>`;
+  app.querySelectorAll("[data-unequip]").forEach(b=>{
+    b.onclick = ()=>{ unequipItem(b.dataset.unequip); showStatus(mode, resumeTarget); };
+  });
   $("#btnEnter").onclick = ()=>{
-    if(mode==="new"){ startGame(); }
-    else { const t = (S.node && NODES[S.node]) ? S.node : "opening"; goTarget(t); }
+    if(mode==="new"){ goTarget("prolog2"); }
+    else goTarget(resumeTarget && NODES[resumeTarget] ? resumeTarget : "opening");
   };
   const m2 = $("#btnMenu2"); if(m2) m2.onclick = showTitle;
-}
-
-/* ---------- MULAI ---------- */
-function startGame(){
-  S.node = "opening"; S.status = null; persist();
-  renderNode("opening");
 }
 
 /* ---------- RENDER NODE PILIHAN ---------- */
@@ -585,9 +695,13 @@ function renderNode(id){
     cbox.innerHTML = n.choices.map((c,i)=>{
       const locked = c.blockedIf && S.status===c.blockedIf;
       const needItem = c.requiresItem && !S.items.some(it=>it.id===c.requiresItem);
-      const dis = (locked||needItem) ? "disabled" : "";
+      const needEq = c.requiresEquipped && !S.equipment[c.requiresEquipped];
+      const needEqItem = c.requiresEquippedItem && !Object.values(S.equipment).some(e=>e&&e.id===c.requiresEquippedItem);
+      const dis = (locked||needItem||needEq||needEqItem) ? "disabled" : "";
       const lockNote = locked ? `<span class="lock">🔒 Tidak bisa dipilih dalam kondisi [Terluka]</span>`
-        : needItem ? `<span class="lock">🔒 Butuh item: ${esc(c.requiresItemName||c.requiresItem)}</span>` : "";
+        : needItem ? `<span class="lock">🔒 Butuh item: ${esc(c.requiresItemName||c.requiresItem)}</span>`
+        : needEq ? `<span class="lock">🔒 Butuh ${esc(eqSlotName(c.requiresEquipped))} terpasang</span>`
+        : needEqItem ? `<span class="lock">🔒 Butuh "${esc(c.requiresEquippedItemName||c.requiresEquippedItem)}" terpasang</span>` : "";
       return `<button class="choice" data-i="${i}" style="animation-delay:${0.1+i*0.09}s" ${dis}><span class="num">${i+1}</span><span>${esc(c.text)}${lockNote}</span></button>`;
     }).join("");
     cbox.querySelectorAll(".choice:not(:disabled)").forEach(btn=>{
@@ -620,14 +734,46 @@ function goTarget(target){
   if(n.kind==="result") renderResult(target);
   else if(n.kind==="death") renderDeath(target);
   else if(n.kind==="tbc") renderTBC();
+  else if(n.kind==="story") renderStory(target);
   else renderNode(target);
+}
+
+/* ---------- RENDER STORY LINEAR (prolog / jembatan cerita) ---------- */
+function renderStory(id){
+  const n = NODES[id];
+  updateHUD(); persist();
+  const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
+  app.innerHTML = `
+    <div class="screen">
+      <div class="story" id="storyBox" title="Ketuk untuk mempercepat">${kicker}<div id="twTarget"></div></div>
+      <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
+      <div class="center" id="nextSlot" hidden><button class="big primary continuebtn" id="btnNext">LANJUTKAN →</button></div>
+    </div>`;
+  const skip = typewriter($("#twTarget"), n.story, ()=>{
+    $("#tapHint").style.display = "none";
+    $("#nextSlot").hidden = false;
+  });
+  const sb = $("#storyBox"); sb.style.cursor = "pointer"; sb.addEventListener("click", skip);
+  $("#tapHint").addEventListener("click", skip);
+  document.onkeydown = (e)=>{
+    if(e.key==="Enter"||e.key===" "){
+      const slot = $("#nextSlot");
+      if(slot && !slot.hidden) $("#btnNext").click(); else skip();
+    }
+  };
+  $("#btnNext").onclick = ()=>{
+    if(n.next==="title") showTitle();
+    else goTarget(n.next);
+  };
 }
 
 /* ---------- RENDER HASIL ---------- */
 function grantItem(item){
   const ex = S.items.find(it=>it.id===item.id);
   if(ex) ex.qty = (ex.qty||1)+1;
-  else S.items.push({ id:item.id, name:item.name, note:item.note||"", qty:1 });
+  else S.items.push({ id:item.id, name:item.name, note:item.note||"",
+                      icon:item.icon||"🎒", kind:item.kind||"consumable",
+                      slot:item.slot||null, qty:1 });
   persist();
 }
 function renderResult(id){
@@ -716,11 +862,15 @@ function renderTBC(){
     </div>`;
   document.onkeydown = null;
   $("#btnMenuT").onclick = showTitle;
-  $("#btnStat").onclick = ()=>showStatus("continue");
+  $("#btnStat").onclick = ()=>showStatus("continue", "tbc");
 }
 
 /* ---------- INIT ---------- */
-showTitle();
+(function init(){
+  const sv = loadSave();
+  if(sv && sv.registered) showTitle(); /* pemain kembali → judul (LANJUTKAN) */
+  else goTarget("prolog1");            /* buka website → prolog → judul */
+})();
 </script>
 </body>
 </html>
