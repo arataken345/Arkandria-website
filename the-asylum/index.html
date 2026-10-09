@@ -101,6 +101,10 @@
     animation:fogdrift 26s ease-in-out infinite alternate;
   }
   @keyframes fogdrift{from{transform:translateX(-4%)} to{transform:translateX(4%)}}
+  #bgA,#bgB{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0;
+    background-size:cover; background-position:center; transition:opacity 1.4s ease;}
+  #bgDim{position:fixed; inset:0; z-index:0; pointer-events:none; background:rgba(0,0,0,.60);}
+  @media (prefers-reduced-motion: reduce){ #bgA,#bgB{transition:none;} }
   .grain{
     position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.055; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -393,6 +397,7 @@
 </style>
 </head>
 <body>
+<div id="bgA" aria-hidden="true"></div><div id="bgB" aria-hidden="true"></div><div id="bgDim" aria-hidden="true"></div>
 <div id="hud" hidden>
   <div class="hud-col">
     <div class="stat" id="deathStat">💀 <span id="hudDeathLbl">Death Count</span>&nbsp;<b id="deathCount">0</b></div>
@@ -2470,8 +2475,43 @@ function typewriter(container, paragraphs, done){
 }
 
 /* ---------- LAYAR: JUDUL ---------- */
+/* ---------- BACKGROUND PER LOKASI ---------- */
+const BG_FILES = {
+  title:"img/bg_title.jpg", corridor:"img/bg_corridor.jpg", doorhub:"img/bg_doorhub.jpg",
+  saferoom:"img/bg_saferoom.jpg", darkstare:"img/bg_darkstare.jpg", teddyroom:"img/bg_teddyroom.jpg",
+  steeldoor:"img/bg_steeldoor.jpg", reception:"img/bg_reception.jpg", leftcorridor:"img/bg_leftcorridor.jpg",
+  hall:"img/bg_hall.jpg", crates:"img/bg_crates.jpg", death:"img/bg_death.jpg"
+};
+let bgCur = null, bgFlip = false, bgPreloaded = false;
+function bgFor(id){
+  if(!id) return "corridor";
+  if(/^d1_/.test(id)) return "saferoom";
+  if(/^d2_/.test(id)) return "darkstare";
+  if(/^d3_/.test(id)) return "teddyroom";
+  if(/^d4_/.test(id)) return "corridor";
+  if(/^d5_/.test(id)||id==="prolog2"||id==="opening") return "doorhub";
+  if(id==="prolog1") return "corridor";
+  if(id==="hub_exit"||id==="reception_hub"||/^rec_desk/.test(id)||/^rec_papers/.test(id)||id==="rec_coin") return "reception";
+  if(/^rec_left/.test(id)) return /door|push|scratch/.test(id) ? "steeldoor" : "leftcorridor";
+  if(/^s12_/.test(id)) return /hide|peek|ready/.test(id) ? "crates" : "hall";
+  return "corridor";
+}
+function setBG(key){
+  if(key===bgCur || !BG_FILES[key]) return;
+  bgCur = key;
+  const el = document.getElementById(bgFlip ? "bgA" : "bgB");
+  const other = document.getElementById(bgFlip ? "bgB" : "bgA");
+  bgFlip = !bgFlip;
+  el.style.backgroundImage = 'url("' + BG_FILES[key] + '")';
+  el.style.opacity = "1"; other.style.opacity = "0";
+}
+function bgPreloadAll(){
+  if(bgPreloaded) return; bgPreloaded = true;
+  Object.values(BG_FILES).forEach(u=>{ const im = new Image(); im.src = u; });
+}
 function showTitle(){
   S.node = "title"; updateHUD();
+  setBG("title"); bgPreloadAll();
   document.body.style.overflow = "hidden";
   document.onkeydown = null;
   const sv = loadSave();
@@ -2801,6 +2841,7 @@ function goTarget(target, opts){
   const before = snapshotState();
   S.node = target;
   tickTemp(); decayTick();            /* temp: tiap node; emosi+mental: tick acak 5-10 pilihan */
+  if(n.kind!=="death") setBG(bgFor(target));
   applyEnterMutations(n);         /* sistem baru: tier, body, mental, emosi, objective, favor, item */
   if(n.tutPop) tutPop(n.tutPop);      /* popup tutorial kontekstual dari node */
   persist();
@@ -2991,6 +3032,7 @@ function renderResult(id){
 function renderDeath(id){
   const n = NODES[id];
   updateHUD(); persist();
+  setBG("death");
   document.body.classList.remove("dying"); void document.body.offsetWidth;
   document.body.classList.add("dying");
   setTimeout(()=>document.body.classList.remove("dying"), 950);
