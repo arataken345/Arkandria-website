@@ -305,14 +305,29 @@
   .keydisp.err{color:var(--blood); animation:rtremor .4s ease}
   .tierRingan{color:#4ade80} .tierSedang{color:#facc15}
   .tierTinggi{color:#fb923c} .tierEkstrim{color:#ef4444; font-weight:800}
+  /* ===== SISTEM ENERGI + FIX BADGE ===== */
+  .ebar{display:inline-block; width:64px; height:8px; background:#1c1c22;
+    border-radius:4px; overflow:hidden; vertical-align:middle; margin-left:.35rem}
+  .efill{display:block; height:100%; width:100%; background:#4ade80; border-radius:4px; transition:width .3s}
+  .efill.low{background:#facc15} .efill.crit{background:#ef4444}
+  #statusPill{position:fixed; left:1rem; bottom:1rem; z-index:80; pointer-events:none}
+  #statusPill .badge{padding:.45rem .9rem; border-radius:999px; font-size:.75rem;
+    font-weight:800; letter-spacing:.12em; text-transform:uppercase; border:1px solid;
+    background:rgba(0,0,0,.72)}
+  .tut-body b.c-black{color:#000}
+  @media (prefers-reduced-motion: reduce){
+    .efill{transition:none}
+  }
 </style>
 </head>
 <body>
 <div id="hud" hidden>
   <div class="stat" id="deathStat">💀 <span>Death Count</span>&nbsp;<b id="deathCount">0</b></div>
+  <div class="stat" id="energyStat">⚡<span class="ebar"><span class="efill"></span></span></div>
   <button class="statbtn" id="invBtn" title="Cek inventori">🎒 <b id="itemCount">0</b></button>
-  <div class="stat"><span id="statusBadge"></span><button id="menuBtn" title="Menu utama (progres tersimpan)">⌂ MENU</button></div>
+  <div class="stat"><button id="menuBtn" title="Menu utama (progres tersimpan)">⌂ MENU</button></div>
 </div>
+<div id="statusPill" hidden></div>
 <div class="grain" aria-hidden="true"></div>
 <div id="deathflash" aria-hidden="true"></div>
 <div class="modal" id="invModal" hidden>
@@ -360,64 +375,545 @@ const NODES = {
     next: "opening"
   },
 
+/* ============================================================
+   SECTION 1.1 EXPANDED — "Lorong Empat Pintu" (hub + cabang)
+   Desain:
+   - opening = hub. Pintu 1-4 bisa dijelajahi (terkunci setelah dikunjungi
+     via flags d1..d4), lalu kembali ke hub. Pilihan 5 = maju (ada 1
+     instant-kill trap yang menuntut pemain berpikir).
+   - Semua cabang bermuara kembali: ke opening, atau maju ke hub_exit
+     (jembatan resepsionis -> tbc; fork resepsionis = fase konten berikut).
+   - BALANCE (estimasi): tiap klik pilihan = 4 Energi. Jelajah penuh
+     ~17-20 klik = ~70-80 Energi dari 100. Makanan yang ditemukan:
+     Roti +20, Cokelat +25 -> pemain dipaksa makan & kelola tas, tapi
+     tidak pernah bisa santai. Energi 0 -> tiap pilihan menaikkan
+     Kelelahan ( -> Lemas di Ekstrim). Luka (d3_a2b) memaksa pakai
+     Perban Kotor manual dari tas (sembuh + Keracunan 1) atau menanggung
+     [Terluka]. Setiap pintu memungut "pajak" Takut/Stress/Energi —
+     bahkan mundur pun tidak gratis.
+   ============================================================ */
   opening: {
     kind: "choice",
     kicker: "Part 1 : Awal Mula",
     story: [
-      "Apa yang akan kamu lakukan?"
+      "Kau berdiri di tengah lorong. Empat pintu mengapitmu — dua di kiri, dua di kanan — dan di depan, lorong terus berlanjut ke dalam kegelapan yang semakin pekat.",
+      "Apa yang akan kau lakukan?"
     ],
     choices: [
-      { text: "Mengecek pintu pertama di kiri", target: "r_kiri1" },
-      { text: "Mengecek pintu kedua di kiri", target: "r_kiri2" },
-      { text: "Mengecek pintu pertama di kanan", target: "r_kanan1" },
-      { text: "Mengecek pintu kedua di kanan", target: "r_kanan2" },
-      { text: "Terus maju meski ragu.", target: "r_maju" }
+      { text: "Mengecek pintu pertama di kiri", doneFlag: "d1", doneText: "✓ Pintu pertama di kiri", blockedIfFlag: "d1", target: "d1_hub" },
+      { text: "Mengecek pintu kedua di kiri", doneFlag: "d2", doneText: "✓ Pintu kedua di kiri", blockedIfFlag: "d2", target: "d2_hub" },
+      { text: "Mengecek pintu pertama di kanan", doneFlag: "d3", doneText: "✓ Pintu pertama di kanan", blockedIfFlag: "d3", target: "d3_hub" },
+      { text: "Mengecek pintu kedua di kanan", doneFlag: "d4", doneText: "✓ Pintu kedua di kanan", blockedIfFlag: "d4", target: "d4_hub" },
+      { text: "Terus maju meski ragu.", target: "d5_1" }
     ]
   },
 
-  r_kiri1: {
-    kind: "result", status: "safe",
+  /* ---------- PINTU 1 KIRI: ruangan kosong ---------- */
+  d1_hub: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
     story: [
-      "Kau masuk ke pintu pertama di kiri, kau hanya melihat banyak sekali meja dan kursi yang tersebar dan hancur dimana-mana.",
-      "Kau tak tampak menemukan hal yang bisa berguna, tapi aman."
+      "Kau mendekati pintu paling kiri. Tertutup rapat. Engselnya berkarat — tapi gagang pintunya bersih. Terlalu bersih untuk tempat sekotor ini.",
+      "Seperti baru saja digenggam. Oleh seseorang. Atau sesuatu.",
+      "Kayunya dingin saat kau mendekat."
     ],
-    next: "tbc"
+    choices: [
+      { text: "Tempelkan telinga ke pintu, dengarkan dulu", target: "d1_a" },
+      { text: "Dorong perlahan, intip lewat celah", target: "d1_b" },
+      { text: "Buka lebar-lebar sekaligus", target: "d1_c" }
+    ]
   },
-
-  r_kiri2: {
+  d1_a: {
     kind: "story",
     kicker: "Part 1 : Awal Mula",
     story: [
-      "Kau melangkah menuju pintu kedua di kiri yang terbuka lebar dan setengah rusak.",
-      "Namun kegelapan di balik pintu ini belum terungkap. (Cerita bagian ini masih ditulis \u2014 segera hadir.)"
+      "Kau menempelkan telinga ke permukaan kayu yang dingin dan menahan napas.",
+      "Hening.",
+      "Kau mencoba mendengar sesuatu — apa pun — dari balik pintu. Tidak ada. Hanya dengung darah di telingamu sendiri dan... tunggu. Apakah itu detak?",
+      "Detak jantungmu sendiri, tentu saja. Pasti.",
+      "Tidak ada suara lain. Ruangan di baliknya sepertinya kosong."
     ],
-    next: "tbc"
+    next: "d1_a2"
   },
-
-  r_kanan1: {
-    kind: "result", status: "danger", tag: "[Dalam bahaya]",
+  d1_a2: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [ "Pintu itu diam. Keputusanmu?" ],
+    choices: [
+      { text: "Buka pintunya, masuk", target: "d1_room" },
+      { text: "Urungkan — kembali ke lorong", target: "opening" }
+    ]
+  },
+  d1_b: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
     story: [
-      "Kau hanya melihat sebuah ruangan kosong yang hitam, gelap dan tak bisa melihat apapun. Kau memutuskan tak melangkah lebih lanjut lagi.",
-      "Namun, karena kau berdiri di depan pintu, sesosok monster di kegelapan menatapmu dengan mata tajam."
+      "Kau mendorong pintu itu satu sentimeter. Dua sentimeter. Celah tipis menganga, dan kau mengintip dengan satu mata.",
+      "Gelap. Bau lembap yang lebih pekat menyeruak keluar. Samar-samar kau bisa melihat bentuk-bentuk: meja terbalik, kaki kursi yang patah. Tidak ada gerakan.",
+      "Tapi di ujung penglihatanmu, ada sesuatu yang berkilau redup di lantai — seperti bungkus plastik."
     ],
-    setStatus: "danger",
-    next: "tbc"
+    next: "d1_b2"
   },
-
-  r_kanan2: {
-    kind: "result", status: "safe",
+  d1_b2: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [ "Celah itu menunggu. Keputusanmu?" ],
+    choices: [
+      { text: "Masuk dan periksa", target: "d1_room" },
+      { text: "Tutup perlahan, jangan ambil risiko", target: "opening" }
+    ]
+  },
+  d1_c: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
     story: [
-      "Pintu kedua di kanan, kau bisa melihat ada sebuah kotak yang mencolok di atas meja. Kau maju dan membukanya dan mendapatkan sebuah boneka beruang berwarna merah muda."
+      "Kau menarik napas, lalu mendorong pintu itu lebar-lebar.",
+      "KRIIEEK.",
+      "Engsel berkarat itu menjerit — suaranya memantul di sepanjang lorong, terlalu keras, terlalu lama. Jantungmu berhenti sesaat. Kau berdiri mematung, menunggu. Apakah ada yang mendengar?",
+      "Satu detik. Dua detik. Tidak ada yang datang. Lorong kembali sunyi, seolah tidak terjadi apa-apa.",
+      "Ruangan di baliknya kosong dan gelap. Meja-meja terbalik. Hening."
     ],
-    item: { id: "boneka", name: "Boneka Beruang", note: "+1 Boneka beruang", icon: "🧸", kind: "consumable" },
-    next: "tbc"
+    next: "d1_c2"
+  },
+  d1_c2: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [ "Derit itu mungkin terdengar sampai ujung lorong. Keputusanmu?" ],
+    addEmotion: [{ n: "Takut", amt: 1 }],
+    choices: [
+      { text: "Masuk cepat sebelum ada yang datang", target: "d1_room" },
+      { text: "Tutup dan mundur — terlalu berisik", target: "opening" }
+    ]
+  },
+  d1_room: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau melangkah masuk. Udara di sini lebih dingin, dan baunya... tua. Seperti ruangan yang sudah bertahun-tahun tidak disentuh siapa pun.",
+      "Meja-meja terbalik berserakan. Di sudut, ada noda gelap di lantai — besar, tidak beraturan, meresap ke dalam beton. Kau tidak mau terlalu memikirkan apa itu.",
+      "Di bawah salah satu meja yang masih berdiri, ada sesuatu: sebungkus plastik bening berisi roti kering. Dan di sampingnya, selembar surat terlipat yang sudah menguning."
+    ],
+    choices: [
+      { text: "Ambil bungkusan itu", target: "d1_loot" },
+      { text: "Periksa noda gelap itu dulu", target: "d1_stain" }
+    ]
+  },
+  d1_stain: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau berjongkok di dekat noda itu. Warnanya cokelat kehitaman, tepinya tidak rata — merembes, bukan tumpah. Bau besi samar masih tercium jika kau mendekat.",
+      "Darah. Sudah sangat lama. Kering sepenuhnya.",
+      "Kau tidak tahu apakah itu membuatmu lega atau justru lebih takut."
+    ],
+    addEmotion: [{ n: "Takut", amt: 1 }],
+    next: "d1_stain2"
+  },
+  d1_stain2: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [ "Noda itu tidak menjawab apa-apa. Bungkusan di bawah meja masih di sana." ],
+    choices: [
+      { text: "Kembali dan ambil bungkusan itu", target: "d1_loot" },
+      { text: "Tinggalkan semuanya, keluar dari sini", target: "d1_empty" }
+    ]
+  },
+  d1_loot: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau meraih bungkusan plastik itu. Roti kering — tiga potong, masih dalam kemasan. Di sampingnya, surat terlipat itu terasa rapuh di jarimu.",
+      "Kau membukanya sekilas: tulisan tangan yang gemetar. 'Maafkan aku. Aku tidak bisa pulang. Jangan cari aku.' Tidak ada nama. Tidak ada tanggal.",
+      "Kau melipatnya kembali dan menyimpan keduanya. Setidaknya, perutmu tidak akan kosong untuk sementara waktu."
+    ],
+    grantItems: [
+      { id: "roti_kering", name: "Roti Kering", icon: "🍞", note: "PAKAI: +20 Energi", use: { energy: 20 } },
+      { id: "surat_terlipat", name: "Surat Terlipat", icon: "💌", note: "Surat yang tak terkirim", use: { mentalBetter: 1, addEmotion: [{ n: "Sedih", amt: 1 }] } }
+    ],
+    setFlag: { d1: true },
+    next: "opening"
+  },
+  d1_empty: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau memutuskan bungkusan itu tidak sepadan dengan firasat burukmu. Kau keluar dan menutup pintu perlahan.",
+      "Lorong menyambutmu kembali — sama gelapnya, sama sunyinya."
+    ],
+    setFlag: { d1: true },
+    next: "opening"
   },
 
-  r_maju: {
+  /* ---------- PINTU 2 KIRI: ruang lemari ---------- */
+  d2_hub: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Pintu kedua di kiri terbuka lebar, setengah rusak — kayunya retak, tergantung miring di satu engsel.",
+      "Di baliknya: ruang sempit yang dipenuhi lemari-lemari tua berderet, seperti arsip atau gudang penyimpanan. Bau kapur barus dan kayu lapuk menyambutmu.",
+      "Semuanya diam. Terlalu diam?"
+    ],
+    choices: [
+      { text: "Lempar kerikil ke dalam, dengarkan", target: "d2_a" },
+      { text: "Masuk dan buka lemari satu per satu", target: "d2_room" },
+      { text: "Firasat buruk — mundur", target: "d2_c" }
+    ]
+  },
+  d2_a: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau memungut pecahan kaca dari lantai dan melemparkannya ke dalam ruangan. KLONTANG — memantul di lantai beton, menggelinding.",
+      "Sunyi. Lalu... dari dalam salah satu lemari, terdengar bunyi pelan: tuk.",
+      "Seperti sesuatu yang jatuh. Atau bergeser.",
+      "Kau menunggu. Tidak ada lagi."
+    ],
+    next: "d2_a2"
+  },
+  d2_a2: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [ "Bunyi itu tidak terulang. Keputusanmu?" ],
+    addEmotion: [{ n: "Takut", amt: 1 }],
+    choices: [
+      { text: "Masuk dan periksa", target: "d2_room" },
+      { text: "Batalkan — kembali ke lorong", target: "opening" }
+    ]
+  },
+  d2_c: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau mempercayai firasatmu dan melangkah mundur.",
+      "Tidak terjadi apa-apa. Dan justru itu yang mengganggumu — keheningan ruangan itu terasa... memperhatikan."
+    ],
+    next: "opening"
+  },
+  d2_room: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Ruangan sempit. Tiga lemari tua berderet di dinding, pintunya kusam. Bau kapur barus menusuk hidung.",
+      "Lemari pertama: pintunya sedikit terbuka. Lemari kedua: tertutup rapat. Lemari ketiga: terkunci — dan di permukaannya ada goresan-goresan panjang. Dari dalam."
+    ],
+    choices: [
+      { text: "Buka lemari pertama", doneFlag: "d2c1", blockedIfFlag: "d2c1", target: "d2_c1" },
+      { text: "Buka lemari kedua", doneFlag: "d2c2", blockedIfFlag: "d2c2", target: "d2_c2" },
+      { text: "Periksa lemari ketiga yang terkunci", doneFlag: "d2c3", blockedIfFlag: "d2c3", target: "d2_c3" },
+      { text: "Keluar dari ruangan ini", target: "d2_done" }
+    ]
+  },
+  d2_c1: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kosong. Hanya debu tebal dan bau apek. Tapi di sudut bawahnya ada sesuatu yang terlipat: sepotong kain putih kusam — perban, masih digulung, meski kotor.",
+      "Kau mengambilnya. Lebih baik daripada tidak sama sekali. Mungkin."
+    ],
+    grantItems: [
+      { id: "perban_kotor", name: "Perban Kotor", icon: "🩹", note: "PAKAI: sembuhkan luka, tapi kotor", use: { heal: true, tierUp: ["Keracunan"] } }
+    ],
+    setFlag: { d2c1: true },
+    next: "d2_room"
+  },
+  d2_c2: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau membuka lemari kedua — dan sesuatu jatuh dari rak atas: sepatu kecil. Sepatu anak.",
+      "Kau menatapnya sesaat, lalu memaksakan diri melihat isi lemari: di rak bawah ada sebatang cokelat yang masih terbungkus rapat. Sedikit meleleh, tapi utuh.",
+      "Kau mengambil cokelat itu. Sepatu itu kau biarkan. Kau tidak sanggup menyentuhnya."
+    ],
+    grantItems: [
+      { id: "cokelat", name: "Cokelat Batangan", icon: "🍫", note: "PAKAI: +25 Energi, -1 Stress", use: { energy: 25, tierDown: ["Stress"] } }
+    ],
+    addEmotion: [{ n: "Sedih", amt: 1 }],
+    setFlag: { d2c2: true },
+    next: "d2_room"
+  },
+  d2_c3: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau mendekati lemari ketiga. Terkunci. Goresan-goresan panjang menghiasi pintunya — dalam, berulang, seperti dibuat dengan kuku. Dari dalam.",
+      "Kau menempelkan tangan ke kayunya. Dingin."
+    ],
+    next: "d2_c3x"
+  },
+  d2_c3x: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [ "Lemari itu diam. Terlalu diam." ],
+    choices: [
+      { text: "Tempelkan telinga, dengarkan", target: "d2_c3b" },
+      { text: "Jangan sentuh — jauhi", target: "d2_c3c" }
+    ]
+  },
+  d2_c3b: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Sunyi... lalu: napas. Pelan, berat, tepat di balik kayu tipis itu.",
+      "Kau melompat mundur, jantung menghantam rusuk. Napas itu berhenti. Tidak ada lagi.",
+      "Apapun itu — ia masih di sana. Atau baru saja pergi. Kau tidak mau tahu."
+    ],
+    addEmotion: [{ n: "Takut", amt: 2 }],
+    tierUp: ["Stress"],
+    setFlag: { d2c3: true },
+    next: "d2_room"
+  },
+  d2_c3c: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau mundur perlahan, tidak melepaskan pandangan dari lemari itu.",
+      "Tidak terjadi apa-apa. Untuk kali ini, kehati-hatianmu terbayar."
+    ],
+    addEmotion: [{ n: "Lega", amt: 1 }],
+    setFlag: { d2c3: true },
+    next: "d2_room"
+  },
+  d2_done: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau keluar dari ruang lemari dan kembali ke lorong.",
+      "Di belakangmu, ruangan itu kembali sunyi — tapi kau tidak bisa menghilangkan perasaan bahwa keheningan itu menunggu."
+    ],
+    setFlag: { d2: true },
+    next: "opening"
+  },
+
+  /* ---------- PINTU 3 KANAN: makhluk transparan ---------- */
+  d3_hub: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Pintu pertama di kanan berayun pelan. Berderit kecil. Tidak ada angin — tapi ia bergerak, seperti dihembus sesuatu yang tidak terlihat.",
+      "Dari celahnya, kau mendengar sesuatu: detak. Pelan, berirama. Seperti... detak jantung? Atau jam?",
+      "Udara yang keluar dari celah itu dingin. Tidak wajar dinginnya."
+    ],
+    choices: [
+      { text: "Ikuti suara detak itu — masuk", target: "d3_a" },
+      { text: "Diam di ambang pintu, amati dulu", target: "d3_b" },
+      { text: "Mundur perlahan, tutup pintu", target: "d3_c" }
+    ]
+  },
+  d3_a: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau melangkah masuk. Dingin langsung merayap naik dari kakimu, seperti air es.",
+      "Detak itu semakin jelas — tapi kau sadar, itu bukan jam. Terlalu tidak beraturan. Terlalu... hidup.",
+      "Lalu kau melihatnya. Di sudut ruangan, udara beriak seperti air — dan sepasang mata merah menyala membuka di dalam kegelapan yang tak berwujud.",
+      "Ia melihatmu."
+    ],
+    next: "d3_a2"
+  },
+  d3_a2: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [ "Mata merah itu menyipit. Ia mulai bergerak ke arahmu." ],
+    addEmotion: [{ n: "Takut", amt: 2 }],
+    choices: [
+      { text: "Beku — jangan bergerak sama sekali", target: "d3_a2a" },
+      { text: "Putar balik dan LARI", target: "d3_a2b" }
+    ]
+  },
+  d3_a2a: {
+    kind: "result", status: "danger", tag: "[Dalam bahaya]", setStatus: "danger",
+    story: [
+      "Kau memaksa tubuhmu diam. Jangan bernapas. Jangan berkedip.",
+      "Sosok transparan itu melayang mendekat. Dingin menusuk tulangmu saat ia mengitarimu — kau bisa merasakan kebencian memancar darinya, seperti radiasi.",
+      "Lalu... ia berhenti. Mata merah itu menyipit. Perlahan, ia mundur, melebur kembali ke dalam kegelapan ruangan.",
+      "Kau tidak tahu kenapa ia melepaskanmu. Kau tidak mau tahu. Kakimu gemetar saat kau melangkah mundur keluar."
+    ],
+    tierUp: ["Stress"],
+    setFlag: { d3: true },
+    next: "opening"
+  },
+  d3_a2b: {
+    kind: "result", status: "danger", tag: "[Terluka]", setStatus: "wounded",
+    story: [
+      "Kau berbalik dan lari — tapi ia lebih cepat.",
+      "Dingin membakar lengan kirimu saat sesuatu yang tak terlihat mencakar lewat. Kau terhuyung, tapi terus berlari, menerobos pintu dan membantingnya di belakangmu.",
+      "Napasmu memburu. Lengan kirimu perih — tiga garis merah menganga di kulitmu, dan dinginnya masih terasa menusuk sampai ke tulang.",
+      "Kau terluka. Dan kau sadar satu hal: ia tidak mengejarmu keluar. Ia hanya... menjaga ruangan itu."
+    ],
+    setBody: "Lengan Kiri Tergores",
+    tierUp: ["Stress"],
+    setFlag: { d3: true },
+    next: "opening"
+  },
+  d3_b: {
+    kind: "result", status: "danger", tag: "[Dalam bahaya]", setStatus: "danger",
+    story: [
+      "Kau tetap di ambang pintu, tidak masuk. Hanya mengamati.",
+      "Detak itu berlanjut. Lalu, perlahan, sepasang mata merah menyala muncul dari kegelapan — dan menatap lurus ke arahmu.",
+      "Kau tidak bergerak. Ia tidak bergerak. Waktu berhenti.",
+      "Kemudian mata itu berkedip — sekali — dan menghilang. Detak itu pun berhenti.",
+      "Pesannya jelas: ia tahu kau di sini. Dan ia membiarkanmu pergi. Untuk sekarang."
+    ],
+    addEmotion: [{ n: "Takut", amt: 1 }],
+    setFlag: { d3: true },
+    next: "opening"
+  },
+  d3_c: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau mundur selangkah. Dua langkah. Tanganmu meraih gagang pintu.",
+      "Tepat saat pintu hampir tertutup, detak itu... berhenti.",
+      "Hening total. Lalu, dari balik pintu yang nyaris rapat, terdengar bunyi gesekan pelan — seperti kuku di kayu. Sekali. Dua kali.",
+      "Kau menutup pintu sepenuhnya dan mundur. Jantungmu masih berdebar lama setelahnya."
+    ],
+    addEmotion: [{ n: "Takut", amt: 1 }],
+    tierUp: ["Stress"],
+    setFlag: { d3: true },
+    next: "opening"
+  },
+
+  /* ---------- PINTU 4 KANAN: boneka beruang ---------- */
+  d4_hub: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Pintu kedua di kanan lebih tenang. Dari celahnya, kau bisa melihat sebuah meja — dan di atasnya, bayangan samar.",
+      "Kau mendorong pintu itu. Ruangan kecil. Meja kayu di tengah. Dan di atasnya...",
+      "Sebuah boneka beruang. Usang, satu matanya lepas, tapi bersih — terlalu bersih untuk tempat ini. Seolah seseorang merawatnya."
+    ],
+    choices: [
+      { text: "Ambil bonekanya langsung", target: "d4_a" },
+      { text: "Periksa meja dan sekitarnya dulu", target: "d4_b" },
+      { text: "Jangan sentuh apa pun — pergi", target: "d4_c" }
+    ]
+  },
+  d4_a: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau mengangkat boneka itu. Ringan. Dan... hangat.",
+      "Kehangatan yang aneh menjalar ke tanganmu — seperti baru saja dipeluk seseorang. Kau merinding.",
+      "Lalu kau menyadarinya: mata boneka yang masih ada itu... menatapmu. Tadi, saat di atas meja, ia menghadap ke arah lain. Bukankah begitu?",
+      "Kau memeluknya erat-erat. Entah kenapa, benda ini terasa penting."
+    ],
+    grantItems: [
+      { id: "boneka", name: "Boneka Beruang", icon: "🧸", note: "+1 Boneka beruang — PAKAI: tenangkan diri", kind: "consumable", use: { mentalBetter: 1 } }
+    ],
+    addEmotion: [{ n: "Lega", amt: 1 }, { n: "Takut", amt: 1 }],
+    setFlag: { d4: true },
+    next: "opening"
+  },
+  d4_b: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau menahan diri dan memeriksa ruangan dulu. Meja itu kosong selain boneka. Tapi di bawah meja, terselip sesuatu: selembar kertas gambar anak-anak, digambar dengan crayon.",
+      "Gambarnya: sebuah keluarga — ayah, ibu, anak — bergandengan tangan. Dan di belakang mereka, sosok tinggi hitam dengan mata merah.",
+      "Crayon merahnya ditekan begitu keras sampai kertasnya sobek tepat di bagian mata itu."
+    ],
+    next: "d4_b2"
+  },
+  d4_b2: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [ "Gambar itu terasa dingin di jarimu. Boneka itu masih di atas meja." ],
+    choices: [
+      { text: "Ambil bonekanya juga", target: "d4_a" },
+      { text: "Ambil gambarnya saja, tinggalkan boneka", target: "d4_draw" },
+      { text: "Tinggalkan semuanya", target: "d4_c" }
+    ]
+  },
+  d4_draw: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau mengambil gambar itu dan melipatnya hati-hati. Bonekanya kau biarkan di atas meja.",
+      "Saat kau berbalik, dari sudut matamu — kau bersumpah kepala boneka itu sedikit miring. Mengikutimu.",
+      "Kau tidak menoleh lagi."
+    ],
+    grantItems: [
+      { id: "gambar_crayon", name: "Gambar Crayon", icon: "🖍️", note: "Gambar keluarga — PAKAI: renungkan", use: { mentalBetter: 1, addEmotion: [{ n: "Sedih", amt: 1 }] } }
+    ],
+    addEmotion: [{ n: "Takut", amt: 1 }],
+    setFlag: { d4: true },
+    next: "opening"
+  },
+  d4_c: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau memutuskan untuk tidak menyentuh apa pun. Nalurimu berteriak.",
+      "Kau melangkah mundur menuju pintu. Dan saat itulah kau mendengarnya — pelan, hampir tidak ada:",
+      "'...jangan pergi.'",
+      "Suaranya seperti anak kecil. Berasal dari... boneka itu? Atau dari kepalamu sendiri?",
+      "Kau keluar dan menutup pintu. Tanganmu gemetar."
+    ],
+    addEmotion: [{ n: "Takut", amt: 2 }],
+    tierUp: ["Stress"],
+    setFlag: { d4: true },
+    next: "opening"
+  },
+
+  /* ---------- PILIHAN 5: maju — jebakan berpikir + 1 instant kill ---------- */
+  d5_1: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau mengabaikan pintu-pintu itu dan terus melangkah ke ujung lorong.",
+      "Lampu-lampu di sini berkedip makin cepat. Langkah kakimu bergema... dan kau menyadarinya: gemanya salah. Ada setengah ketukan tambahan di antara langkahmu — seperti ada yang berjalan bersamamu, sedikit tidak selaras.",
+      "Kau berhenti. Gema itu berhenti... setengah detik lebih lambat.",
+      "Di depan, deretan lampu di langit-langit berkedip liar — kecuali satu. Satu lampu menyala stabil, terang, mengundang.",
+      "Di bawah lampu yang stabil itu, kau melihat sesuatu yang janggal: lantainya bersih. Tidak ada debu, tidak ada puing — padahal seluruh lorong ini kotor. Seperti tempat itu... dirawat. Atau sering ditunggu.",
+      "Dan kau teringat: tadi, saat bayangan besar melintas di kejauhan, setiap lampu yang dilewatinya berkedip liar."
+    ],
+    next: "d5_1c"
+  },
+  d5_1c: {
+    kind: "choice",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Gema langkah itu masih ada — setengah ketukan di belakangmu. Lampu yang stabil itu menunggu.",
+      "Apa yang akan kau lakukan?"
+    ],
+    addEmotion: [{ n: "Takut", amt: 1 }],
+    choices: [
+      { text: "Berlari ke lampu yang stabil — terang berarti aman", target: "d5_trap" },
+      { text: "Bergerak di antara kedipan, tetap dalam bayangan", target: "d5_smart", requiresMentalMax: 2, condNote: "Butuh fokus (mental ≤ Gelisah)" },
+      { text: "Berbalik kembali ke persimpangan pintu", target: "d5_back" }
+    ]
+  },
+  d5_trap: {
     kind: "death",
     story: [
-      "Kau maju dengan perasaan gugup. Saat kau mencapai lorong kedua kau berpapasan dengan sesosok monster yang tak memiliki kepala tapi dia membawa kapak besar.",
-      "Monster itu loncat ke arahmu dan membunuhmu."
+      "Kau berlari menuju cahaya. Terang berarti aman — itu naluri, itu logika.",
+      "Cahaya itu menyilaukan. Kau tidak melihat kegelapan di sekitarnya — dan di situlah ia berdiri.",
+      "Sosok besar tanpa kepala. Bertangan banyak. Kapak besar terangkat.",
+      "Lampu yang stabil itu bukan tempat aman. Itu tempatnya menunggu. Lampu-lampu lain berkedip karena ia lewat — yang satu ini stabil karena ia tidak pernah pergi.",
+      "Kau tak sempat menyesal."
+    ],
+    next: "hub_exit"
+  },
+  d5_smart: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau memaksa kakimu diam. Bernapas pelan. Mengamati.",
+      "Pola kedip lampu-lampu itu... tidak acak. Setiap beberapa detik, satu lampu berkedip liar — berpindah, mendekat. Sesuatu bergerak di lorong itu, dari lampu ke lampu.",
+      "Kau bergerak hanya saat lampu di depanmu padam dalam kedipnya — berlari pendek dalam gelap, berhenti dalam bayangan. Jantungmu menghantam rusuk, tapi kau tidak berhenti.",
+      "Saat kau melewati lampu yang stabil itu, kau tidak menoleh. Kau sudah tahu apa yang menunggu di sana.",
+      "Lorong terbuka ke sebuah pertigaan. Kau berhasil."
+    ],
+    tierUp: ["Kelelahan"],
+    addEmotion: [{ n: "Takut", amt: 1 }],
+    next: "hub_exit"
+  },
+  d5_back: {
+    kind: "result", status: "safe", tag: "[Aman]",
+    story: [
+      "Kau berbalik — perlahan, tanpa membelakangi kegelapan terlalu lama.",
+      "Gema setengah ketukan itu mengikutimu beberapa langkah, lalu... hilang. Seperti tidak pernah ada.",
+      "Kau kembali ke persimpangan pintu dengan napas memburu. Setidaknya kau masih hidup."
+    ],
+    addEmotion: [{ n: "Takut", amt: 1 }],
+    next: "opening"
+  },
+
+  /* ---------- JEMBATAN: pertigaan resepsionis (teks canon Kaze; fork = fase berikut) ---------- */
+  hub_exit: {
+    kind: "story",
+    kicker: "Part 1 : Awal Mula",
+    story: [
+      "Kau melangkah hati-hati sampai tiba di sebuah pertigaan lorong. Di tengahnya berdiri meja resepsionis tua yang nyaris hancur. Di atasnya berserakan tumpukan kertas berdebu, dan dari balik meja itu, dua lorong lain membentang ke kiri dan ke kanan. Lorong kiri tampak gelap gulita dan sunyi senyap, sementara lorong kanan memancarkan secercah cahaya redup dari ujungnya, seolah mengundangmu mendekat.",
+      "Kau sadar bahwa tempat ini tempat yang sangat aneh, dan seperti ada suara-suara aneh yang masih menghantuimu."
     ],
     next: "tbc"
   },
@@ -465,7 +961,7 @@ function persist(){
       deathCount: S.deathCount, items: S.items, status: S.status,
       mental: S.mental, effects: S.effects, equipment: S.equipment, node: S.node,
       tiers: S.tiers, temp: S.temp, emotions: S.emotions, favor: S.favor,
-      objective: S.objective, body: S.body
+      objective: S.objective, body: S.body, energy: S.energy, flags: S.flags
     }));
   }catch(e){}
 }
@@ -746,6 +1242,40 @@ function removeItem(id, qty){
   return true;
 }
 
+/* ---------- ENERGI ---------- */
+/* Setiap pilihan memakai Energi. Makanan memulihkan. Energi 0 -> Kelelahan naik. */
+function spendEnergy(n){
+  if(!S.registered) return;
+  if(S.energy==null) S.energy = 100;
+  S.energy = Math.max(0, S.energy - (n==null?4:n));
+  updateHUD();
+  if(S.energy<=0){
+    const before = tierGet("Kelelahan");
+    tierUp("Kelelahan");
+    if(tierGet("Kelelahan")!==before) toast("⚡ Energimu habis! Kelelahan naik — cari makanan!");
+  }
+}
+/* Pakai item manual dari tas (makan, perban, dll). */
+function useItem(id){
+  const it = S.items.find(x=>x.id===id);
+  if(!it || !it.use) return;
+  const before = snapshotState();
+  const u = it.use;
+  if(u.energy) S.energy = Math.min(100, Math.max(0, (S.energy||0)+u.energy));
+  if(u.heal && S.status==="wounded"){ S.status = null; S.body = null; }
+  if(u.tierUp) u.tierUp.forEach(t=>tierUp(t));
+  if(u.tierDown) u.tierDown.forEach(t=>tierDown(t));
+  if(u.mentalBetter) mentalBetter(u.mentalBetter);
+  if(u.mentalWorse) mentalWorse(u.mentalWorse);
+  if(u.addEmotion) u.addEmotion.forEach(e=>addEmotion(e.n, e.amt));
+  it.qty = (it.qty||1)-1;
+  if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id);
+  persist();
+  presentReaction(deriveEvents(before, snapshotState(), "use"));
+  updateHUD(); openInventory();
+  toast("Kau memakai: "+it.name+" 🩸");
+}
+
 /* ---------- DADU (Kebingungan Akut) ---------- */
 function rollDie(sides){ return 1 + Math.floor(Math.random()*Math.max(1, (sides||6))); }
 
@@ -771,6 +1301,9 @@ function condMet(w){
   if(w.favor) for(const k of Object.keys(w.favor)){
     if(favorGet(k) < +w.favor[k]) return false;
   }
+  if(w.flag) for(const k of Object.keys(w.flag)){
+    if(!!(S.flags && S.flags[k]) !== !!w.flag[k]) return false;
+  }
   return true;
 }
 /* Selesaikan target sebuah choice: branches (bersyarat) atau target biasa.
@@ -786,6 +1319,7 @@ function resolveChoiceTarget(c){
 
 /* ---------- KUNCI PILIHAN (diperluas) ---------- */
 function isChoiceLocked(c){
+  if(c.blockedIfFlag && S.flags && S.flags[c.blockedIfFlag]) return true;
   if(c.blockedIf && (c.blockedIf==="wounded" ? isWoundedLike() : S.status===c.blockedIf)) return true;
   if(c.requiresItem && !S.items.some(it=>it.id===c.requiresItem)) return true;
   if(c.requiresEquipped && !S.equipment[c.requiresEquipped]) return true;
@@ -797,6 +1331,8 @@ function isChoiceLocked(c){
   return false;
 }
 function choiceLockNote(c){
+  if(c.blockedIfFlag && S.flags && S.flags[c.blockedIfFlag])
+    return `<span class="lock">✓ Sudah diperiksa — tidak ada lagi di sana</span>`;
   if(c.blockedIf && (c.blockedIf==="wounded" ? isWoundedLike() : S.status===c.blockedIf))
     return `<span class="lock">🔒 Tidak bisa dipilih dalam kondisi [Terluka]${isLemas()&&S.status!=="wounded"?" / [Lemas]":""}</span>`;
   if(c.requiresItem && !S.items.some(it=>it.id===c.requiresItem))
@@ -830,6 +1366,8 @@ function applyEnterMutations(n){
   if(n.addTemp) n.addTemp.forEach(t=>addTemp(t.n, t.nodes));
   if(n.setBody!==undefined) S.body = n.setBody;
   if(n.clearBody) S.body = null;
+  if(n.setFlag){ if(!S.flags) S.flags={}; Object.keys(n.setFlag).forEach(k=>{ S.flags[k]=!!n.setFlag[k]; }); }
+  if(n.clearFlag && S.flags) n.clearFlag.forEach(k=>{ delete S.flags[k]; });
   if(n.mentalWorse) mentalWorse(n.mentalWorse);
   if(n.mentalBetter) mentalBetter(n.mentalBetter);
   if(n.addEmotion) n.addEmotion.forEach(e=>addEmotion(e.n, e.amt));
@@ -838,10 +1376,10 @@ function applyEnterMutations(n){
   if(n.favor) Object.keys(n.favor).forEach(k=>favorAdd(k, n.favor[k]));
   if(n.grantItems) n.grantItems.forEach(item=>{
     const ex = S.items.find(x=>x.id===item.id);
-    if(ex) ex.qty = (ex.qty||1)+1;
+    if(ex){ ex.qty = (ex.qty||1)+1; if(item.use && !ex.use) ex.use = item.use; }
     else S.items.push({ id:item.id, name:item.name, note:item.note||"",
                         icon:item.icon||"🎒", kind:item.kind||"consumable",
-                        slot:item.slot||null, qty:1 });
+                        slot:item.slot||null, qty:1, use:item.use||null });
   });
   if(n.consumeItem) (Array.isArray(n.consumeItem)?n.consumeItem:[n.consumeItem]).forEach(c=>{
     const id = typeof c==="string" ? c : c.id, qty = (c && c.qty) || 1;
@@ -914,7 +1452,8 @@ function resetState(){
   S = { node:"title", registered:false, name:"", gender:"",
         deathCount:0, items:[], status:null, mental:0, effects:[],
         equipment:{ senjata:null },
-        tiers:{}, temp:[], emotions:{}, favor:{}, objective:null, body:null };
+        tiers:{}, temp:[], emotions:{}, favor:{}, objective:null, body:null,
+        energy:100, flags:{} };
 }
 resetState();
 function restoreState(sv){
@@ -927,7 +1466,11 @@ function restoreState(sv){
   S.emotions = sanitizeEmotions(sv.emotions); S.favor = sanitizeFavor(sv.favor);
   S.objective = (typeof sv.objective==="string" && sv.objective) ? sv.objective.slice(0,80) : null;
   S.body = (typeof sv.body==="string" && sv.body) ? sv.body.slice(0,40) : null;
-  S.node = sv.node||"opening";
+  S.energy = Math.max(0, Math.min(100, parseInt(sv.energy)));
+  if(isNaN(S.energy)) S.energy = 100;
+  S.flags = sanitizeFlags(sv.flags);
+  /* migrasi: node lama yang sudah dihapus -> opening (anti softlock) */
+  S.node = (typeof sv.node==="string" && sv.node && NODES[sv.node]) ? sv.node : "opening";
 }
 
 const $ = (s)=>document.querySelector(s);
@@ -938,11 +1481,24 @@ function updateHUD(){
   hud.hidden = !S.registered || S.node==="status";
   $("#deathCount").textContent = S.deathCount;
   $("#itemCount").textContent = S.items.reduce((a,i)=>a+(i.qty||1),0);
-  const b = $("#statusBadge");
-  if(S.status==="danger") b.innerHTML = '<span class="badge danger">[Dalam bahaya]</span>';
-  else if(S.status==="wounded") b.innerHTML = '<span class="badge wounded">[Terluka]</span>';
-  else if(isLemas()) b.innerHTML = '<span class="badge wounded">[Lemas]</span>';
-  else b.innerHTML = "";
+  /* Energi */
+  const ef = hud.querySelector(".efill");
+  if(ef){
+    const e = Math.max(0, Math.min(100, S.energy==null?100:S.energy));
+    ef.style.width = e+"%";
+    ef.className = "efill" + (e<=25 ? " crit" : e<=55 ? " low" : "");
+    ef.title = "Energi: "+e;
+  }
+  /* Badge status: pill kiri-bawah (tidak crowded) */
+  const pill = $("#statusPill");
+  const showPill = S.registered && S.node!=="status";
+  pill.hidden = !showPill;
+  let html = "";
+  if(S.status==="danger") html = '<span class="badge danger">[Dalam bahaya]</span>';
+  else if(S.status==="wounded") html = '<span class="badge wounded">[Terluka]</span>';
+  else if(isLemas()) html = '<span class="badge wounded">[Lemas]</span>';
+  pill.innerHTML = html;
+  pill.style.display = html ? "" : "none";
 }
 $("#menuBtn").addEventListener("click", ()=>{ showTitle(); }); /* ke menu TIDAK me-reset */
 
@@ -953,12 +1509,17 @@ function openInventory(){
     ? S.items.map(it=>{
         const eq = it.kind==="equipment"
           ? `<button class="mini-btn" data-equip="${esc(it.id)}">EQUIP</button>` : "";
-        return `<div class="inv-item"><span>${esc(it.icon||"🎒")} ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}</span></div>`;
+        const use = it.use
+          ? `<button class="mini-btn" data-use="${esc(it.id)}">PAKAI</button>` : "";
+        return `<div class="inv-item"><span>${esc(it.icon||"🎒")} ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}${use}</span></div>`;
       }).join("")
     : `<div class="inv-empty">Kosong.<br/>Kau tidak membawa apa-apa.</div>`;
   $("#invModal").hidden = false;
   list.querySelectorAll("[data-equip]").forEach(b=>{
     b.onclick = ()=>{ equipItem(b.dataset.equip); openInventory(); updateHUD(); };
+  });
+  list.querySelectorAll("[data-use]").forEach(b=>{
+    b.onclick = ()=>{ useItem(b.dataset.use); };
   });
 }
 /* EQUIP: pindah 1 item equipment dari tas ke slot perlengkapan */
@@ -1013,7 +1574,7 @@ function buildPayload(){
     deathCount:S.deathCount, items:S.items, status:S.status,
     mental:S.mental, effects:S.effects, equipment:S.equipment, node:S.node,
     tiers:S.tiers, temp:S.temp, emotions:S.emotions, favor:S.favor,
-    objective:S.objective, body:S.body
+    objective:S.objective, body:S.body, energy:S.energy, flags:S.flags
   };
 }
 function exportSave(){
@@ -1038,8 +1599,18 @@ function sanitizeItems(arr){
       note:String(it.note||"").slice(0,80), icon:String(it.icon||"🎒").slice(0,8),
       kind:it.kind==="equipment"?"equipment":"consumable",
       slot:typeof it.slot==="string"?it.slot.slice(0,20):null,
-      qty:Math.min(99,Math.max(1,parseInt(it.qty)||1))
+      qty:Math.min(99,Math.max(1,parseInt(it.qty)||1)),
+      use:(it.use && typeof it.use==="object") ? it.use : null
     }));
+}
+function sanitizeFlags(f){
+  const out = {};
+  if(f && typeof f==="object") Object.keys(f).slice(0,40).forEach(k=>{
+    const kk = String(k).slice(0,30);
+    if(!kk) return;
+    out[kk] = !!f[k];
+  });
+  return out;
 }
 function sanitizeEquipment(eq){
   const out = {};
@@ -1077,6 +1648,8 @@ function importSave(file){
       emotions:sanitizeEmotions(data.emotions), favor:sanitizeFavor(data.favor),
       objective:(typeof data.objective==="string" && data.objective) ? data.objective.slice(0,80) : null,
       body:(typeof data.body==="string" && data.body) ? data.body.slice(0,40) : null,
+      energy:Math.max(0, Math.min(100, parseInt(data.energy)||100)),
+      flags:sanitizeFlags(data.flags),
       node:(typeof data.node==="string" && NODES[data.node]) ? data.node : "opening"
     };
     try{ localStorage.setItem(SAVE_KEY, JSON.stringify(clean)); }catch(e){}
@@ -1306,6 +1879,7 @@ function showStatus(mode, resumeTarget){
           ${mentalBar()}
           <div class="krow"><span>Efek Status</span><b class="kval">${fmtEffects()}</b></div>
           <div class="krow"><span>Emosi</span><b class="kval">${fmtEmotions()}</b></div>
+          <div class="krow"><span>⚡ Energi</span><b class="kval">${(()=>{const _e=Math.max(0,Math.min(100,S.energy==null?100:S.energy));const _c=_e<=25?" crit":_e<=55?" low":"";return `<span class="ebar"><span class="efill${_c}" style="width:${_e}%"></span></span> ${_e}`;})()}</b></div>
         </div>
         <div class="pcard mystery">
           <div class="pcard-h">❓ ?????</div>
@@ -1359,13 +1933,15 @@ function renderNode(id){
       const dis = locked ? "disabled" : "";
       const lockNote = locked ? choiceLockNote(c) : "";
       const condTag = c.condNote ? `<span class="condtag">${esc(c.condNote)}</span>` : "";
-      return `<button class="choice" data-i="${i}" style="animation-delay:${0.1+i*0.09}s" ${dis}><span class="num">${i+1}</span><span>${esc(c.text)}${condTag}${lockNote}</span></button>`;
+      const label = (c.doneFlag && S.flags && S.flags[c.doneFlag] && c.doneText) ? c.doneText : c.text;
+      return `<button class="choice" data-i="${i}" style="animation-delay:${0.1+i*0.09}s" ${dis}><span class="num">${i+1}</span><span>${esc(label)}${condTag}${lockNote}</span></button>`;
     }).join("");
     cbox.querySelectorAll(".choice:not(:disabled)").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         cbox.querySelectorAll(".choice").forEach(b=>b.disabled=true);
         btn.classList.add("picked");
         let c = n.choices[+btn.dataset.i];
+        spendEnergy(4); /* setiap pilihan memakai Energi */
         setTimeout(()=>{
           if(isBingung()){ /* Kebingungan Akut: dadu yang memilih */
             const avail = n.choices.filter(cc=>!isChoiceLocked(cc));
@@ -1443,7 +2019,7 @@ function renderInput(id){
       $("#txtAns").value = ""; $("#txtAns").focus();
     }else goTarget(n.onWrong);
   }
-  $("#btnAns").onclick = submit;
+  $("#btnAns").onclick = ()=>{ spendEnergy(4); submit(); };
   $("#txtAns").addEventListener("keydown", (e)=>{ if(e.key==="Enter") submit(); });
   document.onkeydown = (e)=>{
     if(document.activeElement && document.activeElement.id==="txtAns") return;
@@ -1490,6 +2066,7 @@ function renderKeypad(id){
   });
   $("#keyClear").onclick = ()=>{ buf = ""; draw(); };
   $("#keyGo").onclick = ()=>{
+    spendEnergy(4);
     if(buf===(n.code||"")){ toast("Klik... terbuka 🩸"); goTarget(n.onSuccess); return; }
     left--; $("#keyLeft").textContent = left;
     const d = $("#keyDisp");
@@ -1541,7 +2118,7 @@ function grantItem(item){
   if(ex) ex.qty = (ex.qty||1)+1;
   else S.items.push({ id:item.id, name:item.name, note:item.note||"",
                       icon:item.icon||"🎒", kind:item.kind||"consumable",
-                      slot:item.slot||null, qty:1 });
+                      slot:item.slot||null, qty:1, use:item.use||null });
   persist();
   presentReaction(deriveEvents(before, snapshotState(), "item"));
 }
