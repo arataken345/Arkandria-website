@@ -33,7 +33,7 @@
     display:flex; flex-direction:column; min-height:100vh;
     overflow-x:hidden;
   }
-  body::after{ /* vignette */
+  body::after{
     content:""; position:fixed; inset:0; pointer-events:none; z-index:50;
     background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.75) 100%);
   }
@@ -46,7 +46,7 @@
   }
   #hud .stat{display:flex; align-items:center; gap:.4rem; color:var(--ash)}
   #hud .stat b{color:var(--bone); font-weight:800}
-  #hud #deathCount b{color:var(--blood)}
+  #hud #deathStat b{color:var(--blood)}
   #hud .badge{
     padding:.15rem .55rem; border-radius:999px; font-size:.68rem; font-weight:800;
     letter-spacing:.12em; text-transform:uppercase; border:1px solid;
@@ -54,16 +54,23 @@
   .badge.danger{color:var(--yellow); border-color:var(--yellow); animation:blink 1.1s steps(2) infinite}
   .badge.wounded{color:#fb923c; border-color:#fb923c; animation:blink 1.1s steps(2) infinite}
   @keyframes blink{50%{opacity:.45}}
-  #restartBtn{
-    background:none; border:1px solid #3a3a3a; color:var(--dim);
-    font-size:.68rem; letter-spacing:.1em; padding:.35rem .7rem; border-radius:6px; cursor:pointer;
+  .statbtn{
+    background:rgba(255,255,255,.04); border:1px solid #3a3a3a; color:var(--ash);
+    font-size:.78rem; letter-spacing:.06em; padding:.4rem .8rem; border-radius:8px; cursor:pointer;
+    display:flex; align-items:center; gap:.4rem; font-family:inherit;
   }
-  #restartBtn:hover{color:var(--blood); border-color:var(--blood)}
+  .statbtn:hover{border-color:var(--blood); color:var(--bone)}
+  .statbtn b{color:var(--bone)}
+  #menuBtn{
+    background:none; border:1px solid #3a3a3a; color:var(--dim);
+    font-size:.68rem; letter-spacing:.1em; padding:.35rem .7rem; border-radius:6px; cursor:pointer; font-family:inherit;
+  }
+  #menuBtn:hover{color:var(--bone); border-color:var(--bone)}
   /* ===== Screens ===== */
   main{flex:1; display:flex; align-items:center; justify-content:center; padding:4.2rem 1.2rem 3rem; position:relative; z-index:1}
   .screen{width:100%; max-width:640px; animation:rise .7s ease-out both}
   @keyframes rise{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none}}
-  /* Title — pure CSS asylum scene (tanpa gambar) */
+  /* Title — pure CSS asylum scene */
   #titleScreen{
     position:fixed; inset:0; z-index:1; display:flex; align-items:center; justify-content:center;
     background:#060607; overflow:hidden;
@@ -111,7 +118,6 @@
     text-align:center; font-size:.68rem; letter-spacing:.22em; text-transform:uppercase;
     color:#4c4c4c; margin:1rem 0 .2rem; animation:blink 1.6s ease-in-out infinite; cursor:pointer;
   }
-  .choice{animation:rise .45s both}
   .title-inner{position:relative; text-align:center; padding:2rem; max-width:620px}
   .title-inner .pre{font-family:"Special Elite",cursive; color:var(--ash); letter-spacing:.14em; margin-bottom:1rem; font-size:clamp(.9rem,2.6vw,1.15rem)}
   .title-inner h1{
@@ -119,7 +125,9 @@
     font-size:clamp(2.6rem,9vw,4.6rem); letter-spacing:.04em; line-height:1.05;
     text-shadow:0 0 34px rgba(220,20,60,.45), 0 2px 0 #000; margin-bottom:.4rem;
   }
-  .title-inner h2{font-family:"Special Elite",cursive; color:var(--bone); font-size:clamp(1.2rem,4.5vw,1.9rem); letter-spacing:.06em; margin-bottom:1.6rem}
+  .title-inner h2{font-family:"Special Elite",cursive; color:var(--bone); font-size:clamp(1.2rem,4.5vw,1.9rem); letter-spacing:.06em; margin-bottom:1.2rem}
+  .saveinfo{color:var(--ash); font-size:.85rem; letter-spacing:.06em; margin-bottom:1.2rem}
+  .saveinfo b{color:var(--bone)}
   .nocheat{
     border:1px solid rgba(220,20,60,.4); background:rgba(20,0,4,.55); border-radius:10px;
     padding:.9rem 1.1rem; font-size:.82rem; line-height:1.7; color:#d8c9c9; margin-bottom:1.8rem;
@@ -132,8 +140,40 @@
   }
   button.primary{background:var(--blood); border:1px solid var(--blood); color:#fff}
   button.primary:hover{background:#f0224f; box-shadow:0 0 26px rgba(220,20,60,.55); transform:translateY(-1px)}
+  button.primary:disabled{opacity:.5; cursor:default; transform:none; box-shadow:none}
   button.ghost{background:transparent; border:1px solid #555; color:var(--bone)}
   button.ghost:hover{border-color:var(--bone)}
+  /* Pact (kontrak kegelapan) */
+  .pact{max-width:580px}
+  .kicker{font-size:.68rem; letter-spacing:.4em; text-indent:.4em; color:var(--blood); text-transform:uppercase; margin-bottom:1.1rem; font-weight:800; text-align:center}
+  .pact-title{
+    font-family:"Special Elite",cursive; color:var(--blood);
+    font-size:clamp(1.7rem,7vw,2.5rem); text-align:center; letter-spacing:.08em; margin-bottom:1.2rem;
+    text-shadow:0 0 26px rgba(220,20,60,.4);
+  }
+  .pact-flavor{color:var(--ash); line-height:2; font-size:.94rem; margin-bottom:1.8rem; text-align:center}
+  .pact-flavor b{color:var(--blood)}
+  .pact label{display:block; margin-bottom:1.1rem; font-size:.72rem; letter-spacing:.24em; text-transform:uppercase; color:var(--dim); text-align:left}
+  .pact input,.pact select{
+    width:100%; margin-top:.55rem; background:#0c0c0e; border:1px solid #3a3a3a; color:var(--bone);
+    padding:.9rem 1rem; border-radius:8px; font-size:1rem; font-family:inherit;
+  }
+  .pact input:focus,.pact select:focus{outline:none; border-color:var(--blood); box-shadow:0 0 14px rgba(220,20,60,.25)}
+  .pact-warn{margin-top:1.3rem; font-size:.74rem; color:#7a5a5a; line-height:1.9; text-align:center}
+  /* Player status */
+  .pstat{background:#0a0a0c; border:1px solid #2c2c30; border-radius:12px; padding:1.3rem 1rem; overflow-x:auto; margin-bottom:1.5rem}
+  .pstat pre{font-family:ui-monospace,"Cascadia Mono",Menlo,Consolas,monospace; font-size:.78rem; line-height:1.8; color:var(--ash); white-space:pre}
+  .pstat .hd{color:var(--blood); font-weight:800}
+  .pstat .val{color:var(--bone); font-weight:600}
+  /* Inventory modal */
+  .modal{position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.72); backdrop-filter:blur(3px)}
+  .modal[hidden]{display:none}
+  .modal-box{background:#0d0d10; border:1px solid #333; border-radius:14px; padding:1.6rem; width:min(430px,90vw); max-height:72vh; overflow:auto; animation:rise .3s ease-out}
+  .modal-box h3{font-family:"Special Elite",cursive; letter-spacing:.1em; margin-bottom:1rem; color:var(--bone); font-size:1.2rem}
+  .inv-item{display:flex; justify-content:space-between; align-items:center; gap:.8rem; padding:.75rem .2rem; border-bottom:1px solid #222; font-size:.92rem}
+  .inv-item small{color:var(--dim)}
+  .inv-item b{color:var(--green); font-size:1.05rem}
+  .inv-empty{color:var(--dim); text-align:center; padding:1.6rem 0; line-height:2}
   /* Tutorial */
   .tut h2{font-family:"Special Elite",cursive; color:var(--bone); font-size:1.7rem; margin-bottom:1.2rem; text-align:center; letter-spacing:.06em}
   .tut ol{list-style:none; display:flex; flex-direction:column; gap:.85rem; margin-bottom:1.4rem}
@@ -147,14 +187,14 @@
   .c-black{background:#e8e4e0; color:#000; border-radius:4px; padding:.05rem .4rem}
   .center{text-align:center}
   /* Story */
-  .kicker{font-size:.68rem; letter-spacing:.4em; text-indent:.4em; color:var(--blood); text-transform:uppercase; margin-bottom:1.1rem; font-weight:800}
-  .story p{color:var(--ash); font-size:clamp(1rem,2.8vw,1.14rem); line-height:2; margin-bottom:1.1rem}
+  .story p{color:var(--ash); font-size:clamp(1rem,2.8vw,1.14rem); line-height:2; margin-bottom:1.1rem; min-height:1.4em}
   .story p:last-child{margin-bottom:0}
   .choices{display:flex; flex-direction:column; gap:.7rem; margin-top:1.8rem}
   .choice{
     text-align:left; background:rgba(255,255,255,.03); border:1px solid #3d3d3d; color:#fff;
     padding:.95rem 1.15rem; border-radius:10px; font-size:1rem; line-height:1.6; cursor:pointer; transition:.15s;
-    display:flex; gap:.8rem; align-items:flex-start; width:100%;
+    display:flex; gap:.8rem; align-items:flex-start; width:100%; font-family:inherit;
+    animation:rise .45s both;
   }
   .choice .num{
     flex:none; width:1.7rem; height:1.7rem; border-radius:50%; border:1px solid #666;
@@ -166,10 +206,12 @@
   .choice .lock{font-size:.72rem; color:#fb923c; display:block; margin-top:.3rem}
   /* Result */
   .result{border-radius:12px; padding:1.6rem; background:var(--panel); border:1px solid #2a2a2e; margin-bottom:1.4rem}
-  .result p{font-size:clamp(1rem,2.8vw,1.12rem); line-height:2; margin-bottom:1rem}
+  .result p{font-size:clamp(1rem,2.8vw,1.12rem); line-height:2; margin-bottom:1rem; min-height:1.2em}
   .result p:last-child{margin-bottom:0}
-  .result.safe p{color:var(--green)} .result.danger p{color:var(--yellow)}
-  .result.dead p{color:var(--red)} .result.special{background:#e8e4e0; border-color:#e8e4e0}
+  .result.safe{border-left:3px solid var(--green)} .result.safe p{color:var(--green)}
+  .result.danger{border-left:3px solid var(--yellow)} .result.danger p{color:var(--yellow)}
+  .result.dead p{color:var(--red)}
+  .result.special{background:#e8e4e0; border-color:#e8e4e0}
   .result.special p{color:#000}
   .tagline{display:inline-block; font-size:.72rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
     border:1px solid currentColor; border-radius:999px; padding:.25rem .8rem; margin-bottom:1rem}
@@ -191,25 +233,33 @@
   .stats b{display:block; font-size:1.4rem; color:var(--bone); margin-top:.2rem}
   footer{position:relative; z-index:1; text-align:center; padding:1.2rem; font-size:.68rem; letter-spacing:.3em; color:#4a4a4a}
   footer a{color:var(--dim); text-decoration:none} footer a:hover{color:var(--blood)}
-  @media (max-width:520px){ .legend{grid-template-columns:1fr} }
+  @media (max-width:520px){ .legend{grid-template-columns:1fr} .pstat pre{font-size:.68rem} }
 </style>
 </head>
 <body>
 <div id="hud" hidden>
   <div class="stat" id="deathStat">💀 <span>Death Count</span>&nbsp;<b id="deathCount">0</b></div>
-  <div class="stat" id="itemStat">🎒 <b id="itemCount">0</b>&nbsp;<span id="itemNames"></span></div>
-  <div class="stat"><span id="statusBadge"></span><button id="restartBtn" title="Mulai dari awal">↺ AWAL</button></div>
+  <button class="statbtn" id="invBtn" title="Cek inventori">🎒 <b id="itemCount">0</b></button>
+  <div class="stat"><span id="statusBadge"></span><button id="menuBtn" title="Menu utama (progres tersimpan)">⌂ MENU</button></div>
 </div>
 <div class="grain" aria-hidden="true"></div>
 <div id="deathflash" aria-hidden="true"></div>
+<div class="modal" id="invModal" hidden>
+  <div class="modal-box">
+    <h3>🎒 PERLENGKAPAN</h3>
+    <div id="invList"></div>
+    <div class="center" style="margin-top:1.2rem"><button class="big ghost" id="invClose" style="font-size:.95rem; padding:.6rem 1.8rem">TUTUP</button></div>
+  </div>
+</div>
 <main id="app"></main>
 <footer><a href="/">ARKANDRIA</a> · THE ASYLUM PART 1</footer>
 <script>
 "use strict";
 /* ============================================================
    THE ASYLUM — Part 1: Awal Mula
-   Choose-your-own-story engine. Cerita dalam format data di bawah,
-   tambah node baru untuk melanjutkan chapter tanpa ubah engine.
+   Engine + data. Tambah node baru di NODES untuk lanjut chapter.
+   Progres tersimpan otomatis (localStorage), hanya "CERITA BARU"
+   yang me-reset.
    ============================================================ */
 
 /* ---------- DATA CERITA ---------- */
@@ -289,33 +339,71 @@ const LEGEND = [
   ["c-black", "Teks <b class='c-black'>hitam</b> adalah situasi langka yang terjadi secara spesial."]
 ];
 
+const MENTAL = ["Tenang", "Tegang", "Gelisah", "Panik", "Hancur"];
+
+/* ---------- SAVE (localStorage — hanya CERITA BARU yang me-reset) ---------- */
+const SAVE_KEY = "asylum_save_v1";
+function persist(){
+  if(!S.registered) return;
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      registered: true, name: S.name, gender: S.gender,
+      deathCount: S.deathCount, items: S.items, status: S.status,
+      mental: S.mental, effects: S.effects, node: S.node
+    }));
+  }catch(e){}
+}
+function loadSave(){
+  try{
+    const s = JSON.parse(localStorage.getItem(SAVE_KEY));
+    return (s && s.registered) ? s : null;
+  }catch(e){ return null; }
+}
+function wipeSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+
 /* ---------- STATE ---------- */
 let S;
-function resetState(){ S = { node:"title", deathCount:0, items:[], status:null }; }
+function resetState(){
+  S = { node:"title", registered:false, name:"", gender:"",
+        deathCount:0, items:[], status:null, mental:0, effects:[] };
+}
 resetState();
+function restoreState(sv){
+  resetState();
+  S.registered = true; S.name = sv.name||""; S.gender = sv.gender||"";
+  S.deathCount = sv.deathCount||0; S.items = sv.items||[];
+  S.status = sv.status||null; S.mental = sv.mental||0;
+  S.effects = sv.effects||[]; S.node = sv.node||"opening";
+}
 
 const $ = (s)=>document.querySelector(s);
 const app = $("#app"), hud = $("#hud");
-
 function esc(t){ const d=document.createElement("div"); d.textContent=t; return d.innerHTML; }
 
 function updateHUD(){
-  hud.hidden = (S.node==="title" || S.node==="tutorial");
+  hud.hidden = ["title","tutorial","pact","status"].includes(S.node);
   $("#deathCount").textContent = S.deathCount;
-  $("#itemCount").textContent = S.items.length;
-  $("#itemNames").textContent = S.items.length ? "· " + S.items.map(i=>i.name).join(", ") : "";
+  $("#itemCount").textContent = S.items.reduce((a,i)=>a+(i.qty||1),0);
   const b = $("#statusBadge");
   if(S.status==="danger") b.innerHTML = '<span class="badge danger">[Dalam bahaya]</span>';
   else if(S.status==="wounded") b.innerHTML = '<span class="badge wounded">[Terluka]</span>';
   else b.innerHTML = "";
 }
-$("#restartBtn").addEventListener("click", ()=>{
-  if(confirm("Mulai dari awal lagi? Semua progress (item & death count) akan hilang.")){
-    resetState(); showTitle();
-  }
-});
+$("#menuBtn").addEventListener("click", ()=>{ showTitle(); }); /* ke menu TIDAK me-reset */
 
-/* ---------- TYPEWRITER (efek ketik ala visual novel, klik = skip) ---------- */
+/* ---------- INVENTORY MODAL ---------- */
+function openInventory(){
+  const list = $("#invList");
+  list.innerHTML = S.items.length
+    ? S.items.map(it=>`<div class="inv-item"><span>🎒 ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><b>+${it.qty||1}</b></div>`).join("")
+    : `<div class="inv-empty">Kosong.<br/>Kau tidak membawa apa-apa.</div>`;
+  $("#invModal").hidden = false;
+}
+$("#invBtn").addEventListener("click", openInventory);
+$("#invClose").addEventListener("click", ()=>{ $("#invModal").hidden = true; });
+$("#invModal").addEventListener("click", (e)=>{ if(e.target.id==="invModal") e.target.hidden = true; });
+
+/* ---------- TYPEWRITER (lambat, vibes-building — ketuk = skip) ---------- */
 function typewriter(container, paragraphs, done){
   container.innerHTML = paragraphs.map(()=>"<p></p>").join("");
   const ps = Array.from(container.children);
@@ -327,55 +415,163 @@ function typewriter(container, paragraphs, done){
   }
   timer = setInterval(()=>{
     if(pi >= ps.length){ end(); return; }
-    ci += 2;
+    ci += 1; /* ~31 huruf/detik — sepelan manusia membaca */
     ps[pi].textContent = paragraphs[pi].slice(0, ci);
     if(ci >= paragraphs[pi].length){ pi++; ci = 0; }
-  }, 16);
-  return end; /* panggil untuk skip langsung */
+  }, 32);
+  return end;
 }
 
 /* ---------- LAYAR: JUDUL ---------- */
 function showTitle(){
   S.node = "title"; updateHUD();
   document.body.style.overflow = "hidden";
+  document.onkeydown = null;
+  const sv = loadSave();
+  let btns, sub = "";
+  if(sv){
+    sub = `<div class="saveinfo">Player <b>${esc(sv.name)}</b> · 💀 ${sv.deathCount} · 🎒 ${sv.items.reduce((a,i)=>a+(i.qty||1),0)} item</div>`;
+    btns = `<button class="big primary" id="btnCont">LANJUTKAN</button>
+            <button class="big ghost" id="btnNew">CERITA BARU</button>
+            <button class="big ghost" id="btnTut">TUTORIAL</button>`;
+  }else{
+    btns = `<button class="big primary" id="btnStart">MULAI</button>
+            <button class="big ghost" id="btnTut">TUTORIAL</button>`;
+  }
   app.innerHTML = `
     <div id="titleScreen"><div class="tube"></div><div class="fog"></div><div class="title-inner screen">
       <div class="pre">Let's play Some Game~</div>
       <h1>The Asylum</h1>
       <h2>Part 1 : Awal Mula</h2>
+      ${sub}
       <div class="nocheat"><b>Gaboleh Curang!</b> Pilihan awal yang kau pilih adalah apa yang kau jalani sekarang! Jika kau ingin memilih ulang maka kau harus memulai dari awal lagi.</div>
-      <div class="btnrow">
-        <button class="big primary" id="btnStart">MULAI</button>
-        <button class="big ghost" id="btnTut">TUTORIAL</button>
-      </div>
+      <div class="btnrow">${btns}</div>
     </div></div>`;
-  $("#btnStart").onclick = ()=>{ document.body.style.overflow=""; startGame(); };
-  $("#btnTut").onclick = ()=>{ document.body.style.overflow=""; showTutorial(true); };
+  const st = $("#btnStart"); if(st) st.onclick = ()=>{ document.body.style.overflow=""; showPact(); };
+  const ct = $("#btnCont");
+  if(ct) ct.onclick = ()=>{ restoreState(sv); document.body.style.overflow=""; showStatus("continue"); };
+  const nw = $("#btnNew");
+  if(nw) nw.onclick = ()=>{
+    if(confirm("Mulai CERITA BARU? Semua progres (nama, item, death count) akan dihapus permanen.")){
+      wipeSave(); resetState(); document.body.style.overflow=""; showPact();
+    }
+  };
+  $("#btnTut").onclick = ()=>{ document.body.style.overflow=""; showTutorial(); };
+}
+
+/* ---------- LAYAR: KONTRAK KEGELAPAN (registrasi) ---------- */
+function showPact(){
+  S.node = "pact"; updateHUD();
+  document.body.style.overflow = "hidden";
+  document.onkeydown = null;
+  app.innerHTML = `
+    <div id="titleScreen"><div class="tube"></div><div class="fog"></div><div class="title-inner screen pact">
+      <div class="kicker">Perjanjian</div>
+      <h2 class="pact-title">KONTRAK KEGELAPAN</h2>
+      <p class="pact-flavor">Sebelum kakimu melangkah ke dalam lorong ini, kegelapan menuntut sebuah perjanjian.<br/><br/>Di hadapan sesuatu yang <b>tak bernama</b> — yang mengamatimu dari balik kegelapan — kau diminta menandatangani kontrak ini dengan <b>darahmu sendiri</b>.<br/><br/>Nama yang kau tulis akan menjadi namamu di dalam cerita. Tak ada jalan kembali setelah tinta mengering.</p>
+      <label>Nama Player<input id="pName" maxlength="24" placeholder="Tulis namamu..." autocomplete="off"/></label>
+      <label>Jenis Kelamin
+        <select id="pGender"><option>Laki-laki</option><option>Perempuan</option></select>
+      </label>
+      <div class="btnrow" style="margin-top:1.4rem"><button class="big primary" id="btnSign">✒ TANDATANGANI DENGAN DARAH</button></div>
+      <p class="pact-warn">Dengan menandatangani, jiwamu terikat pada cerita ini.<br/>Pilihanmu final. Kematianmu tercatat.</p>
+    </div></div>`;
+  $("#pName").focus();
+  $("#btnSign").onclick = ()=>{
+    const name = $("#pName").value.trim();
+    if(!name){ $("#pName").style.borderColor = "var(--blood)"; $("#pName").focus(); return; }
+    S.registered = true; S.name = name; S.gender = $("#pGender").value;
+    S.node = "status"; persist();
+    const b = $("#btnSign"); b.disabled = true; b.textContent = "🩸 TERSEGEL";
+    setTimeout(()=>{ document.body.style.overflow=""; showStatus("new"); }, 1000);
+  };
+  $("#pName").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("#btnSign").click(); });
 }
 
 /* ---------- LAYAR: TUTORIAL ---------- */
-function showTutorial(fromTitle){
+function showTutorial(){
   S.node = "tutorial"; updateHUD();
+  document.body.style.overflow = "";
+  document.onkeydown = null;
   app.innerHTML = `
     <div class="screen tut">
       <h2>Tutorial</h2>
       <ol>${TUTORIAL.map(([n,t])=>`<li><b>${n}.</b> ${t}</li>`).join("")}</ol>
       <h2 style="font-size:1.15rem">Arti Warna Teks</h2>
       <div class="legend">${LEGEND.map(([c,t])=>`<div><span class="${c}">${t}</span></div>`).join("")}</div>
-      <div class="center"><button class="big primary" id="btnGo">${fromTitle?"MULAI BERMAIN":"KEMBALI"}</button></div>
+      <div class="center"><button class="big ghost" id="btnBack">↩ KEMBALI</button></div>
     </div>`;
-  $("#btnGo").onclick = ()=> fromTitle ? startGame() : showTitle();
+  $("#btnBack").onclick = showTitle;
+}
+
+/* ---------- LAYAR: PLAYER STATUS ---------- */
+function statusArt(){
+  const R = (t)=>`<span class="hd">${t}</span>`;
+  const V = (t)=>`<span class="val">${esc(String(t))}</span>`;
+  const sit = S.status==="danger" ? "Dalam bahaya" : S.status==="wounded" ? "Terluka" : "Aman";
+  const tubuh = S.status==="wounded" ? "Terluka" : "Sehat";
+  let slots = "";
+  for(let i=0;i<4;i++){
+    slots += S.items[i]
+      ? `› ${i+1}. ${V(S.items[i].name)}   +${S.items[i].qty||1}\n`
+      : `› ${i+1}. [Slot Kosong]\n`;
+  }
+  return `${R("⋟─────────────────────────────╮")}
+${R("›  PLAYER STATUS")}
+${R("⋟─────────────────────────────┤")}
+› Nama Player   : ${V(S.name)}
+› Jenis Kelamin : ${V(S.gender)}
+› Death Count   : ${V(S.deathCount)}
+› Power         : ${V("?")}
+› ???           : ${V("?")}
+› ???           : ${V("?")}
+${R("⋟─────────────────────────────┤")}
+${R("›  PERLENGKAPAN")}
+${R("⋟─────────────────────────────┤")}
+${slots}${R("⋟─────────────────────────────┤")}
+${R("›  KONDISI PLAYER")}
+${R("⋟─────────────────────────────┤")}
+› Situasi       : ${V(sit)}
+› Kondisi Tubuh : ${V(tubuh)}
+› Kondisi Mental: ${V(MENTAL[S.mental]||"Tenang")}
+› Efek Status   : ${V(S.effects.length?S.effects.join(", "):"—")}
+${R("⋟─────────────────────────────┤")}
+${R("›  OBJECTIVE")}
+${R("⋟─────────────────────────────┤")}
+› ${V("[???]")}
+${R("╰─────────────────────────────⋞")}`;
+}
+
+function showStatus(mode){
+  S.node = "status"; updateHUD();
+  document.body.style.overflow = "";
+  document.onkeydown = null;
+  app.innerHTML = `
+    <div class="screen">
+      <div class="pstat"><pre>${statusArt()}</pre></div>
+      <div class="center btnrow">
+        ${mode==="new"
+          ? `<button class="big primary" id="btnEnter">▶ MASUK KE CERITA</button>`
+          : `<button class="big primary" id="btnEnter">▶ LANJUTKAN</button>
+             <button class="big ghost" id="btnMenu2">⌂ MENU</button>`}
+      </div>
+    </div>`;
+  $("#btnEnter").onclick = ()=>{
+    if(mode==="new"){ startGame(); }
+    else { const t = (S.node && NODES[S.node]) ? S.node : "opening"; goTarget(t); }
+  };
+  const m2 = $("#btnMenu2"); if(m2) m2.onclick = showTitle;
 }
 
 /* ---------- MULAI ---------- */
 function startGame(){
-  S.node = "opening"; S.status = null;
+  S.node = "opening"; S.status = null; persist();
   renderNode("opening");
 }
 
 /* ---------- RENDER NODE PILIHAN ---------- */
 function renderNode(id){
-  S.node = id; updateHUD();
+  S.node = id; updateHUD(); persist();
   const n = NODES[id];
   const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
   app.innerHTML = `<div class="screen">
@@ -420,6 +616,7 @@ function renderNode(id){
 function goTarget(target){
   const n = NODES[target];
   if(!n) return;
+  S.node = target; persist();
   if(n.kind==="result") renderResult(target);
   else if(n.kind==="death") renderDeath(target);
   else if(n.kind==="tbc") renderTBC();
@@ -427,11 +624,17 @@ function goTarget(target){
 }
 
 /* ---------- RENDER HASIL ---------- */
+function grantItem(item){
+  const ex = S.items.find(it=>it.id===item.id);
+  if(ex) ex.qty = (ex.qty||1)+1;
+  else S.items.push({ id:item.id, name:item.name, note:item.note||"", qty:1 });
+  persist();
+}
 function renderResult(id){
-  S.node = id; updateHUD();
   const n = NODES[id];
   if(n.setStatus) S.status = n.setStatus;
   if(n.clearStatus) S.status = null;
+  if(n.addEffect && !S.effects.includes(n.addEffect)){ S.effects.push(n.addEffect); }
   const tag = n.tag ? `<span class="tagline" style="color:var(--${n.status==="danger"?"yellow":n.status})">${esc(n.tag)}</span>` : "";
   app.innerHTML = `
     <div class="screen">
@@ -439,12 +642,13 @@ function renderResult(id){
       <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
       <div class="center" id="nextSlot" hidden><button class="big primary continuebtn" id="btnNext">LANJUTKAN →</button></div>
     </div>`;
-  updateHUD();
+  updateHUD(); persist();
   const skip = typewriter($("#twTarget"), n.story, ()=>{
     $("#tapHint").style.display = "none";
-    if(n.item && !S.items.some(it=>it.id===n.item.id)){
-      S.items.push(n.item);
-      $("#itemSlot").innerHTML = `<div class="itemget">🎒 Item diperoleh: <b>${esc(n.item.name)}</b> (${esc(n.item.note)})</div>`;
+    if(n.item){
+      grantItem(n.item);
+      const it = S.items.find(x=>x.id===n.item.id);
+      $("#itemSlot").innerHTML = `<div class="itemget">🎒 Item diperoleh: <b>${esc(it.name)}</b> (+${it.qty})</div>`;
     }
     updateHUD();
     $("#nextSlot").hidden = false;
@@ -462,8 +666,8 @@ function renderResult(id){
 
 /* ---------- RENDER KEMATIAN ---------- */
 function renderDeath(id){
-  S.node = id; updateHUD();
   const n = NODES[id];
+  updateHUD(); persist();
   document.body.classList.remove("dying"); void document.body.offsetWidth;
   document.body.classList.add("dying");
   setTimeout(()=>document.body.classList.remove("dying"), 950);
@@ -485,15 +689,18 @@ function renderDeath(id){
   const rb = $("#resBox"); rb.style.cursor = "pointer"; rb.addEventListener("click", skip);
   $("#tapHint").addEventListener("click", skip);
   $("#btnRevive").onclick = ()=>{
-    S.deathCount++; S.status = null;
+    S.deathCount++;
+    S.mental = Math.min(MENTAL.length-1, S.mental+1); /* mental memburuk tiap kematian */
+    S.status = null;
+    persist();
     goTarget(n.next);
   };
 }
 
 /* ---------- RENDER BERSAMBUNG ---------- */
 function renderTBC(){
-  S.node = "tbc"; updateHUD();
-  const items = S.items.length ? S.items.map(i=>esc(i.name)).join(", ") : "—";
+  updateHUD(); persist();
+  const items = S.items.length ? S.items.map(i=>`${esc(i.name)} (+${i.qty||1})`).join(", ") : "—";
   app.innerHTML = `
     <div class="screen tbc">
       <h2>BERSAMBUNG...</h2>
@@ -503,13 +710,13 @@ function renderTBC(){
         <div>🎒 Item<b style="font-size:1rem">${items}</b></div>
       </div>
       <div class="btnrow">
-        <button class="big primary" id="btnAgain">↺ MAIN LAGI</button>
-        <button class="big ghost" id="btnHome">JUDUL</button>
+        <button class="big primary" id="btnMenuT">⌂ MENU UTAMA</button>
+        <button class="big ghost" id="btnStat">📜 STATUS</button>
       </div>
     </div>`;
   document.onkeydown = null;
-  $("#btnAgain").onclick = ()=>{ const d=S.deathCount; resetState(); S.deathCount=d; startGame(); };
-  $("#btnHome").onclick = ()=>{ resetState(); showTitle(); };
+  $("#btnMenuT").onclick = showTitle;
+  $("#btnStat").onclick = ()=>showStatus("continue");
 }
 
 /* ---------- INIT ---------- */
