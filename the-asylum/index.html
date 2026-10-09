@@ -3309,7 +3309,6 @@ function typewriter(container, paragraphs, done){
   timer = setInterval(()=>{
     if(pi >= ps.length){ end(); return; }
     ci += 1; /* ~31 huruf/detik — sepelan manusia membaca */
-    if(ci % 3 === 0){ try{ if(globalThis.AudioSys) AudioSys.sfx("type_tick"); }catch(e){} }
     ps[pi].textContent = paragraphs[pi].slice(0, ci);
     if(ci >= paragraphs[pi].length){ pi++; ci = 0; }
   }, 32);
