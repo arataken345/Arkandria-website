@@ -3,156 +3,391 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Arkandria — Coming Soon</title>
-<meta name="description" content="Arkandria. Something beautiful is being built." />
-<meta property="og:title" content="Arkandria — Coming Soon" />
-<meta property="og:description" content="Arkandria. Something beautiful is being built." />
+<title>Arkandria — Ambang yang Tak Dikenal</title>
+<meta name="description" content="Arkandria — sebuah dimensi di antara dunia. Setiap portal membuka sebuah cerita. Pilih ambangmu dengan hati-hati." />
+<meta property="og:title" content="Arkandria — The Unknown Threshold" />
+<meta property="og:description" content="Sebuah dimensi di antara dunia. Setiap portal membuka sebuah cerita." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://arkandria.online" />
+<meta property="og:url" content="https://arkandria.online/" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0f'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-size='36' fill='%23dc143c' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
-<!-- Vercel Web Analytics + Speed Insights (project sudah aktif, snippet ini yang bikin datanya jalan) -->
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --crimson: #dc143c;
-    --crimson-soft: rgba(220, 20, 60, 0.55);
-    --ink: #0a0a0f;
+  :root{
+    --blood:#dc143c;
+    --gold:#c9a86a;
+    --bone:#e8e4e0;
+    --ash:#a8a8a8;
+    --dim:#6e6e6e;
+    --ink:#060608;
+    --line:rgba(201,168,106,.22);
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    background: var(--ink);
-    color: #f5f0f2;
-    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--ink);
+    color:var(--bone);
+    font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    line-height:1.7;
+    overflow-x:hidden;
   }
-  #stars { position: fixed; inset: 0; z-index: 0; }
-  .glow {
-    position: fixed;
-    width: 60vmax; height: 60vmax;
-    left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    background: radial-gradient(circle, rgba(220,20,60,0.13) 0%, rgba(220,20,60,0.03) 40%, transparent 70%);
-    filter: blur(10px);
-    z-index: 0;
-    animation: breathe 6s ease-in-out infinite;
-    pointer-events: none;
+  body::after{ /* vignette */
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:60;
+    background:radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,.78) 100%);
   }
-  @keyframes breathe {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-    50% { transform: translate(-50%, -50%) scale(1.12); opacity: 1; }
+  .grain{
+    position:fixed; inset:0; z-index:61; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  main {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    padding: 2rem;
-    animation: rise 1.6s ease-out both;
+  ::selection{background:rgba(220,20,60,.4)}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--gold); outline-offset:3px; border-radius:2px}
+  .skip{
+    position:fixed; top:-4rem; left:1rem; z-index:100;
+    background:var(--blood); color:#fff; padding:.6rem 1.2rem; border-radius:0 0 8px 8px;
+    text-decoration:none; font-size:.85rem; transition:top .2s;
   }
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
+  .skip:focus{top:0}
+
+  /* ===== Header (selector bahasa selalu terlihat) ===== */
+  .site-header{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem clamp(1.2rem,4vw,2.5rem);
+    background:linear-gradient(180deg, rgba(6,6,8,.92), rgba(6,6,8,.55) 75%, transparent);
   }
-  .kicker {
-    letter-spacing: 0.55em;
-    text-indent: 0.55em;
-    font-size: 0.72rem;
-    color: var(--crimson);
-    text-transform: uppercase;
-    margin-bottom: 1.4rem;
-    font-weight: 600;
+  .wordmark{
+    font-family:"Special Elite",cursive; letter-spacing:.28em; text-indent:.28em;
+    font-size:.95rem; color:var(--bone); text-decoration:none;
   }
-  h1 {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(3rem, 10vw, 6.5rem);
-    letter-spacing: 0.18em;
-    text-indent: 0.18em;
-    font-weight: 400;
-    background: linear-gradient(180deg, #ffffff 30%, #d8c9d2 70%, #8f7d8a 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 1.2rem;
+  .wordmark b{color:var(--blood); font-weight:400}
+  .lang-toggle{display:flex; border:1px solid #3a3a3a; border-radius:999px; overflow:hidden}
+  .lang-toggle button{
+    background:transparent; border:none; color:var(--dim); cursor:pointer;
+    font-family:inherit; font-size:.72rem; font-weight:800; letter-spacing:.18em;
+    padding:.45rem .95rem; transition:.15s;
   }
-  .rule {
-    width: 72px; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--crimson), transparent);
-    margin: 0 auto 1.4rem;
+  .lang-toggle button[aria-pressed="true"]{background:rgba(220,20,60,.16); color:var(--bone)}
+  .lang-toggle button:hover{color:var(--bone)}
+
+  main{position:relative; z-index:1}
+  section{padding:clamp(4rem,10vh,7rem) clamp(1.2rem,6vw,4rem)}
+  .wrap{max-width:1020px; margin:0 auto}
+
+  /* ===== Hero ===== */
+  .hero{
+    min-height:100svh; display:flex; align-items:center; justify-content:center;
+    text-align:center; position:relative; overflow:hidden;
+    padding-top:5rem;
   }
-  p.sub {
-    font-size: clamp(0.95rem, 2.4vw, 1.15rem);
-    color: #b9aeb6;
-    letter-spacing: 0.08em;
-    line-height: 1.9;
+  .doorway{ /* ambang cahaya — monumental, terkendali */
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-58%);
+    width:clamp(120px,22vw,220px); height:72vh; pointer-events:none;
+    background:linear-gradient(180deg, rgba(232,228,224,.10), rgba(201,168,106,.07) 55%, transparent);
+    filter:blur(6px);
+    -webkit-mask-image:linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+    mask-image:linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+    animation:doorway 9s ease-in-out infinite alternate;
   }
-  p.sub em { color: #e8dfe5; font-style: normal; }
-  a.play {
-    display: inline-block; margin-top: 1.8rem;
-    font-size: 0.8rem; letter-spacing: 0.32em; text-indent: 0.32em; text-transform: uppercase;
-    color: #f5f0f2; text-decoration: none;
-    border: 1px solid rgba(220,20,60,0.55); border-radius: 999px; padding: 0.85rem 2rem;
-    transition: all 0.25s ease;
+  @keyframes doorway{from{opacity:.55} to{opacity:1}}
+  .fog{position:absolute; inset:-20%; pointer-events:none; opacity:.5;
+    background:
+      radial-gradient(ellipse 40% 28% at 24% 70%, rgba(120,120,125,.09), transparent 70%),
+      radial-gradient(ellipse 34% 24% at 76% 62%, rgba(120,120,125,.07), transparent 70%);
+    animation:fogdrift 30s ease-in-out infinite alternate;
   }
-  a.play:hover { background: rgba(220,20,60,0.16); box-shadow: 0 0 24px rgba(220,20,60,0.35); border-color: var(--crimson); }
-  footer {
-    position: fixed;
-    bottom: 1.6rem; left: 0; right: 0;
-    text-align: center;
-    font-size: 0.72rem;
-    letter-spacing: 0.28em;
-    text-indent: 0.28em;
-    color: #5c5258;
-    z-index: 1;
+  @keyframes fogdrift{from{transform:translateX(-4%)} to{transform:translateX(4%)}}
+  .hero-inner{position:relative; max-width:820px; padding:0 1.2rem}
+  .eyebrow{
+    font-size:.7rem; font-weight:800; letter-spacing:.5em; text-indent:.5em;
+    color:var(--gold); text-transform:uppercase; margin-bottom:1.6rem;
   }
-  footer .dot { color: var(--crimson); }
+  .hero h1{
+    font-family:"Special Elite",cursive;
+    font-size:clamp(3.4rem,13vw,8.5rem);
+    letter-spacing:.1em; text-indent:.1em; line-height:1;
+    color:var(--bone);
+    text-shadow:0 0 60px rgba(220,20,60,.25), 0 2px 0 #000;
+    margin-bottom:1.4rem;
+  }
+  .lede{
+    font-size:clamp(1rem,2.6vw,1.25rem); color:var(--ash);
+    max-width:620px; margin:0 auto 2.6rem; line-height:1.9;
+  }
+  .cta-row{display:flex; gap:1rem; justify-content:center; flex-wrap:wrap}
+  .btn{
+    display:inline-block; text-decoration:none; cursor:pointer; font-family:inherit;
+    font-size:.82rem; font-weight:800; letter-spacing:.24em; text-indent:.24em; text-transform:uppercase;
+    padding:1rem 2.4rem; border-radius:999px; transition:.2s; border:1px solid transparent;
+  }
+  .btn-primary{background:var(--blood); color:#fff; border-color:var(--blood)}
+  .btn-primary:hover{background:#f0224f; box-shadow:0 0 30px rgba(220,20,60,.45); transform:translateY(-2px)}
+  .btn-ghost{background:transparent; color:var(--bone); border-color:#4a4a4a}
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold)}
+  .scroll-cue{
+    position:absolute; bottom:2rem; left:50%; transform:translateX(-50%);
+    font-size:.62rem; letter-spacing:.4em; text-indent:.4em; text-transform:uppercase; color:var(--dim);
+    animation:cue 2.6s ease-in-out infinite;
+  }
+  @keyframes cue{0%,100%{opacity:.4} 50%{opacity:1}}
+
+  /* ===== Sections ===== */
+  .sec-head{max-width:720px; margin-bottom:3rem}
+  .sec-head h2{
+    font-family:"Special Elite",cursive;
+    font-size:clamp(1.9rem,5.5vw,3rem); letter-spacing:.04em; line-height:1.2;
+    margin:.9rem 0 1.2rem; color:var(--bone);
+  }
+  .sec-head p{color:var(--ash); font-size:clamp(.98rem,2.4vw,1.1rem)}
+  .rule{width:64px; height:1px; background:var(--gold); opacity:.7; margin:2.2rem 0}
+  .prose p{color:var(--ash); font-size:clamp(1rem,2.5vw,1.14rem); max-width:680px; margin-bottom:1.4rem}
+  .prose p strong{color:var(--bone); font-weight:600}
+
+  /* ===== Story cards ===== */
+  .cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.4rem}
+  .card{
+    display:flex; flex-direction:column; gap:.9rem;
+    border:1px solid #2a2a2e; border-radius:16px; padding:1.8rem 1.6rem;
+    background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,0));
+    text-decoration:none; transition:.22s; position:relative; overflow:hidden;
+  }
+  a.card:hover{border-color:var(--blood); transform:translateY(-4px); box-shadow:0 18px 50px rgba(0,0,0,.55), 0 0 26px rgba(220,20,60,.12)}
+  a.card:hover .go{color:var(--blood)}
+  .card .kicker{font-size:.64rem; font-weight:800; letter-spacing:.32em; color:var(--gold); text-transform:uppercase}
+  .card h3{font-family:"Special Elite",cursive; font-size:1.7rem; letter-spacing:.05em; color:var(--bone)}
+  .card .hook{color:var(--ash); font-size:.94rem; flex:1}
+  .card .meta{display:flex; align-items:center; justify-content:space-between; gap:.8rem; margin-top:.4rem}
+  .status{
+    font-size:.64rem; font-weight:800; letter-spacing:.22em; text-transform:uppercase;
+    padding:.4rem .9rem; border-radius:999px; border:1px solid;
+  }
+  .status.live{color:var(--blood); border-color:var(--blood); background:rgba(220,20,60,.08)}
+  .status.soon{color:var(--dim); border-color:#3a3a3a}
+  .go{font-size:.8rem; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:var(--ash); transition:.2s}
+  .card.soon{opacity:.55; cursor:default; border-style:dashed}
+  .card.soon h3{color:var(--dim)}
+
+  /* ===== Closing ===== */
+  .closing{text-align:center}
+  .closing .line1{
+    font-family:"Special Elite",cursive; color:var(--ash);
+    font-size:clamp(1.3rem,4.5vw,2.1rem); letter-spacing:.06em; margin-bottom:1rem;
+  }
+  .closing .line2{
+    font-family:"Special Elite",cursive; color:var(--blood);
+    font-size:clamp(1.3rem,4.5vw,2.1rem); letter-spacing:.06em;
+    text-shadow:0 0 30px rgba(220,20,60,.35);
+  }
+
+  footer{
+    border-top:1px solid #1d1d21; padding:2.4rem clamp(1.2rem,6vw,4rem);
+    display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+    font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--dim);
+    position:relative; z-index:1;
+  }
+  footer nav{display:flex; gap:1.4rem}
+  footer a{color:var(--dim); text-decoration:none}
+  footer a:hover{color:var(--bone)}
+
+  @media (max-width:560px){
+    .site-header{padding:.9rem 1rem}
+    .cta-row .btn{width:100%; text-align:center}
+    footer{justify-content:center; text-align:center}
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation:none !important; transition:none !important}
+    .doorway{opacity:.8}
+  }
 </style>
 </head>
 <body>
-<canvas id="stars"></canvas>
-<div class="glow"></div>
-<main>
-  <div class="kicker">Segera Hadir</div>
-  <h1>ARKANDRIA</h1>
-  <div class="rule"></div>
-  <p class="sub"><em>Something beautiful</em> is being built.<br />Coming soon.</p>
-  <a class="play" href="/the-asylum/">👻 Play — The Asylum</a>
+<a class="skip" href="#main" data-i18n="skip">Lewati ke konten</a>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="site-header">
+  <a class="wordmark" href="#top" aria-label="Arkandria — beranda">ARKANDRIA<b>.</b></a>
+  <div class="lang-toggle" role="group" aria-label="Language / Bahasa">
+    <button type="button" id="langId" aria-pressed="true">ID</button>
+    <button type="button" id="langEn" aria-pressed="false">EN</button>
+  </div>
+</header>
+
+<main id="main">
+  <!-- HERO -->
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    <div class="doorway" aria-hidden="true"></div>
+    <div class="fog" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <p class="eyebrow" data-i18n="hero_eyebrow">AMBANG YANG TAK DIKENAL</p>
+      <h1 id="hero-title">ARKANDRIA</h1>
+      <p class="lede" data-i18n="hero_lede">Sebuah dimensi di antara dunia — tempat setiap portal membuka sebuah cerita, dan setiap cerita menunggu seseorang yang cukup berani untuk melangkah masuk.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#cerita" data-i18n="hero_cta1">Jelajahi cerita</a>
+        <a class="btn btn-ghost" href="#dunia" data-i18n="hero_cta2">Apa itu Arkandria?</a>
+      </div>
+    </div>
+    <p class="scroll-cue" data-i18n="scroll">gulir</p>
+  </section>
+
+  <!-- PREMISE -->
+  <section id="dunia" aria-labelledby="dunia-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow" data-i18n="dunia_eyebrow">PREMIS</p>
+        <h2 id="dunia-title" data-i18n="dunia_h2">Sebuah ambang, bukan perpustakaan</h2>
+      </div>
+      <div class="prose">
+        <p data-i18n="dunia_p1"><strong>Arkandria bukan kumpulan buku.</strong> Ia adalah sebuah dimensi — ruang liminal antara dunia yang biasa dan yang tak dikenal.</p>
+        <p data-i18n="dunia_p2">Tersebar di dalamnya ada ambang-ambang: pintu, benda, dan tempat yang terbuka menuju cerita-cerita yang hidup. Kau tidak membacanya dari kejauhan. Kau melangkah masuk — dan cerita itu mulai mengenalmu.</p>
+      </div>
+      <div class="rule" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- STORIES -->
+  <section id="cerita" aria-labelledby="cerita-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow" data-i18n="cerita_eyebrow">PORTAL CERITA</p>
+        <h2 id="cerita-title" data-i18n="cerita_h2">Pilih ambangmu</h2>
+        <p data-i18n="cerita_sub">Setiap portal menuju tempat yang berbeda. Pilih dengan hati-hati — tidak semua cerita membiarkanmu pergi.</p>
+      </div>
+      <div class="cards">
+        <a class="card" href="/the-asylum/">
+          <span class="kicker" data-i18n="asylum_kicker">PART 1 · HOROR INTERAKTIF</span>
+          <h3>The Asylum</h3>
+          <p class="hook" data-i18n="asylum_hook">Kau terbangun di ujung lorong gelap dengan tangan diperban dan tanpa ingatan. Empat pintu. Salah satunya sudah mengawasimu.</p>
+          <span class="meta">
+            <span class="status live" data-i18n="asylum_status">DAPAT DIMAINKAN</span>
+            <span class="go" data-i18n="asylum_go">Masuk →</span>
+          </span>
+        </a>
+        <div class="card soon" aria-disabled="true">
+          <span class="kicker">???</span>
+          <h3 data-i18n="soon_title">Ambang berikutnya</h3>
+          <p class="hook" data-i18n="soon_hook">Ambang kedua sedang terbentuk dalam kegelapan. Cerita berikutnya akan segera terungkap.</p>
+          <span class="meta">
+            <span class="status soon" data-i18n="soon_status">SEGERA HADIR</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING -->
+  <section class="closing" aria-label="Penutup">
+    <div class="wrap">
+      <p class="line1" data-i18n="close_1">Tidak semua pintu seharusnya dibuka.</p>
+      <p class="line2" data-i18n="close_2">Tapi kau sudah sampai sejauh ini.</p>
+    </div>
+  </section>
 </main>
-<footer>&copy; 2026 ARKANDRIA <span class="dot">·</span> ALL RIGHTS RESERVED</footer>
+
+<footer>
+  <span data-i18n="footer_tag">ARKANDRIA — Ambang yang Tak Dikenal</span>
+  <nav aria-label="Navigasi footer">
+    <a href="#top" data-i18n="nav_top">Beranda</a>
+    <a href="#cerita" data-i18n="nav_stories">Cerita</a>
+    <a href="/the-asylum/">The Asylum</a>
+  </nav>
+  <span data-i18n="footer_note">© 2026 Arkandria</span>
+</footer>
+
 <script>
-  const c = document.getElementById('stars'), x = c.getContext('2d');
-  let W, H, stars = [];
-  function resize() {
-    W = c.width = innerWidth; H = c.height = innerHeight;
-    stars = Array.from({length: Math.min(220, W * H / 9000)}, () => ({
-      x: Math.random() * W, y: Math.random() * H,
-      r: Math.random() * 1.4 + 0.3,
-      s: Math.random() * 0.35 + 0.05,
-      p: Math.random() * Math.PI * 2,
-      crimson: Math.random() < 0.12
-    }));
+"use strict";
+/* i18n — kamus UI saja. Preferensi bahasa disimpan terpisah dari progres game. */
+const STR = {
+  id: {
+    skip:"Lewati ke konten",
+    hero_eyebrow:"AMBANG YANG TAK DIKENAL",
+    hero_lede:"Sebuah dimensi di antara dunia — tempat setiap portal membuka sebuah cerita, dan setiap cerita menunggu seseorang yang cukup berani untuk melangkah masuk.",
+    hero_cta1:"Jelajahi cerita",
+    hero_cta2:"Apa itu Arkandria?",
+    scroll:"gulir",
+    dunia_eyebrow:"PREMIS",
+    dunia_h2:"Sebuah ambang, bukan perpustakaan",
+    dunia_p1:"<strong>Arkandria bukan kumpulan buku.</strong> Ia adalah sebuah dimensi — ruang liminal antara dunia yang biasa dan yang tak dikenal.",
+    dunia_p2:"Tersebar di dalamnya ada ambang-ambang: pintu, benda, dan tempat yang terbuka menuju cerita-cerita yang hidup. Kau tidak membacanya dari kejauhan. Kau melangkah masuk — dan cerita itu mulai mengenalmu.",
+    cerita_eyebrow:"PORTAL CERITA",
+    cerita_h2:"Pilih ambangmu",
+    cerita_sub:"Setiap portal menuju tempat yang berbeda. Pilih dengan hati-hati — tidak semua cerita membiarkanmu pergi.",
+    asylum_kicker:"PART 1 · HOROR INTERAKTIF",
+    asylum_hook:"Kau terbangun di ujung lorong gelap dengan tangan diperban dan tanpa ingatan. Empat pintu. Salah satunya sudah mengawasimu.",
+    asylum_status:"DAPAT DIMAINKAN",
+    asylum_go:"Masuk →",
+    soon_title:"Ambang berikutnya",
+    soon_hook:"Ambang kedua sedang terbentuk dalam kegelapan. Cerita berikutnya akan segera terungkap.",
+    soon_status:"SEGERA HADIR",
+    close_1:"Tidak semua pintu seharusnya dibuka.",
+    close_2:"Tapi kau sudah sampai sejauh ini.",
+    footer_tag:"ARKANDRIA — Ambang yang Tak Dikenal",
+    nav_top:"Beranda",
+    nav_stories:"Cerita",
+    footer_note:"© 2026 Arkandria",
+    doc_title:"Arkandria — Ambang yang Tak Dikenal",
+    doc_desc:"Arkandria — sebuah dimensi di antara dunia. Setiap portal membuka sebuah cerita. Pilih ambangmu dengan hati-hati."
+  },
+  en: {
+    skip:"Skip to content",
+    hero_eyebrow:"THE UNKNOWN THRESHOLD",
+    hero_lede:"A dimension between worlds — where every portal opens onto a story, and every story waits for someone brave enough to step inside.",
+    hero_cta1:"Explore the stories",
+    hero_cta2:"What is Arkandria?",
+    scroll:"scroll",
+    dunia_eyebrow:"PREMISE",
+    dunia_h2:"A threshold, not a library",
+    dunia_p1:"<strong>Arkandria is not a collection of books.</strong> It is a dimension — a liminal space between the ordinary world and the unknown.",
+    dunia_p2:"Scattered across it are thresholds: doors, objects, and places that open onto living stories. You don't read them from a distance. You step inside — and the story begins to know you.",
+    cerita_eyebrow:"STORY PORTALS",
+    cerita_h2:"Choose your threshold",
+    cerita_sub:"Each portal leads somewhere different. Choose carefully — not every story lets you leave.",
+    asylum_kicker:"PART 1 · INTERACTIVE HORROR",
+    asylum_hook:"You wake at the end of a dark corridor with bandaged hands and no memory. Four doors. One of them is already watching you.",
+    asylum_status:"PLAYABLE",
+    asylum_go:"Enter →",
+    soon_title:"The next threshold",
+    soon_hook:"A second threshold is forming in the dark. The next story will reveal itself soon.",
+    soon_status:"COMING SOON",
+    close_1:"Not every door should be opened.",
+    close_2:"But you've come this far.",
+    footer_tag:"ARKANDRIA — The Unknown Threshold",
+    nav_top:"Home",
+    nav_stories:"Stories",
+    footer_note:"© 2026 Arkandria",
+    doc_title:"Arkandria — The Unknown Threshold",
+    doc_desc:"Arkandria — a dimension between worlds. Every portal opens onto a story. Choose your threshold carefully."
   }
-  resize(); addEventListener('resize', resize);
-  (function tick(t) {
-    x.clearRect(0, 0, W, H);
-    for (const st of stars) {
-      st.y -= st.s; if (st.y < -4) { st.y = H + 4; st.x = Math.random() * W; }
-      const tw = 0.45 + 0.55 * Math.abs(Math.sin(t / 900 + st.p));
-      x.beginPath();
-      x.arc(st.x, st.y, st.r, 0, 7);
-      x.fillStyle = st.crimson
-        ? `rgba(220,20,60,${0.75 * tw})`
-        : `rgba(235,228,236,${0.7 * tw})`;
-      x.fill();
-    }
-    requestAnimationFrame(tick);
-  })(0);
+};
+const LANG_KEY = "arkandria_lang"; /* key terpisah — ganti bahasa tidak menyentuh progres game */
+
+function setLang(lang){
+  if(!STR[lang]) lang = "id";
+  try{ localStorage.setItem(LANG_KEY, lang); }catch(e){}
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k = el.getAttribute("data-i18n");
+    if(STR[lang][k] !== undefined) el.innerHTML = STR[lang][k];
+  });
+  document.title = STR[lang].doc_title;
+  const md = document.querySelector('meta[name="description"]');
+  if(md) md.setAttribute("content", STR[lang].doc_desc);
+  document.getElementById("langId").setAttribute("aria-pressed", lang==="id" ? "true" : "false");
+  document.getElementById("langEn").setAttribute("aria-pressed", lang==="en" ? "true" : "false");
+}
+document.getElementById("langId").addEventListener("click", ()=>setLang("id"));
+document.getElementById("langEn").addEventListener("click", ()=>setLang("en"));
+(function init(){
+  let lang = "id";
+  try{ lang = localStorage.getItem(LANG_KEY) || "id"; }catch(e){}
+  setLang(lang);
+})();
 </script>
 </body>
 </html>
