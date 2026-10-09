@@ -93,6 +93,14 @@
     line-height: 1.9;
   }
   p.sub em { color: #e8dfe5; font-style: normal; }
+  a.play {
+    display: inline-block; margin-top: 1.8rem;
+    font-size: 0.8rem; letter-spacing: 0.32em; text-indent: 0.32em; text-transform: uppercase;
+    color: #f5f0f2; text-decoration: none;
+    border: 1px solid rgba(220,20,60,0.55); border-radius: 999px; padding: 0.85rem 2rem;
+    transition: all 0.25s ease;
+  }
+  a.play:hover { background: rgba(220,20,60,0.16); box-shadow: 0 0 24px rgba(220,20,60,0.35); border-color: var(--crimson); }
   footer {
     position: fixed;
     bottom: 1.6rem; left: 0; right: 0;
@@ -114,6 +122,7 @@
   <h1>ARKANDRIA</h1>
   <div class="rule"></div>
   <p class="sub"><em>Something beautiful</em> is being built.<br />Coming soon.</p>
+  <a class="play" href="/the-asylum/">👻 Play — The Asylum</a>
 </main>
 <footer>&copy; 2026 ARKANDRIA <span class="dot">·</span> ALL RIGHTS RESERVED</footer>
 <script>
