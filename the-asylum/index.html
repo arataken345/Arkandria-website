@@ -262,19 +262,19 @@
   footer a{color:var(--dim); text-decoration:none} footer a:hover{color:var(--blood)}
   @media (max-width:520px){ .legend{grid-template-columns:1fr} }
   /* ===== REACTION BAR (sistem reaktif — non-blocking) ===== */
-  #reactionBar{position:fixed; left:50%; bottom:5.2rem; transform:translateX(-50%) translateY(16px);
-    max-width:min(92vw,560px); padding:.7rem 1.25rem; border-radius:12px; z-index:90;
-    background:rgba(10,10,14,.94); border:1px solid #3a3a3a; color:var(--bone);
-    font-size:.88rem; line-height:1.6; text-align:center; opacity:0; pointer-events:none;
-    transition:opacity .3s ease, transform .3s ease}
-  #reactionBar.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  #reactionBar{position:fixed; top:76px; right:0; transform:translateX(110%);
+    width:min(320px,44vw); padding:.7rem .95rem; border-radius:12px 0 0 12px; z-index:90;
+    background:rgba(10,10,14,.96); border:1px solid #3a3a3a; border-right:none; color:var(--bone);
+    font-size:.8rem; line-height:1.65; text-align:left; opacity:0; pointer-events:none;
+    transition:opacity .35s ease, transform .45s cubic-bezier(.2,.9,.25,1)}
+  #reactionBar.show{opacity:1; transform:translateX(0)}
   #reactionBar.sev-moderate{border-color:#8a8a8a; box-shadow:0 0 22px rgba(232,228,224,.12)}
   #reactionBar.sev-high{border-color:var(--blood); box-shadow:0 0 30px rgba(220,20,60,.35); animation:rtremor .5s ease}
   #reactionBar.sev-critical{border-color:var(--blood); background:rgba(42,5,12,.96);
     box-shadow:0 0 46px rgba(220,20,60,.5); animation:rshake .6s ease}
-  @keyframes rshake{0%,100%{transform:translateX(-50%)}20%{transform:translateX(calc(-50% - 7px))}
-    40%{transform:translateX(calc(-50% + 7px))}60%{transform:translateX(calc(-50% - 5px))}80%{transform:translateX(calc(-50% + 5px))}}
-  @keyframes rtremor{0%,100%{transform:translateX(-50%)}50%{transform:translateX(calc(-50% - 3px))}}
+  @keyframes rshake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}
+    40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+  @keyframes rtremor{0%,100%{transform:translateX(0)}50%{transform:translateX(-3px)}}
   /* ===== TUTORIAL STEPPER ===== */
   .tut-progress{font-size:.68rem; font-weight:800; letter-spacing:.3em; text-indent:.3em;
     text-transform:uppercase; color:var(--dim); text-align:center; margin-bottom:.6rem}
@@ -288,6 +288,7 @@
   @media (prefers-reduced-motion: reduce){
     #reactionBar.sev-high, #reactionBar.sev-critical{animation:none}
     #reactionBar{transition:none}
+    #achvToast{transition:none}
     .tut-dots span{transition:none}
     .keydisp.err{animation:none}
   }
@@ -353,11 +354,14 @@
   .menugrid{display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.6rem}
   .menugrid .mbtn{margin-bottom:0; font-size:.8rem; padding:.7rem .8rem}
   /* ===== TOAST ACHIEVEMENT ===== */
-  #achvToast{position:fixed; top:66px; left:50%; transform:translate(-50%,-14px); z-index:230;
-    background:#151310; border:1px solid #d4a017; border-radius:12px; padding:.7rem 1rem;
-    display:flex; gap:.7rem; align-items:center; max-width:86%; opacity:0; pointer-events:none;
-    transition:opacity .3s ease, transform .3s ease; box-shadow:0 0 26px rgba(212,160,23,.28)}
-  #achvToast.show{opacity:1; transform:translate(-50%,0)}
+  #achvToast{position:fixed; top:38%; left:0; transform:translateX(-115%); z-index:230;
+    background:#151310; border:1px solid #d4a017; border-radius:0 12px 12px 0; padding:.8rem 1.1rem;
+    display:flex; gap:.7rem; align-items:center; width:max-content; max-width:min(430px,88vw);
+    opacity:0; pointer-events:none;
+    transition:opacity .35s ease, transform .5s cubic-bezier(.2,.9,.25,1.08);
+    box-shadow:0 0 26px rgba(212,160,23,.28)}
+  #achvToast.show{opacity:1; transform:translateX(calc(50vw - 50%))}
+  html,body{overflow-x:hidden} /* cegah scroll horizontal dari toast slide-in */
   #achvToast .ai{font-size:1.6rem; flex:none}
   #achvToast .at{font-size:.68rem; color:#d4a017; letter-spacing:.18em; margin-bottom:.15rem}
   #achvToast .an{font-size:.92rem; color:var(--bone); font-weight:800}
@@ -391,7 +395,7 @@
 <body>
 <div id="hud" hidden>
   <div class="hud-col">
-    <div class="stat" id="deathStat">💀 <span>Death Count</span>&nbsp;<b id="deathCount">0</b></div>
+    <div class="stat" id="deathStat">💀 <span id="hudDeathLbl">Death Count</span>&nbsp;<b id="deathCount">0</b></div>
     <button class="statbtn" id="statusBtn" title="Lihat status player">👤 STATUS</button>
   </div>
   <div class="stat" id="energyStat">⚡<span class="ebar"><span class="efill"></span></span></div>
@@ -403,13 +407,13 @@
 <div id="deathflash" aria-hidden="true"></div>
 <div class="modal" id="invModal" hidden>
   <div class="modal-box">
-    <h3>🎒 PERLENGKAPAN</h3>
+    <h3 id="invTitle">🎒 PERLENGKAPAN</h3>
     <div id="invList"></div>
     <div class="center" style="margin-top:1.2rem"><button class="big ghost" id="invClose" style="font-size:.95rem; padding:.6rem 1.8rem">TUTUP</button></div>
   </div>
 </div>
 <input type="file" id="importFile" accept=".json,application/json" hidden />
-<div id="achvToast"><span class="ai"></span><span><div class="at">🏆 ACHIEVEMENT</div><div class="an"></div><div class="ad"></div></span></div>
+<div id="achvToast"><span class="ai"></span><span><div class="at" id="achvToastHead">🏆 ACHIEVEMENT</div><div class="an"></div><div class="ad"></div></span></div>
 <div id="tutModal" hidden>
   <div class="tutmodal-box">
     <h3 id="tutPopT"></h3>
@@ -418,9 +422,228 @@
   </div>
 </div>
 <main id="app"></main>
-<footer><a href="/">ARKANDRIA</a> · THE ASYLUM PART 1</footer>
+<footer><a href="/">ARKANDRIA</a> · <span id="footAsylum">THE ASYLUM PART 1</span></footer>
 <script>
 "use strict";
+
+/* ============================================================
+   i18n — BAHASA (id/en)
+   ============================================================ */
+const LANG_KEY = "asylum_lang_v1";
+let LANG = "id";
+try{ const _l = localStorage.getItem(LANG_KEY); if(_l==="en"||_l==="id") LANG=_l; }catch(e){}
+function setLang(l){ LANG=(l==="en"?"en":"id"); try{localStorage.setItem(LANG_KEY,LANG);}catch(e){} }
+/* L(en, id): pilih string sesuai bahasa; fallback ke id bila en kosong */
+function L(en, idv){ return (LANG==="en" && en!=null && en!=="") ? en : idv; }
+
+const UI = {
+id: {
+  tagline:"Beranikah kau masuk?",
+  tut_sub:"Selesaikan 7 langkah tutorial untuk mulai bermain.",
+  saveinfo_items:"item",
+  nocheat:'<b>PERATURAN MUTLAK</b> \u2014 Setiap pilihan yang kau ambil adalah takdir yang harus kau jalani. Tidak ada tombol kembali, tidak ada pengulangan. Jika kau ingin memilih jalan yang berbeda... mulailah lagi dari awal.',
+  btn_tut_start:"MULAI TUTORIAL", btn_continue:"LANJUTKAN", btn_new:"CERITA BARU", btn_start:"MULAI",
+  btn_tutorial:"TUTORIAL", btn_achievement:"ACHIEVEMENT", btn_collection:"KOLEKSI ITEM",
+  btn_export:"EXPORT", btn_import:"IMPORT", lang_btn:"\uD83C\uDF10 EN",
+  confirm_new:"Mulai CERITA BARU? Semua progres (nama, item, death count) akan dihapus permanen.\nAchievement & koleksi item tetap tersimpan.",
+  reg_kicker:"Ingatan", reg_title:"INGATAN YANG HILANG",
+  reg_flavor:"Kau terbangun tanpa mengingat apa pun, termasuk alasan kenapa kau terbaring di sini. Kau melirik ke bawah dan melihat kedua tanganmu dibalut oleh perban.<br/><br/>Kau mencoba menggerakkan jari-jari tanganmu, dan syukurlah mereka masih mau menurut. Tapi ketika kau mencoba mengingat bagaimana caranya kau sampai di tempat ini, yang kau temukan hanyalah kekosongan.<br/><br/>Setiap orang pasti punya nama, dan milikmu pasti terkubur di suatu tempat dalam kepalamu yang berdenyut nyeri. Gali dan tarik paksa ingatan itu keluar \u2014 sebelum kegelapan di sekelilingmu lebih dulu mengenal siapa dirimu.",
+  reg_name_label:"Namamu adalah", reg_name_ph:"Sebuah nama muncul di benakmu...",
+  reg_gender_label:"Jenis Kelamin", reg_male:"Laki-laki", reg_female:"Perempuan",
+  reg_btn:"\u2726 ITU NAMAKU", reg_btn_done:"\u2726 TERINGAT",
+  reg_warn:"Dengan mengingat siapa dirimu, cerita ini menjadi milikmu.<br/>Pilihanmu final. Kematianmu tercatat.",
+  tut_step_of:"Langkah {a} dari {b}", tut_back:"\u2190 KEMBALI", tut_next:"LANJUT \u2192",
+  tut_start:"\u25B6 MULAI BERMAIN", tut_menu:"\u2302 MENU", tut_ok:"MENGERTI",
+  hud_death:"Death Count", hud_status:"\uD83D\uDC64 STATUS", hud_status_title:"Lihat status player",
+  hud_inv_title:"Cek inventori", hud_menu:"\u2302 MENU", hud_menu_title:"Menu utama (progres tersimpan)",
+  inv_title:"\uD83C\uDF92 PERLENGKAPAN", inv_close:"TUTUP",
+  inv_empty:"Kosong.<br/>Kau tidak membawa apa-apa.",
+  inv_equip:"EQUIP", inv_use:"PAKAI", inv_unequip:"LEPAS", inv_drop:"BUANG",
+  inv_drop_arm:"YAKIN? TAP LAGI", inv_story_title:"Ketuk untuk melihat",
+  inv_story_fallback:"Item ini apaan? Kenapa aku membawanya? Entahlah... Mungkin nanti ada gunanya.",
+  st_equip:"\uD83D\uDEE1 PERLENGKAPAN",
+  st_equip_note:"Senjata & perlengkapan harus di-EQUIP untuk dipakai \u2014 kelola lewat \uD83C\uDF92 inventori.",
+  st_cond:"\u2764 KONDISI", st_situation:"Situasi", st_body:"Kondisi Tubuh", st_mental:"Kondisi Mental",
+  st_effects:"Efek Status", st_emotions:"Emosi", st_energy:"\u26A1 Energi",
+  st_empty:"\u2014 Kosong \u2014", st_relations:"\uD83D\uDC9E HUBUNGAN",
+  st_objective:"\uD83C\uDFAF OBJECTIVE", st_objective_none:"[???]",
+  st_enter_new:"\u25B6 MASUK KE CERITA", st_enter_cont:"\u25B6 LANJUTKAN",
+  st_menu:"\u2302 MENU", st_export:"\uD83C\uDFBE EXPORT SAVE", st_import:"\uD83D\uDCE5 IMPORT SAVE",
+  sit_danger:"Dalam bahaya", sit_wounded:"Terluka", sit_weary:"Lemas", sit_safe:"Aman",
+  body_wounded:"Terluka", body_healthy:"Sehat",
+  badge_danger:"[Dalam bahaya]", badge_wounded:"[Terluka]", badge_weary:"[Lemas]",
+  tap_hint:"\u25B8 ketuk teks untuk mempercepat", story_title:"Ketuk untuk mempercepat",
+  continue:"LANJUTKAN \u2192", instinct:"naluri",
+  tired_note:"\u26A1 Kau kehabisan energi \u2014 tubuhmu hanya mampu mengikuti jalan termudah.",
+  dice_pick:"\uD83C\uDFB2 Kebingungan Akut! Dadu memilih: ", dead_end:"Jalan buntu \uD83E\uDE78",
+  input_ph:"Ketik jawabanmu...", input_btn:"JAWAB",
+  input_ok:"Jawaban tepat \uD83E\uDE78", input_wrong:"Salah... tersisa {n} percobaan \uD83E\uDE78",
+  key_clear:"\u232B HAPUS", key_open:"BUKA", key_left:"Percobaan tersisa: ",
+  key_ok:"Klik... terbuka \uD83E\uDE78", key_wrong:"BIP! Kode salah \uD83E\uDE78",
+  item_get:"\uD83C\uDF92 Item diperoleh: ",
+  death_title:"TEWAS",
+  death_revive:'Namun karena kau adalah seorang <b style="color:var(--bone)">"Player"</b>, kau bisa bangkit di tempat untuk melanjutkan ceritanya.<br/>Death Count-mu bertambah.',
+  death_btn:"\uD83D\uDC80 BANGKIT",
+  tbc_title:"BERSAMBUNG...",
+  tbc_text:"Part 1 : Awal Mula akan berlanjut.<br/>Pilihanmu sejauh ini telah tercatat. Jangan curang~",
+  tbc_menu:"\u2302 MENU UTAMA", tbc_status:"\uD83D\uDCCB STATUS",
+  toast_use:"Kau memakai: ", toast_drop:"Kau membuang: ",
+  toast_energy_empty:"\u26A1 Energimu habis! Kelelahan naik \u2014 cari makanan!",
+  toast_no_save:"Belum ada save untuk di-export \uD83E\uDE78",
+  toast_exported:"Save ter-export \uD83C\uDFBE",
+  toast_invalid:"File save tidak valid \uD83E\uDE78",
+  toast_imported:"Save berhasil di-import \uD83E\uDE78",
+  toast_read_fail:"Gagal membaca file \uD83E\uDE78",
+  confirm_import:"Import akan MENIMPA save yang ada. Lanjutkan?",
+  achv_title:"\uD83C\uDFC6 ACHIEVEMENT", achv_toast_head:"\uD83C\uDFC6 ACHIEVEMENT",
+  achv_sub:"Mereka yang berani akan tercatat.",
+  coll_title:"\uD83C\uDF92 KOLEKSI ITEM", coll_sub:"Semua yang pernah kau temukan.",
+  coll_missing:"Belum ditemukan.",
+  lock_done:"\u2713 Sudah diperiksa \u2014 tidak ada lagi di sana",
+  lock_tired:"\u26A1 Kau terlalu lelah untuk ini",
+  lock_energy:"\u26A1 Butuh energi \u2265 {n}",
+  lock_wounded:"\uD83D\uDD12 Tidak bisa dipilih dalam kondisi [Terluka]",
+  lock_weary_suffix:" / [Lemas]",
+  lock_item:"\uD83D\uDD12 Butuh item: {name}",
+  lock_eq:"\uD83D\uDD12 Butuh {slot} terpasang",
+  lock_eqitem:"\uD83D\uDD12 Butuh \"{name}\" terpasang",
+  lock_mental:"\uD83D\uDD12 Butuh mental setenang [{m}]",
+  lock_calm:"\uD83D\uDD12 Kau terlalu goyah untuk ini \u2014 butuh ketenangan",
+  lock_emotion:"\uD83D\uDD12 Butuh emosi \"{e}\" yang cukup",
+  lock_emotion_block:"\uD83D\uDD12 \"{e}\" menghalangimu memilih ini",
+  eq_weapon:"Senjata",
+  footer_asylum:"THE ASYLUM PART 1",
+  energy_title:"Energi: ",
+  kicker_achv:"Pencapaian", kicker_coll:"Arsip",
+  achv_open:"TERBUKA", coll_found:"DITEMUKAN", btn_back:"KEMBALI"
+},
+en: {
+  tagline:"Dare you enter?",
+  tut_sub:"Complete the 7 tutorial steps to begin playing.",
+  saveinfo_items:"items",
+  nocheat:'<b>ABSOLUTE RULE</b> \u2014 Every choice you make is a fate you must live with. No back button, no retries. If you want a different path... start over from the beginning.',
+  btn_tut_start:"START TUTORIAL", btn_continue:"CONTINUE", btn_new:"NEW STORY", btn_start:"BEGIN",
+  btn_tutorial:"TUTORIAL", btn_achievement:"ACHIEVEMENTS", btn_collection:"ITEM COLLECTION",
+  btn_export:"EXPORT", btn_import:"IMPORT", lang_btn:"\uD83C\uDF10 ID",
+  confirm_new:"Start a NEW STORY? All progress (name, items, death count) will be permanently erased.\nAchievements & item collection stay saved.",
+  reg_kicker:"Memory", reg_title:"LOST MEMORIES",
+  reg_flavor:"You wake with no memory of anything, not even why you lie here. You glance down and see both your hands wrapped in bandages.<br/><br/>You try to move your fingers, and thankfully they still obey. But when you try to remember how you came to this place, all you find is emptiness.<br/><br/>Everyone must have a name, and yours must be buried somewhere inside your throbbing head. Dig it out and force that memory free \u2014 before the darkness around you learns who you are first.",
+  reg_name_label:"Your name is", reg_name_ph:"A name surfaces in your mind...",
+  reg_gender_label:"Gender", reg_male:"Male", reg_female:"Female",
+  reg_btn:"\u2726 THAT IS MY NAME", reg_btn_done:"\u2726 REMEMBERED",
+  reg_warn:"By remembering who you are, this story becomes yours.<br/>Your choices are final. Your deaths are recorded.",
+  tut_step_of:"Step {a} of {b}", tut_back:"\u2190 BACK", tut_next:"NEXT \u2192",
+  tut_start:"\u25B6 START PLAYING", tut_menu:"\u2302 MENU", tut_ok:"UNDERSTOOD",
+  hud_death:"Death Count", hud_status:"\uD83D\uDC64 STATUS", hud_status_title:"View player status",
+  hud_inv_title:"Check inventory", hud_menu:"\u2302 MENU", hud_menu_title:"Main menu (progress saved)",
+  inv_title:"\uD83C\uDF92 INVENTORY", inv_close:"CLOSE",
+  inv_empty:"Empty.<br/>You carry nothing.",
+  inv_equip:"EQUIP", inv_use:"USE", inv_unequip:"UNEQUIP", inv_drop:"DISCARD",
+  inv_drop_arm:"SURE? TAP AGAIN", inv_story_title:"Tap to inspect",
+  inv_story_fallback:"What is this item? Why am I carrying it? No idea... Maybe it will matter later.",
+  st_equip:"\uD83D\uDEE1 EQUIPMENT",
+  st_equip_note:"Weapons & gear must be EQUIPPED to use \u2014 manage via \uD83C\uDF92 inventory.",
+  st_cond:"\u2764 CONDITION", st_situation:"Situation", st_body:"Body", st_mental:"Mental State",
+  st_effects:"Status Effects", st_emotions:"Emotions", st_energy:"\u26A1 Energy",
+  st_empty:"\u2014 Empty \u2014", st_relations:"\uD83D\uDC9E BONDS",
+  st_objective:"\uD83C\uDFAF OBJECTIVE", st_objective_none:"[???]",
+  st_enter_new:"\u25B6 ENTER THE STORY", st_enter_cont:"\u25B6 CONTINUE",
+  st_menu:"\u2302 MENU", st_export:"\uD83C\uDFBE EXPORT SAVE", st_import:"\uD83D\uDCE5 IMPORT SAVE",
+  sit_danger:"In danger", sit_wounded:"Wounded", sit_weary:"Exhausted", sit_safe:"Safe",
+  body_wounded:"Wounded", body_healthy:"Healthy",
+  badge_danger:"[In danger]", badge_wounded:"[Wounded]", badge_weary:"[Exhausted]",
+  tap_hint:"\u25B8 tap text to speed up", story_title:"Tap to speed up",
+  continue:"CONTINUE \u2192", instinct:"instinct",
+  tired_note:"\u26A1 You are out of energy \u2014 your body can only follow the easiest path.",
+  dice_pick:"\uD83C\uDFB2 Acute Confusion! The die chooses: ", dead_end:"Dead end \uD83E\uDE78",
+  input_ph:"Type your answer...", input_btn:"ANSWER",
+  input_ok:"Correct answer \uD83E\uDE78", input_wrong:"Wrong... {n} attempts left \uD83E\uDE78",
+  key_clear:"\u232B CLEAR", key_open:"OPEN", key_left:"Attempts left: ",
+  key_ok:"Click... it opens \uD83E\uDE78", key_wrong:"BEEP! Wrong code \uD83E\uDE78",
+  item_get:"\uD83C\uDF92 Item obtained: ",
+  death_title:"SLAIN",
+  death_revive:'But because you are a <b style="color:var(--bone)">"Player"</b>, you can rise on the spot to continue the story.<br/>Your Death Count grows.',
+  death_btn:"\uD83D\uDC80 RISE",
+  tbc_title:"TO BE CONTINUED...",
+  tbc_text:"Part 1: The Beginning will continue.<br/>Your choices so far have been recorded. No cheating~",
+  tbc_menu:"\u2302 MAIN MENU", tbc_status:"\uD83D\uDCCB STATUS",
+  toast_use:"You use: ", toast_drop:"You discard: ",
+  toast_energy_empty:"\u26A1 Your energy is gone! Exhaustion rises \u2014 find food!",
+  toast_no_save:"No save to export yet \uD83E\uDE78",
+  toast_exported:"Save exported \uD83C\uDFBE",
+  toast_invalid:"Invalid save file \uD83E\uDE78",
+  toast_imported:"Save imported \uD83E\uDE78",
+  toast_read_fail:"Failed to read file \uD83E\uDE78",
+  confirm_import:"Import will OVERWRITE your current save. Continue?",
+  achv_title:"\uD83C\uDFC6 ACHIEVEMENTS", achv_toast_head:"\uD83C\uDFC6 ACHIEVEMENT",
+  achv_sub:"The brave shall be recorded.",
+  coll_title:"\uD83C\uDF92 ITEM COLLECTION", coll_sub:"Everything you have ever found.",
+  coll_missing:"Not found yet.",
+  lock_done:"\u2713 Already checked \u2014 nothing left there",
+  lock_tired:"\u26A1 You are too exhausted for this",
+  lock_energy:"\u26A1 Needs energy \u2265 {n}",
+  lock_wounded:"\uD83D\uDD12 Cannot choose this while [Wounded]",
+  lock_weary_suffix:" / [Exhausted]",
+  lock_item:"\uD83D\uDD12 Needs item: {name}",
+  lock_eq:"\uD83D\uDD12 Needs {slot} equipped",
+  lock_eqitem:"\uD83D\uDD12 Needs \"{name}\" equipped",
+  lock_mental:"\uD83D\uDD12 Needs mind as calm as [{m}]",
+  lock_calm:"\uD83D\uDD12 You are too shaken for this \u2014 you need calm",
+  lock_emotion:"\uD83D\uDD12 Needs enough \"{e}\" emotion",
+  lock_emotion_block:"\uD83D\uDD12 \"{e}\" stops you from choosing this",
+  eq_weapon:"Weapon",
+  footer_asylum:"THE ASYLUM PART 1",
+  energy_title:"Energy: ",
+  kicker_achv:"Achievements", kicker_coll:"Archive",
+  achv_open:"UNLOCKED", coll_found:"FOUND", btn_back:"BACK"
+}};
+function ui(key, params){
+  const d = UI[LANG]||UI.id;
+  let v = (d[key]!=null) ? d[key] : (UI.id[key]!=null ? UI.id[key] : key);
+  if(params) for(const k of Object.keys(params)) v = v.split("{"+k+"}").join(params[k]);
+  return v;
+}
+
+/* ---------- helper naratif dua bahasa ---------- */
+function nodeStory(n){ return L((n.storyEn&&n.storyEn.length)?n.storyEn:null, n.story); }
+function nodeKicker(n){ return L(n.kickerEn, n.kicker||""); }
+function nodeTag(n){ return L(n.tagEn, n.tag||""); }
+function choiceText(c){ return L(c.textEn, c.text); }
+function choiceDoneText(c){ return L(c.doneTextEn, c.doneText); }
+function choiceCondNote(c){ return L(c.condNoteEn, c.condNote); }
+function achvName(a){ return L(a.nameEn, a.name); }
+function achvDesc(a){ return L(a.descEn, a.desc); }
+function dexName(d){ return L(d.nameEn, d.name); }
+function dexDesc(d){ return L(d.descEn, d.desc); }
+function itemNameL(it){ return L(it.nameEn, it.name); }
+function itemNoteL(it){ return L(it.noteEn, it.note||""); }
+function tutStepT(s){ return L(s.tEn, s.t); }
+function tutStepH(s){ return L(s.hEn, s.h); }
+function tutPopT(p){ return L(p.tEn, p.t); }
+function tutPopH(p){ return L(p.hEn, p.h); }
+function reactVariant(e, i){ const arr=(LANG==="en"&&e.textEn&&e.textEn.length)?e.textEn:e.text; return arr[i % arr.length]; }
+const MENTAL_EN = ["Calm","Tense","Uneasy","Panicked","Shattered"];
+function mentalName(i){ return LANG==="en" ? (MENTAL_EN[i]||MENTAL[i]) : (MENTAL[i]||"?"); }
+const TIER_NAMES_EN = ["Mild","Moderate","Severe","Extreme"];
+const TIER_DISP = {"Kelelahan":"Exhaustion","Stress":"Stress","Pendarahan":"Bleeding","Keracunan":"Poisoning"};
+function tierDisp(k){ return LANG==="en" ? (TIER_DISP[k]||k) : k; }
+function tierLabel(i){ return LANG==="en" ? (TIER_NAMES_EN[i]||"?") : (TIER_NAMES[i]||"?"); }
+const EMOTION_DISP = {"Takut":"Fear","Lega":"Relief","Marah":"Anger","Sedih":"Sorrow"};
+function emotionDisp(k){ return LANG==="en" ? (EMOTION_DISP[k]||k) : k; }
+const ENERGY_TIER_TEXT_EN = {
+  tired:    { down:"Your body grows heavy. Your breath shortens.",
+              up:"A little strength returns to your body." },
+  weary:    { down:"Your legs tremble. You need food \u2014 now.",
+              up:"Your legs steady again." },
+  critical: { down:"Your vision sparkles. A little more and you collapse.",
+              up:"The sparkles in your eyes fade." },
+  empty:    { down:"Your energy is gone. Your body moves on its own \u2014 following the easiest path.",
+              up:"Strength flows back. You can think again." },
+  fit:      { down:"", up:"Your body feels fit again." }
+};
+function energyTierText(to, d){ return L((ENERGY_TIER_TEXT_EN[to]||{})[d], (ENERGY_TIER_TEXT[to]||{})[d]||""); }
+function eqSlotNameL(key){ const s=EQ_SLOTS.find(x=>x.key===key); if(!s) return key;
+  return (s.key==="senjata") ? ui("eq_weapon") : s.name; }
 /* ============================================================
    THE ASYLUM — Part 1: Awal Mula
    Engine + data. Tambah node baru di NODES untuk lanjut chapter.
@@ -1033,6 +1256,7 @@ function eqSlotName(key){
    arloji:            ⏱️ Arloji Saku
    perban_bersih:     🩹 Perban Bersih                                          */
 
+
 /* ---------- SAVE (localStorage — hanya CERITA BARU yang me-reset) ---------- */
 const SAVE_KEY = "asylum_save_v1";
 function persist(){
@@ -1043,7 +1267,7 @@ function persist(){
       deathCount: S.deathCount, items: S.items, status: S.status,
       mental: S.mental, effects: S.effects, equipment: S.equipment, node: S.node,
       tiers: S.tiers, temp: S.temp, emotions: S.emotions, favor: S.favor,
-      objective: S.objective, body: S.body, energy: S.energy, flags: S.flags
+      objective: S.objective, objectiveEn: S.objectiveEn||null, body: S.body, energy: S.energy, flags: S.flags
     }));
   }catch(e){}
 }
@@ -1176,7 +1400,7 @@ function deriveEvents(before, after, source){
     const order = { fit:4, tired:3, weary:2, critical:1, empty:0 };
     const to = after.energyTier;
     const d = (order[to]??4) < (order[before.energyTier]??4) ? "down" : "up";
-    const txt = (ENERGY_TIER_TEXT[to]||{})[d] || "";
+    const txt = energyTierText(to, d);
     if(txt) push("energy_tier", to==="empty"||to==="critical" ? "high" : "low",
                  { from:before.energyTier, to, dir:d, tierText:txt }, "energy_tier");
   }
@@ -1245,7 +1469,7 @@ function presentReaction(events){
   lastReactionKey = key;
   const entry = REACTIONS[key];
   if(!entry) return;
-  showReactionBar(fillTpl(entry.text[variant % entry.text.length], primary.changes), primary.severity);
+  showReactionBar(fillTpl(reactVariant(entry, variant), primary.changes), primary.severity);
 }
 function showReactionBar(msg, severity){
   let bar = $("#reactionBar");
@@ -1355,7 +1579,7 @@ function spendEnergy(n, x, y){
   if(S.energy<=0){
     const before = tierGet("Kelelahan");
     tierUp("Kelelahan");
-    if(tierGet("Kelelahan")!==before) toast("⚡ Energimu habis! Kelelahan naik — cari makanan!");
+    if(tierGet("Kelelahan")!==before) toast(ui("toast_energy_empty"));
   }
 }
 /* Pakai item manual dari tas (makan, perban, dll). */
@@ -1378,7 +1602,7 @@ function useItem(id){
   persist();
   reactAndTut(before, "use");
   updateHUD(); openInventory();
-  toast("Kau memakai: "+it.name+" 🩸");
+  toast(ui("toast_use")+itemNameL(it)+" 🩸");
 }
 
 /* ---------- TIER ENERGI (naratif, bukan % acak) ---------- */
@@ -1482,31 +1706,31 @@ function isChoiceLocked(c){
 }
 function choiceLockNote(c){
   if(c.blockedIfFlag && S.flags && S.flags[c.blockedIfFlag])
-    return `<span class="lock">✓ Sudah diperiksa — tidak ada lagi di sana</span>`;
+    return `<span class="lock">${ui("lock_done")}</span>`;
   if((S.energy==null?100:S.energy)<=0 && !c.canon)
-    return `<span class="lock">⚡ Kau terlalu lelah untuk ini</span>`;
+    return `<span class="lock">${ui("lock_tired")}</span>`;
   if(c.requiresEnergy!=null && (S.energy==null?100:S.energy) < c.requiresEnergy)
-    return `<span class="lock">⚡ Butuh energi ≥ ${c.requiresEnergy}</span>`;
+    return `<span class="lock">${ui("lock_energy",{n:c.requiresEnergy})}</span>`;
   if(c.blockedIf && (c.blockedIf==="wounded" ? isWoundedLike() : S.status===c.blockedIf))
-    return `<span class="lock">🔒 Tidak bisa dipilih dalam kondisi [Terluka]${isLemas()&&S.status!=="wounded"?" / [Lemas]":""}</span>`;
+    return `<span class="lock">${ui("lock_wounded")}${isLemas()&&S.status!=="wounded"?ui("lock_weary_suffix"):""}</span>`;
   if(c.requiresItem && !S.items.some(it=>it.id===c.requiresItem))
-    return `<span class="lock">🔒 Butuh item: ${esc(c.requiresItemName||c.requiresItem)}</span>`;
+    return `<span class="lock">${ui("lock_item",{name:esc(c.requiresItemName||c.requiresItem)})}</span>`;
   if(c.requiresEquipped && !S.equipment[c.requiresEquipped])
-    return `<span class="lock">🔒 Butuh ${esc(eqSlotName(c.requiresEquipped))} terpasang</span>`;
+    return `<span class="lock">${ui("lock_eq",{slot:esc(eqSlotNameL(c.requiresEquipped))})}</span>`;
   if(c.requiresEquippedItem && !Object.values(S.equipment).some(e=>e&&e.id===c.requiresEquippedItem))
-    return `<span class="lock">🔒 Butuh "${esc(c.requiresEquippedItemName||c.requiresEquippedItem)}" terpasang</span>`;
+    return `<span class="lock">${ui("lock_eqitem",{name:esc(c.requiresEquippedItemName||c.requiresEquippedItem)})}</span>`;
   if(c.requiresMentalMax!==undefined && S.mental > c.requiresMentalMax)
-    return `<span class="lock">🔒 Butuh mental setenang [${esc(MENTAL[c.requiresMentalMax]||"?")}]</span>`;
+    return `<span class="lock">${ui("lock_mental",{m:esc(mentalName(c.requiresMentalMax))})}</span>`;
   if(c.needsCalm && isShaken())
-    return `<span class="lock">🔒 Kau terlalu goyah untuk ini — butuh ketenangan</span>`;
+    return `<span class="lock">${ui("lock_calm")}</span>`;
   if(c.requiresEmotion)
     for(const k of Object.keys(c.requiresEmotion))
       if(emotionGet(k) < c.requiresEmotion[k])
-        return `<span class="lock">🔒 Butuh emosi "${esc(k)}" yang cukup</span>`;
+        return `<span class="lock">${ui("lock_emotion",{e:esc(emotionDisp(k))})}</span>`;
   if(c.blockedByEmotion)
     for(const k of Object.keys(c.blockedByEmotion))
       if(emotionGet(k) >= c.blockedByEmotion[k])
-        return `<span class="lock">🔒 "${esc(k)}" menghalangimu memilih ini</span>`;
+        return `<span class="lock">${ui("lock_emotion_block",{e:esc(emotionDisp(k))})}</span>`;
   return "";
 }
 
@@ -1525,8 +1749,8 @@ function applyEnterMutations(n){
   if(n.mentalWorse) mentalWorse(n.mentalWorse);
   if(n.mentalBetter) mentalBetter(n.mentalBetter);
   if(n.addEmotion) n.addEmotion.forEach(e=>addEmotion(e.n, e.amt));
-  if(n.setObjective!==undefined) S.objective = n.setObjective;
-  if(n.clearObjective) S.objective = null;
+  if(n.setObjective!==undefined){ S.objective = n.setObjective; S.objectiveEn = n.setObjectiveEn||null; }
+  if(n.clearObjective){ S.objective = null; S.objectiveEn = null; }
   if(n.favor) Object.keys(n.favor).forEach(k=>favorAdd(k, n.favor[k]));
   if(n.grantItems) n.grantItems.forEach(item=>{
     collAdd(item.id);
@@ -1549,8 +1773,8 @@ function applyEnterMutations(n){
 function fmtEffects(){
   const parts = S.effects.map(e=>esc(e));
   Object.keys(S.tiers||{}).forEach(k=>{
-    const lbl = TIER_NAMES[S.tiers[k]];
-    parts.push(`${esc(k)} <span class="tier${lbl}">(${lbl})</span>`);
+    const lbl = tierLabel(S.tiers[k]);
+    parts.push(`${esc(tierDisp(k))} <span class="tier${lbl}">(${tierLabel(S.tiers[k])})</span>`);
   });
   (S.temp||[]).forEach(t=>{ parts.push(`${esc(t.n)} (Sementara)`); });
   return parts.length ? parts.join(", ") : "—";
@@ -1558,14 +1782,14 @@ function fmtEffects(){
 function fmtEmotions(){
   const ks = Object.keys(S.emotions||{});
   if(!ks.length) return "—";
-  return ks.map(k=>`${esc(k)} ${"●".repeat(S.emotions[k])}`).join(", ");
+  return ks.map(k=>`${esc(emotionDisp(k))} ${"●".repeat(S.emotions[k])}`).join(", ");
 }
 function fmtFavorCard(){
   const ks = Object.keys(S.favor||{});
   if(!ks.length) return "";
   const rows = ks.map(k=>
     `<div class="krow"><span>${esc(k)}</span><b class="kval">${S.favor[k]>0?"+":""}${S.favor[k]}</b></div>`).join("");
-  return `<div class="pcard"><div class="pcard-h">💞 HUBUNGAN</div>${rows}</div>`;
+  return `<div class="pcard"><div class="pcard-h">${ui("st_relations")}</div>${rows}</div>`;
 }
 
 /* ---------- SANITASI FIELD BARU (import/restore) ---------- */
@@ -1652,8 +1876,8 @@ function showNextTutPop(){
   const d = TUTPOP[key];
   if(!d){ showNextTutPop(); return; }
   tutShowing = true;
-  $("#tutPopT").textContent = d.t;
-  $("#tutPopH").innerHTML = d.h;
+  $("#tutPopT").textContent = tutPopT(d);
+  $("#tutPopH").innerHTML = tutPopH(d);
   $("#tutModal").hidden = false;
 }
 function dismissTutPop(){
@@ -1743,8 +1967,8 @@ function showNextAchv(){
   const el = $("#achvToast");
   if(el){
     el.querySelector(".ai").textContent = a.icon;
-    el.querySelector(".an").textContent = a.name;
-    el.querySelector(".ad").textContent = a.desc;
+    el.querySelector(".an").textContent = achvName(a);
+    el.querySelector(".ad").textContent = achvDesc(a);
     el.classList.add("show");
     setTimeout(()=>{ el.classList.remove("show"); setTimeout(showNextAchv, 350); }, 2600);
   } else showNextAchv();
@@ -1790,17 +2014,17 @@ function showAchv(){
   const rows = ACHV.map(a=>{
     const got = !!un[a.id];
     return `<div class="achv-row ${got?"got":""}">
-      <span class="achv-ic">${a.icon}</span>
-      <span class="achv-tx"><b>${esc(a.name)}</b><small>${esc(a.desc)}</small></span>
+      <span class="achv-ic">${got?a.icon:"🔒"}</span>
+      <span class="achv-tx"><b>${esc(achvName(a))}</b><small>${got?esc(achvDesc(a)):"???"}</small></span>
       ${got?'<span class="achv-done">✓</span>':""}
     </div>`;
   }).join("");
   app.innerHTML = `<div class="screen">
-    <div class="kicker">Pencapaian</div>
-    <h2 class="stitle">🏆 ACHIEVEMENT</h2>
-    <p class="ssub">${n} / ${ACHV.length} TERBUKA</p>
+    <div class="kicker">${ui("kicker_achv")}</div>
+    <h2 class="stitle">${ui("achv_title")}</h2>
+    <p class="ssub">${n} / ${ACHV.length} ${ui("achv_open")}</p>
     <div class="achv-list">${rows}</div>
-    <button class="mbtn" id="btnBackTitle"><span class="mi">⌂</span><span>KEMBALI</span></button>
+    <button class="mbtn" id="btnBackTitle"><span class="mi">⌂</span><span>${ui("btn_back")}</span></button>
   </div>`;
   $("#btnBackTitle").onclick = showTitle;
 }
@@ -1815,14 +2039,14 @@ function showColl(){
     const has = !!got[d.id];
     return `<div class="coll-card ${has?"":"missing"}">
       <span class="coll-ic">${has?d.icon:"❓"}</span>
-      <b>${has?esc(d.name):"???"}</b>
-      <small>${has?esc(d.desc):"Belum ditemukan."}</small>
+      <b>${has?esc(dexName(d)):"???"}</b>
+      <small>${has?esc(dexDesc(d)):ui("coll_missing")}</small>
     </div>`;
   }).join("");
   app.innerHTML = `<div class="screen">
-    <div class="kicker">Arsip</div>
-    <h2 class="stitle">🎒 KOLEKSI ITEM</h2>
-    <p class="ssub">${n} / ${ITEM_DEX.length} DITEMUKAN</p>
+    <div class="kicker">${ui("kicker_coll")}</div>
+    <h2 class="stitle">${ui("coll_title")}</h2>
+    <p class="ssub">${n} / ${ITEM_DEX.length} ${ui("coll_found")}</p>
     <div class="coll-grid">${cards}</div>
     <button class="mbtn" id="btnBackTitle"><span class="mi">⌂</span><span>KEMBALI</span></button>
   </div>`;
@@ -1835,7 +2059,7 @@ function resetState(){
   S = { node:"title", registered:false, name:"", gender:"",
         deathCount:0, items:[], status:null, mental:0, effects:[],
         equipment:{ senjata:null },
-        tiers:{}, temp:[], emotions:{}, favor:{}, objective:null, body:null,
+        tiers:{}, temp:[], emotions:{}, favor:{}, objective:null, objectiveEn:null, body:null,
         energy:100, flags:{} };
 }
 resetState();
@@ -1870,16 +2094,16 @@ function updateHUD(){
     const e = Math.max(0, Math.min(100, S.energy==null?100:S.energy));
     ef.style.width = e+"%";
     ef.className = "efill" + (e<=25 ? " crit" : e<=55 ? " low" : "");
-    ef.title = "Energi: "+e;
+    ef.title = ui("energy_title")+e;
   }
   /* Badge status: pill kiri-bawah (tidak crowded) */
   const pill = $("#statusPill");
   const showPill = S.registered && S.node!=="status";
   pill.hidden = !showPill;
   let html = "";
-  if(S.status==="danger") html = '<span class="badge danger">[Dalam bahaya]</span>';
-  else if(S.status==="wounded") html = '<span class="badge wounded">[Terluka]</span>';
-  else if(isLemas()) html = '<span class="badge wounded">[Lemas]</span>';
+  if(S.status==="danger") html = `<span class="badge danger">${esc(ui("badge_danger"))}</span>`;
+  else if(S.status==="wounded") html = `<span class="badge wounded">${esc(ui("badge_wounded"))}</span>`;
+  else if(isLemas()) html = `<span class="badge wounded">${esc(ui("badge_weary"))}</span>`;
   pill.innerHTML = html;
   pill.style.display = html ? "" : "none";
 }
@@ -1891,19 +2115,19 @@ function openInventory(){
   list.innerHTML = S.items.length
     ? S.items.map(it=>{
         const eq = it.kind==="equipment"
-          ? `<button class="mini-btn" data-equip="${esc(it.id)}">EQUIP</button>` : "";
+          ? `<button class="mini-btn" data-equip="${esc(it.id)}">${ui("inv_equip")}</button>` : "";
         const use = it.use
-          ? `<button class="mini-btn" data-use="${esc(it.id)}">PAKAI</button>` : "";
+          ? `<button class="mini-btn" data-use="${esc(it.id)}">${ui("inv_use")}</button>` : "";
         const storyCls = it.story ? " story-item" : "";
-        const storyTap = it.story ? ` data-story="${esc(it.id)}" title="Ketuk untuk melihat"` : "";
+        const storyTap = it.story ? ` data-story="${esc(it.id)}" title="${esc(ui("inv_story_title"))}"` : "";
         const storyDet = it.story
           ? `<div class="story-detail" id="sdet-${esc(it.id)}" hidden>
-               <p>${esc(it.storyHint || "Item ini apaan? Kenapa aku membawanya? Entahlah... Mungkin nanti ada gunanya.")}</p>
-               <button class="mini-btn danger" data-drop="${esc(it.id)}">BUANG</button>
+               <p>${esc(L(it.storyHintEn, it.storyHint) || ui("inv_story_fallback"))}</p>
+               <button class="mini-btn danger" data-drop="${esc(it.id)}">${ui("inv_drop")}</button>
              </div>` : "";
-        return `<div class="inv-item${storyCls}"${storyTap}><span>${esc(it.icon||"🎒")} ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}${use}</span></div>${storyDet}`;
+        return `<div class="inv-item${storyCls}"${storyTap}><span>${esc(it.icon||"🎒")} ${esc(itemNameL(it))}<br/><small>${esc(itemNoteL(it))}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}${use}</span></div>${storyDet}`;
       }).join("")
-    : `<div class="inv-empty">Kosong.<br/>Kau tidak membawa apa-apa.</div>`;
+    : `<div class="inv-empty">${ui("inv_empty")}</div>`;
   $("#invModal").hidden = false;
   list.querySelectorAll("[data-equip]").forEach(b=>{
     b.onclick = ()=>{ equipItem(b.dataset.equip); openInventory(); updateHUD(); };
@@ -1922,9 +2146,9 @@ function openInventory(){
       e.stopPropagation();
       if(b.dataset.arm==="1"){ dropItem(b.dataset.drop); return; }
       b.dataset.arm = "1";
-      b.textContent = "YAKIN? TAP LAGI";
+      b.textContent = ui("inv_drop_arm");
       b.classList.add("armed");
-      setTimeout(()=>{ if(b.isConnected){ b.dataset.arm=""; b.textContent="BUANG"; b.classList.remove("armed"); } }, 3000);
+      setTimeout(()=>{ if(b.isConnected){ b.dataset.arm=""; b.textContent=ui("inv_drop"); b.classList.remove("armed"); } }, 3000);
     };
   });
 }
@@ -1937,7 +2161,7 @@ function dropItem(id){
   persist();
   reactAndTut(before, "drop");
   updateHUD(); openInventory();
-  toast("Kau membuang: "+it.name+".");
+  toast(ui("toast_drop")+itemNameL(it)+".");
 }
 /* EQUIP: pindah 1 item equipment dari tas ke slot perlengkapan */
 function equipItem(id){
@@ -1998,13 +2222,13 @@ function buildPayload(){
     deathCount:S.deathCount, items:S.items, status:S.status,
     mental:S.mental, effects:S.effects, equipment:S.equipment, node:S.node,
     tiers:S.tiers, temp:S.temp, emotions:S.emotions, favor:S.favor,
-    objective:S.objective, body:S.body, energy:S.energy, flags:S.flags,
+    objective:S.objective, objectiveEn:S.objectiveEn||null, body:S.body, energy:S.energy, flags:S.flags,
     achv:achvGet().unlocked, coll:collGet().items
   };
 }
 function exportSave(){
   const payload = S.registered ? buildPayload() : loadSave();
-  if(!payload){ toast("Belum ada save untuk di-export 🩸"); return; }
+  if(!payload){ toast(ui("toast_no_save")); return; }
   const blob = new Blob([JSON.stringify(payload,null,2)], { type:"application/json" });
   const a = document.createElement("a");
   const stamp = (payload.exportedAt||new Date().toISOString()).slice(0,10);
@@ -2013,7 +2237,7 @@ function exportSave(){
   a.download = `the-asylum-save-${safeName}-${stamp}.json`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
-  toast("Save ter-export 💾");
+  toast(ui("toast_exported"));
 }
 function sanitizeItems(arr){
   if(!Array.isArray(arr)) return [];
@@ -2057,10 +2281,10 @@ function importSave(file){
     let data = null;
     try{ data = JSON.parse(reader.result); }catch(e){}
     if(!data || data.registered!==true || typeof data.name!=="string" || !data.name.trim()){
-      toast("File save tidak valid 🩸");
+      toast(ui("toast_invalid"));
       return;
     }
-    if(loadSave() && !confirm("Import akan MENIMPA save yang ada. Lanjutkan?")) return;
+    if(loadSave() && !confirm(ui("confirm_import"))) return;
     const clean = {
       registered:true,
       name:String(data.name).slice(0,24),
@@ -2074,6 +2298,7 @@ function importSave(file){
       tiers:sanitizeTiers(data.tiers), temp:sanitizeTemp(data.temp),
       emotions:sanitizeEmotions(data.emotions), favor:sanitizeFavor(data.favor),
       objective:(typeof data.objective==="string" && data.objective) ? data.objective.slice(0,80) : null,
+      objectiveEn:(typeof data.objectiveEn==="string" && data.objectiveEn) ? data.objectiveEn.slice(0,80) : null,
       body:(typeof data.body==="string" && data.body) ? data.body.slice(0,40) : null,
       energy:Math.max(0, Math.min(100, parseInt(data.energy)||100)),
       flags:sanitizeFlags(data.flags),
@@ -2091,10 +2316,10 @@ function importSave(file){
     }catch(e){}
     restoreState(clean);
     document.body.style.overflow = "";
-    toast("Save berhasil di-import 🩸");
+    toast(ui("toast_imported"));
     setTimeout(()=>showStatus("continue", clean.node), 600);
   };
-  reader.onerror = ()=>toast("Gagal membaca file 🩸");
+  reader.onerror = ()=>toast(ui("toast_read_fail"));
   reader.readAsText(file);
 }
 function wireSaveButtons(){
@@ -2136,34 +2361,35 @@ function showTitle(){
   let btns, sub = "";
   let mainBtns = "";
   if(!tutDone){
-    sub = `<div class="saveinfo">Selesaikan 7 langkah tutorial untuk mulai bermain.</div>`;
-    mainBtns = `<button class="mbtn primary" id="btnTutStart"><span class="mi">📖</span><span>MULAI TUTORIAL</span></button>`;
+    sub = `<div class="saveinfo">${ui("tut_sub")}</div>`;
+    mainBtns = `<button class="mbtn primary" id="btnTutStart"><span class="mi">📖</span><span>${ui("btn_tut_start")}</span></button>`;
   }else if(sv){
-    sub = `<div class="saveinfo">Player <b>${esc(sv.name)}</b> · 💀 ${sv.deathCount} · 🎒 ${sv.items.reduce((a,i)=>a+(i.qty||1),0)} item</div>`;
-    mainBtns = `<button class="mbtn primary" id="btnCont"><span class="mi">▶</span><span>LANJUTKAN</span></button>
-      <button class="mbtn" id="btnNew"><span class="mi">📜</span><span>CERITA BARU</span></button>`;
+    sub = `<div class="saveinfo">Player <b>${esc(sv.name)}</b> · 💀 ${sv.deathCount} · 🎒 ${sv.items.reduce((a,i)=>a+(i.qty||1),0)} ${ui("saveinfo_items")}</div>`;
+    mainBtns = `<button class="mbtn primary" id="btnCont"><span class="mi">▶</span><span>${ui("btn_continue")}</span></button>
+      <button class="mbtn" id="btnNew"><span class="mi">📜</span><span>${ui("btn_new")}</span></button>`;
   }else{
-    mainBtns = `<button class="mbtn primary" id="btnStart"><span class="mi">🩸</span><span>MULAI</span></button>`;
+    mainBtns = `<button class="mbtn primary" id="btnStart"><span class="mi">🩸</span><span>${ui("btn_start")}</span></button>`;
   }
   const hasSave = !!(sv || S.registered);
   const menuGrid = tutDone ? `
       <div class="menugrid">
-        <button class="mbtn" id="btnTut"><span class="mi">📖</span><span>TUTORIAL</span></button>
-        <button class="mbtn" id="btnAchv"><span class="mi">🏆</span><span>ACHIEVEMENT</span></button>
+        <button class="mbtn" id="btnTut"><span class="mi">📖</span><span>${ui("btn_tutorial")}</span></button>
+        <button class="mbtn" id="btnAchv"><span class="mi">🏆</span><span>${ui("btn_achievement")}</span></button>
       </div>
-      <button class="mbtn" id="btnColl"><span class="mi">🎒</span><span>KOLEKSI ITEM</span></button>
+      <button class="mbtn" id="btnColl"><span class="mi">🎒</span><span>${ui("btn_collection")}</span></button>
       <div class="menugrid">
-        ${hasSave?`<button class="mbtn" id="btnExport"><span class="mi">💾</span><span>EXPORT</span></button>`:""}
-        <button class="mbtn" id="btnImport"><span class="mi">📥</span><span>IMPORT</span></button>
+        ${hasSave?`<button class="mbtn" id="btnExport"><span class="mi">💾</span><span>${ui("btn_export")}</span></button>`:""}
+        <button class="mbtn" id="btnImport"><span class="mi">📥</span><span>${ui("btn_import")}</span></button>
       </div>` : "";
   app.innerHTML = `
     <div id="titleScreen"><div class="tube"></div><div class="fog"></div><div class="title-inner screen">
-      <div class="pre">Beranikah kau masuk?</div>
+      <div class="pre">${ui("tagline")}</div>
       <h1>The Asylum</h1>
       ${sub}
-      <div class="nocheat"><b>PERATURAN MUTLAK</b> — Setiap pilihan yang kau ambil adalah takdir yang harus kau jalani. Tidak ada tombol kembali, tidak ada pengulangan. Jika kau ingin memilih jalan yang berbeda... mulailah lagi dari awal.</div>
+      <div class="nocheat">${ui("nocheat")}</div>
       ${mainBtns}
       ${menuGrid}
+      <div class="center" style="margin-top:.9rem"><button class="mini-btn" id="btnLang">${ui("lang_btn")}</button></div>
     </div></div>`;
   const st = $("#btnStart"); if(st) st.onclick = ()=>{ document.body.style.overflow=""; showPact(); };
   const ts = $("#btnTutStart"); if(ts) ts.onclick = ()=>{ document.body.style.overflow=""; showTutorial(); };
@@ -2171,7 +2397,7 @@ function showTitle(){
   if(ct) ct.onclick = ()=>{ restoreState(sv); document.body.style.overflow=""; showStatus("continue", sv.node); };
   const nw = $("#btnNew");
   if(nw) nw.onclick = ()=>{
-    if(confirm("Mulai CERITA BARU? Semua progres (nama, item, death count) akan dihapus permanen.\nAchievement & koleksi item tetap tersimpan.")){
+    if(confirm(ui("confirm_new"))){
       wipeSave(); resetState(); document.body.style.overflow=""; showPact();
     }
   };
@@ -2180,6 +2406,7 @@ function showTitle(){
   const bc = $("#btnColl"); if(bc) bc.onclick = ()=>{ document.body.style.overflow=""; showColl(); };
   const be = $("#btnExport"); if(be) be.onclick = exportSave;
   const bi = $("#btnImport"); if(bi) bi.onclick = ()=>$("#importFile").click();
+  const bl = $("#btnLang"); if(bl) bl.onclick = ()=>{ setLang(LANG==="id"?"en":"id"); applyStaticLang(); showTitle(); };
 }
 
 /* ---------- LAYAR: INGATAN (registrasi — tema amnesia) ---------- */
@@ -2189,15 +2416,15 @@ function showPact(){
   document.onkeydown = null;
   app.innerHTML = `
     <div id="titleScreen"><div class="tube"></div><div class="fog"></div><div class="title-inner screen pact">
-      <div class="kicker">Ingatan</div>
-      <h2 class="pact-title">INGATAN YANG HILANG</h2>
-      <p class="pact-flavor">Kau terbangun tanpa mengingat apa pun, termasuk alasan kenapa kau terbaring di sini. Kau melirik ke bawah dan melihat kedua tanganmu dibalut oleh perban.<br/><br/>Kau mencoba menggerakkan jari-jari tanganmu, dan syukurlah mereka masih mau menurut. Tapi ketika kau mencoba mengingat bagaimana caranya kau sampai di tempat ini, yang kau temukan hanyalah kekosongan.<br/><br/>Setiap orang pasti punya nama, dan milikmu pasti terkubur di suatu tempat dalam kepalamu yang berdenyut nyeri. Gali dan tarik paksa ingatan itu keluar — sebelum kegelapan di sekelilingmu lebih dulu mengenal siapa dirimu.</p>
-      <label>Namamu adalah<input id="pName" maxlength="24" placeholder="Sebuah nama muncul di benakmu..." autocomplete="off"/></label>
-      <label>Jenis Kelamin
-        <select id="pGender"><option>Laki-laki</option><option>Perempuan</option></select>
+      <div class="kicker">${ui("reg_kicker")}</div>
+      <h2 class="pact-title">${ui("reg_title")}</h2>
+      <p class="pact-flavor">${ui("reg_flavor")}</p>
+      <label>${ui("reg_name_label")}<input id="pName" maxlength="24" placeholder="${ui("reg_name_ph")}" autocomplete="off"/></label>
+      <label>${ui("reg_gender_label")}
+        <select id="pGender"><option>${ui("reg_male")}</option><option>${ui("reg_female")}</option></select>
       </label>
-      <div class="btnrow" style="margin-top:1.4rem"><button class="big primary" id="btnSign">✦ ITU NAMAKU</button></div>
-      <p class="pact-warn">Dengan mengingat siapa dirimu, cerita ini menjadi milikmu.<br/>Pilihanmu final. Kematianmu tercatat.</p>
+      <div class="btnrow" style="margin-top:1.4rem"><button class="big primary" id="btnSign">${ui("reg_btn")}</button></div>
+      <p class="pact-warn">${ui("reg_warn")}</p>
     </div></div>`;
   $("#pName").focus();
   $("#btnSign").onclick = ()=>{
@@ -2206,7 +2433,7 @@ function showPact(){
     S.registered = true; S.name = name; S.gender = $("#pGender").value;
     S.node = "status"; persist();
     achvUnlock("wake_up");
-    const b = $("#btnSign"); b.disabled = true; b.textContent = "✦ TERINGAT";
+    const b = $("#btnSign"); b.disabled = true; b.textContent = ui("reg_btn_done");
     setTimeout(()=>{ document.body.style.overflow=""; showStatus("new"); }, 1000);
   };
   $("#pName").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("#btnSign").click(); });
@@ -2276,16 +2503,16 @@ function showTutorialStep(i){
     `<span class="${k===tutIdx?"on":k<tutIdx?"done":""}" aria-hidden="true"></span>`).join("");
   app.innerHTML = `
     <div class="screen tut">
-      <div class="tut-progress">Langkah ${tutIdx+1} dari ${TUT_STEPS.length}</div>
+      <div class="tut-progress">${ui("tut_step_of",{a:tutIdx+1,b:TUT_STEPS.length})}</div>
       <div class="tut-dots" aria-hidden="true">${dots}</div>
-      <h2 id="tutHead" tabindex="-1">${st.t}</h2>
-      <div class="tut-body">${st.h}</div>
+      <h2 id="tutHead" tabindex="-1">${esc(tutStepT(st))}</h2>
+      <div class="tut-body">${tutStepH(st)}</div>
       <div class="center btnrow">
-        ${tutIdx>0?`<button class="big ghost" id="tutBack">← KEMBALI</button>`:""}
-        ${!last?`<button class="big primary" id="tutNext">LANJUT →</button>`
-               :`<button class="big primary" id="tutStart">▶ MULAI BERMAIN</button>`}
+        ${tutIdx>0?`<button class="big ghost" id="tutBack">${ui("tut_back")}</button>`:""}
+        ${!last?`<button class="big primary" id="tutNext">${ui("tut_next")}</button>`
+               :`<button class="big primary" id="tutStart">${ui("tut_start")}</button>`}
       </div>
-      <div class="center" style="margin-top:1rem"><button class="mini-btn" id="tutMenu">⌂ MENU</button></div>
+      <div class="center" style="margin-top:1rem"><button class="mini-btn" id="tutMenu">${ui("tut_menu")}</button></div>
     </div>`;
   const nx = $("#tutNext"); if(nx) nx.onclick = ()=>showTutorialStep(tutIdx+1);
   const bk = $("#tutBack"); if(bk) bk.onclick = ()=>showTutorialStep(tutIdx-1);
@@ -2310,15 +2537,15 @@ function showStatus(mode, resumeTarget){
   S.node = "status"; updateHUD();
   document.body.style.overflow = "";
   document.onkeydown = null;
-  const sit = S.status==="danger" ? "Dalam bahaya"
-    : S.status==="wounded" ? "Terluka" : (isLemas() ? "Lemas" : "Aman");
-  const tubuh = S.body || (isWoundedLike() ? "Terluka" : "Sehat");
+  const sit = S.status==="danger" ? ui("sit_danger")
+    : S.status==="wounded" ? ui("sit_wounded") : (isLemas() ? ui("sit_weary") : ui("sit_safe"));
+  const tubuh = S.body || (isWoundedLike() ? ui("body_wounded") : ui("body_healthy"));
   const eqRows = EQ_SLOTS.map(s=>{
     const cur = S.equipment[s.key];
     const right = cur
-      ? `<span class="eq-item">${esc(cur.icon||"")} ${esc(cur.name)}</span><button class="mini-btn danger" data-unequip="${s.key}">LEPAS</button>`
-      : `<span class="eq-empty">— Kosong —</span>`;
-    return `<div class="eqrow"><span>${s.icon} ${esc(s.name)}</span><span class="eq-right">${right}</span></div>`;
+      ? `<span class="eq-item">${esc(cur.icon||"")} ${esc(cur.name)}</span><button class="mini-btn danger" data-unequip="${s.key}">${ui("inv_unequip")}</button>`
+      : `<span class="eq-empty">${ui("st_empty")}</span>`;
+    return `<div class="eqrow"><span>${s.icon} ${esc(eqSlotNameL(s.key))}</span><span class="eq-right">${right}</span></div>`;
   }).join("");
   const initial = (S.name.trim()[0]||"?").toUpperCase();
   app.innerHTML = `
@@ -2332,19 +2559,19 @@ function showStatus(mode, resumeTarget){
           </div>
         </div>
         <div class="pcard">
-          <div class="pcard-h">🛡 PERLENGKAPAN</div>
+          <div class="pcard-h">${ui("st_equip")}</div>
           ${eqRows}
-          <div class="pcard-note">Senjata & perlengkapan harus di-EQUIP untuk dipakai — kelola lewat 🎒 inventori.</div>
+          <div class="pcard-note">${ui("st_equip_note")}</div>
         </div>
         <div class="pcard">
-          <div class="pcard-h">❤ KONDISI</div>
-          <div class="krow"><span>Situasi</span><b class="kval">${esc(sit)}</b></div>
-          <div class="krow"><span>Kondisi Tubuh</span><b class="kval">${esc(tubuh)}</b></div>
-          <div class="krow"><span>Kondisi Mental</span><b class="kval">${esc(MENTAL[S.mental]||"Tenang")}</b></div>
+          <div class="pcard-h">${ui("st_cond")}</div>
+          <div class="krow"><span>${ui("st_situation")}</span><b class="kval">${esc(sit)}</b></div>
+          <div class="krow"><span>${ui("st_body")}</span><b class="kval">${esc(tubuh)}</b></div>
+          <div class="krow"><span>${ui("st_mental")}</span><b class="kval">${esc(mentalName(S.mental))}</b></div>
           ${mentalBar()}
-          <div class="krow"><span>Efek Status</span><b class="kval">${fmtEffects()}</b></div>
-          <div class="krow"><span>Emosi</span><b class="kval">${fmtEmotions()}</b></div>
-          <div class="krow"><span>⚡ Energi</span><b class="kval">${(()=>{const _e=Math.max(0,Math.min(100,S.energy==null?100:S.energy));const _c=_e<=25?" crit":_e<=55?" low":"";return `<span class="ebar"><span class="efill${_c}" style="width:${_e}%"></span></span> ${_e}`;})()}</b></div>
+          <div class="krow"><span>${ui("st_effects")}</span><b class="kval">${fmtEffects()}</b></div>
+          <div class="krow"><span>${ui("st_emotions")}</span><b class="kval">${fmtEmotions()}</b></div>
+          <div class="krow"><span>${ui("st_energy")}</span><b class="kval">${(()=>{const _e=Math.max(0,Math.min(100,S.energy==null?100:S.energy));const _c=_e<=25?" crit":_e<=55?" low":"";return `<span class="ebar"><span class="efill${_c}" style="width:${_e}%"></span></span> ${_e}`;})()}</b></div>
         </div>
         <div class="pcard mystery">
           <div class="pcard-h">❓ ?????</div>
@@ -2353,20 +2580,20 @@ function showStatus(mode, resumeTarget){
           <div class="krow"><span>???</span><b class="kval">?</b></div>
         </div>
         <div class="pcard">
-          <div class="pcard-h">🎯 OBJECTIVE</div>
-          <div class="obj">${S.objective?esc(S.objective):"[???]"}</div>
+          <div class="pcard-h">${ui("st_objective")}</div>
+          <div class="obj">${S.objective?esc(L(S.objectiveEn,S.objective)):ui("st_objective_none")}</div>
         </div>
         ${fmtFavorCard()}
       </div>
       <div class="center btnrow">
         ${mode==="new"
-          ? `<button class="big primary" id="btnEnter">▶ MASUK KE CERITA</button>`
-          : `<button class="big primary" id="btnEnter">▶ LANJUTKAN</button>
-             <button class="big ghost" id="btnMenu2">⌂ MENU</button>`}
+          ? `<button class="big primary" id="btnEnter">${ui("st_enter_new")}</button>`
+          : `<button class="big primary" id="btnEnter">${ui("st_enter_cont")}</button>
+             <button class="big ghost" id="btnMenu2">${ui("st_menu")}</button>`}
       </div>
       <div class="center" style="margin-top:1.1rem">
-        <button class="mini-btn js-export">💾 EXPORT SAVE</button>
-        <button class="mini-btn js-import">📥 IMPORT SAVE</button>
+        <button class="mini-btn js-export">${ui("st_export")}</button>
+        <button class="mini-btn js-import">${ui("st_import")}</button>
       </div>
     </div>`;
   app.querySelectorAll("[data-unequip]").forEach(b=>{
@@ -2385,13 +2612,13 @@ function showStatus(mode, resumeTarget){
 function renderNode(id){
   S.node = id; updateHUD(); persist();
   const n = NODES[id];
-  const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
+  const kicker = n.kicker ? `<div class="kicker">${esc(nodeKicker(n))}</div>` : "";
   app.innerHTML = `<div class="screen">
-    <div class="story" id="storyBox" title="Ketuk untuk mempercepat">${kicker}<div id="twTarget"></div></div>
-    <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
+    <div class="story" id="storyBox" title="${esc(ui("story_title"))}">${kicker}<div id="twTarget"></div></div>
+    <div class="taphint" id="tapHint">${ui("tap_hint")}</div>
     <div class="choices" id="choiceBox" hidden></div>
   </div>`;
-  const skip = typewriter($("#twTarget"), n.story, ()=>{
+  const skip = typewriter($("#twTarget"), nodeStory(n), ()=>{
     $("#tapHint").style.display = "none";
     if(n.choices.some(c=>c.condNote || c.branches)) tutPop("condchoice");
     const cbox = $("#choiceBox"); cbox.hidden = false;
@@ -2400,8 +2627,8 @@ function renderNode(id){
       const locked = isChoiceLocked(c) && i!==_fIdx;
       const dis = locked ? "disabled" : "";
       const lockNote = locked ? choiceLockNote(c) : "";
-      const condTag = c.condNote ? `<span class="condtag">${esc(c.condNote)}</span>` : "";
-      const label = (c.doneFlag && S.flags && S.flags[c.doneFlag] && c.doneText) ? c.doneText : c.text;
+      const condTag = c.condNote ? `<span class="condtag">${esc(choiceCondNote(c))}</span>` : "";
+      const label = (c.doneFlag && S.flags && S.flags[c.doneFlag] && c.doneText) ? choiceDoneText(c) : choiceText(c);
       return `<button class="choice" data-i="${i}" style="animation-delay:${0.1+i*0.09}s" ${dis}><span class="num">${i+1}</span><span>${esc(label)}${condTag}${lockNote}</span></button>`;
     }).join("");
     if(_fIdx>=0){
@@ -2409,12 +2636,12 @@ function renderNode(id){
       if(fb){
         fb.disabled = false;
         const tag = document.createElement("span");
-        tag.className = "condtag"; tag.textContent = "naluri";
+        tag.className = "condtag"; tag.textContent = ui("instinct");
         fb.querySelector("span:last-child").appendChild(tag);
       }
       const note = document.createElement("div");
       note.className = "tired-note";
-      note.textContent = "⚡ Kau kehabisan energi — tubuhmu hanya mampu mengikuti jalan termudah.";
+      note.textContent = ui("tired_note");
       cbox.appendChild(note);
     }
     cbox.querySelectorAll(".choice:not(:disabled)").forEach(btn=>{
@@ -2427,11 +2654,11 @@ function renderNode(id){
           if(isBingung()){ /* Kebingungan Akut: dadu yang memilih */
             const avail = n.choices.filter(cc=>!isChoiceLocked(cc));
             const pick = avail.length ? avail[rollDie(avail.length)-1] : c;
-            toast("🎲 Kebingungan Akut! Dadu memilih: "+pick.text);
+            toast(ui("dice_pick")+choiceText(pick));
             c = pick;
           }
           const t = resolveChoiceTarget(c);
-          if(t) goTarget(t); else toast("Jalan buntu 🩸");
+          if(t) goTarget(t); else toast(ui("dead_end"));
         }, 450);
       });
     });
@@ -2473,17 +2700,17 @@ function renderInput(id){
   const n = NODES[id];
   S.node = id; updateHUD(); persist();
   tutPop("input");
-  const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
+  const kicker = n.kicker ? `<div class="kicker">${esc(nodeKicker(n))}</div>` : "";
   app.innerHTML = `
     <div class="screen">
-      <div class="story" id="storyBox" title="Ketuk untuk mempercepat">${kicker}<div id="twTarget"></div></div>
-      <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
+      <div class="story" id="storyBox" title="${esc(ui("story_title"))}">${kicker}<div id="twTarget"></div></div>
+      <div class="taphint" id="tapHint">${ui("tap_hint")}</div>
       <div class="center" id="inputSlot" hidden>
-        <input class="txtinput" id="txtAns" maxlength="40" placeholder="Ketik jawabanmu..." autocomplete="off"/>
-        <button class="big primary" id="btnAns">JAWAB</button>
+        <input class="txtinput" id="txtAns" maxlength="40" placeholder="${ui("input_ph")}" autocomplete="off"/>
+        <button class="big primary" id="btnAns">${ui("input_btn")}</button>
       </div>
     </div>`;
-  const skip = typewriter($("#twTarget"), n.story, ()=>{
+  const skip = typewriter($("#twTarget"), nodeStory(n), ()=>{
     $("#tapHint").style.display = "none";
     $("#inputSlot").hidden = false;
     $("#txtAns").focus();
@@ -2494,10 +2721,10 @@ function renderInput(id){
   function submit(){
     const v = $("#txtAns").value.trim().toLowerCase();
     const ok = (n.answers||[]).some(a=>String(a).toLowerCase()===v);
-    if(ok){ toast("Jawaban tepat 🩸"); goTarget(n.onCorrect); return; }
+    if(ok){ toast(ui("input_ok")); goTarget(n.onCorrect); return; }
     left--;
     if(left>0){
-      toast(`Salah... tersisa ${left} percobaan 🩸`);
+      toast(ui("input_wrong",{n:left}));
       $("#txtAns").value = ""; $("#txtAns").focus();
     }else goTarget(n.onWrong);
   }
@@ -2514,23 +2741,23 @@ function renderKeypad(id){
   const n = NODES[id];
   S.node = id; updateHUD(); persist();
   tutPop("keypad");
-  const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
+  const kicker = n.kicker ? `<div class="kicker">${esc(nodeKicker(n))}</div>` : "";
   let buf = "", left = n.maxAttempts || 3;
   app.innerHTML = `
     <div class="screen">
-      <div class="story" id="storyBox" title="Ketuk untuk mempercepat">${kicker}<div id="twTarget"></div></div>
-      <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
+      <div class="story" id="storyBox" title="${esc(ui("story_title"))}">${kicker}<div id="twTarget"></div></div>
+      <div class="taphint" id="tapHint">${ui("tap_hint")}</div>
       <div class="center" id="keySlot" hidden>
         <div class="keydisp" id="keyDisp"></div>
         <div class="keypad" id="keyPad"></div>
         <div class="center btnrow">
-          <button class="mini-btn" id="keyClear">⌫ HAPUS</button>
-          <button class="big primary" id="keyGo">BUKA</button>
+          <button class="mini-btn" id="keyClear">${ui("key_clear")}</button>
+          <button class="big primary" id="keyGo">${ui("key_open")}</button>
         </div>
-        <div class="taphint">Percobaan tersisa: <b id="keyLeft">${left}</b></div>
+        <div class="taphint">${ui("key_left")}<b id="keyLeft">${left}</b></div>
       </div>
     </div>`;
-  const skip = typewriter($("#twTarget"), n.story, ()=>{
+  const skip = typewriter($("#twTarget"), nodeStory(n), ()=>{
     $("#tapHint").style.display = "none";
     $("#keySlot").hidden = false;
   });
@@ -2550,13 +2777,13 @@ function renderKeypad(id){
   $("#keyClear").onclick = ()=>{ buf = ""; draw(); };
   $("#keyGo").onclick = (e)=>{
     const r=e.target.getBoundingClientRect(); spendEnergy(4, r.left+r.width/2, r.top);
-    if(buf===(n.code||"")){ toast("Klik... terbuka 🩸"); goTarget(n.onSuccess); return; }
+    if(buf===(n.code||"")){ toast(ui("key_ok")); goTarget(n.onSuccess); return; }
     left--; $("#keyLeft").textContent = left;
     const d = $("#keyDisp");
     d.classList.add("err"); setTimeout(()=>d.classList.remove("err"), 450);
     buf = ""; draw();
     if(left<=0) goTarget(n.onFail);
-    else toast("BIP! Kode salah 🩸");
+    else toast(ui("key_wrong"));
   };
   document.onkeydown = (e)=>{
     if(e.key===" "||e.key==="Enter"){ skip(); return; }
@@ -2569,14 +2796,14 @@ function renderKeypad(id){
 function renderStory(id){
   const n = NODES[id];
   updateHUD(); persist();
-  const kicker = n.kicker ? `<div class="kicker">${esc(n.kicker)}</div>` : "";
+  const kicker = n.kicker ? `<div class="kicker">${esc(nodeKicker(n))}</div>` : "";
   app.innerHTML = `
     <div class="screen">
-      <div class="story" id="storyBox" title="Ketuk untuk mempercepat">${kicker}<div id="twTarget"></div></div>
-      <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
-      <div class="center" id="nextSlot" hidden><button class="big primary continuebtn" id="btnNext">LANJUTKAN →</button></div>
+      <div class="story" id="storyBox" title="${esc(ui("story_title"))}">${kicker}<div id="twTarget"></div></div>
+      <div class="taphint" id="tapHint">${ui("tap_hint")}</div>
+      <div class="center" id="nextSlot" hidden><button class="big primary continuebtn" id="btnNext">${ui("continue")}</button></div>
     </div>`;
-  const skip = typewriter($("#twTarget"), n.story, ()=>{
+  const skip = typewriter($("#twTarget"), nodeStory(n), ()=>{
     $("#tapHint").style.display = "none";
     $("#nextSlot").hidden = false;
   });
@@ -2599,10 +2826,10 @@ function grantItem(item){
   const before = snapshotState();
   const ex = S.items.find(it=>it.id===item.id);
   if(ex) ex.qty = (ex.qty||1)+1;
-  else S.items.push({ id:item.id, name:item.name, note:item.note||"",
+  else S.items.push({ id:item.id, name:item.name, nameEn:item.nameEn||null, note:item.note||"", noteEn:item.noteEn||null,
                       icon:item.icon||"🎒", kind:item.kind||"consumable",
                       slot:item.slot||null, qty:1, use:item.use||null,
-                      story:!!item.story, storyHint:item.storyHint||null });
+                      story:!!item.story, storyHint:item.storyHint||null, storyHintEn:item.storyHintEn||null });
   collAdd(item.id);
   persist();
   reactAndTut(before, "item");
@@ -2612,20 +2839,20 @@ function renderResult(id){
   if(n.setStatus) S.status = n.setStatus;
   if(n.clearStatus) S.status = null;
   if(n.addEffect && !S.effects.includes(n.addEffect)){ S.effects.push(n.addEffect); }
-  const tag = n.tag ? `<span class="tagline" style="color:var(--${n.status==="danger"?"yellow":n.status})">${esc(n.tag)}</span>` : "";
+  const tag = n.tag ? `<span class="tagline" style="color:var(--${n.status==="danger"?"yellow":n.status})">${esc(nodeTag(n))}</span>` : "";
   app.innerHTML = `
     <div class="screen">
-      <div class="result ${n.status}" id="resBox" title="Ketuk untuk mempercepat">${tag}<div id="twTarget"></div><div id="itemSlot"></div></div>
-      <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
-      <div class="center" id="nextSlot" hidden><button class="big primary continuebtn" id="btnNext">LANJUTKAN →</button></div>
+      <div class="result ${n.status}" id="resBox" title="${esc(ui("story_title"))}">${tag}<div id="twTarget"></div><div id="itemSlot"></div></div>
+      <div class="taphint" id="tapHint">${ui("tap_hint")}</div>
+      <div class="center" id="nextSlot" hidden><button class="big primary continuebtn" id="btnNext">${ui("continue")}</button></div>
     </div>`;
   updateHUD(); persist();
-  const skip = typewriter($("#twTarget"), n.story, ()=>{
+  const skip = typewriter($("#twTarget"), nodeStory(n), ()=>{
     $("#tapHint").style.display = "none";
     if(n.item){
       grantItem(n.item);
       const it = S.items.find(x=>x.id===n.item.id);
-      $("#itemSlot").innerHTML = `<div class="itemget">🎒 Item diperoleh: <b>${esc(it.name)}</b> (+${it.qty})</div>`;
+      $("#itemSlot").innerHTML = `<div class="itemget">${ui("item_get")}<b>${esc(itemNameL(it))}</b> (+${it.qty})</div>`;
     }
     updateHUD();
     $("#nextSlot").hidden = false;
@@ -2650,16 +2877,16 @@ function renderDeath(id){
   setTimeout(()=>document.body.classList.remove("dying"), 950);
   app.innerHTML = `
     <div class="screen">
-      <div class="deadtitle">TEWAS</div>
-      <div class="result dead" id="resBox" title="Ketuk untuk mempercepat"><div id="twTarget"></div></div>
-      <div class="taphint" id="tapHint">▸ ketuk teks untuk mempercepat</div>
+      <div class="deadtitle">${ui("death_title")}</div>
+      <div class="result dead" id="resBox" title="${esc(ui("story_title"))}"><div id="twTarget"></div></div>
+      <div class="taphint" id="tapHint">${ui("tap_hint")}</div>
       <div class="center" id="revSlot" hidden style="margin-top:1.4rem">
-        <p style="color:var(--ash); margin-bottom:1.2rem; line-height:1.8">Namun karena kau adalah seorang <b style="color:var(--bone)">"Player"</b>, kau bisa bangkit di tempat untuk melanjutkan ceritanya.<br/>Death Count-mu bertambah.</p>
-        <button class="big primary" id="btnRevive">💀 BANGKIT</button>
+        <p style="color:var(--ash); margin-bottom:1.2rem; line-height:1.8">${ui("death_revive")}</p>
+        <button class="big primary" id="btnRevive">${ui("death_btn")}</button>
       </div>
     </div>`;
   document.onkeydown = null;
-  const skip = typewriter($("#twTarget"), n.story, ()=>{
+  const skip = typewriter($("#twTarget"), nodeStory(n), ()=>{
     $("#tapHint").style.display = "none";
     $("#revSlot").hidden = false;
   });
@@ -2682,15 +2909,15 @@ function renderTBC(){
   const items = S.items.length ? S.items.map(i=>`${esc(i.name)} (+${i.qty||1})`).join(", ") : "—";
   app.innerHTML = `
     <div class="screen tbc">
-      <h2>BERSAMBUNG...</h2>
-      <p>Part 1 : Awal Mula akan berlanjut.<br/>Pilihanmu sejauh ini telah tercatat. Jangan curang~</p>
+      <h2>${ui("tbc_title")}</h2>
+      <p>${ui("tbc_text")}</p>
       <div class="stats">
         <div>💀 Death Count<b>${S.deathCount}</b></div>
         <div>🎒 Item<b style="font-size:1rem">${items}</b></div>
       </div>
       <div class="btnrow">
-        <button class="big primary" id="btnMenuT">⌂ MENU UTAMA</button>
-        <button class="big ghost" id="btnStat">📜 STATUS</button>
+        <button class="big primary" id="btnMenuT">${ui("tbc_menu")}</button>
+        <button class="big ghost" id="btnStat">${ui("tbc_status")}</button>
       </div>
     </div>`;
   document.onkeydown = null;
@@ -2699,7 +2926,56 @@ function renderTBC(){
 }
 
 /* ---------- INIT ---------- */
+function applyStaticLang(){
+  const set=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=v;};
+  set("hudDeathLbl", ui("hud_death"));
+  const sb=document.getElementById("statusBtn"); if(sb){ sb.innerHTML=""+ui("hud_status"); sb.title=ui("hud_status_title"); }
+  const ib=document.getElementById("invBtn"); if(ib) ib.title=ui("hud_inv_title");
+  const mb=document.getElementById("menuBtn"); if(mb){ mb.textContent=ui("hud_menu"); mb.title=ui("hud_menu_title"); }
+  set("invTitle", ui("inv_title"));
+  set("invClose", ui("inv_close"));
+  set("achvToastHead", ui("achv_toast_head"));
+  set("tutPopOk", ui("tut_ok"));
+  set("footAsylum", ui("footer_asylum"));
+}
+/* ============================================================
+   i18n NARATIF (generated merge — jangan edit manual)
+   ============================================================ */
+const NODES_I18N = {"prolog1": {"story": ["Kau terbangun di ujung sebuah lorong gelap \u2014 dan hal pertama yang menyergapmu adalah baunya. Bau lembap yang menusuk hidung, bercampur debu tebal dan sesuatu yang lebih tua, lebih busuk, seperti daging yang membusuk di balik dinding. Lantainya lengket dan retak, berserakan puing beton dan pecahan kaca yang berkilau redup di bawah cahaya lampu yang sekarat. Beberapa pintu menggantung miring pada engselnya yang patah, melemparkan bayangan-bayangan panjang dan bengkok ke dinding \u2014 bayangan yang seolah bergerak sendiri setiap kali lampu berkedip.", "Dinding-dindingnya penuh coretan. Garis-garis kasar yang diukir dengan kuku atau pecahan kaca \u2014 pesan, peringatan, permohonan \u2014 semuanya nyaris tak terbaca, luntur dimakan waktu dan kelembapan. Sebagian masih bisa kau eja setengah-setengah. Kau memilih untuk tidak menyelesaikannya.", "Lalu kau menatap tanganmu sendiri. Keduanya dibalut perban kotor yang sudah menguning dan mengeras, melilit rapat dari pergelangan hingga ujung jari. Anehnya... tidak ada rasa sakit. Tidak ada denyut, tidak ada perih. Hanya mati rasa yang dingin, seolah tangan itu bukan lagi milikmu.", "Kau mencoba mengingat. Siapa kau. Bagaimana kau sampai di sini. Apa yang terjadi. Yang kau temukan hanyalah kekosongan \u2014 gelap, sunyi, dan luas, seperti menatap ke dalam sumur yang tak berdasar. Kau tidak tahu tempat apa ini. Kau tidak tahu mengapa kau ada di sini. Dan kau tidak tahu apa yang seharusnya kau lakukan sekarang."], "storyEn": ["You wake at the end of a dark corridor \u2014 and the first thing that hits you is the smell. A damp stench that stings your nose, mixed with thick dust and something older, fouler, like meat rotting behind the walls. The floor is sticky and cracked, littered with concrete rubble and shards of glass glinting dimly beneath a dying light. Several doors hang crooked on broken hinges, throwing long, twisted shadows across the walls \u2014 shadows that seem to move on their own every time the lamp flickers.", "The walls are covered in scratches. Rough lines carved with fingernails or broken glass \u2014 messages, warnings, pleas \u2014 nearly all illegible, eaten away by time and damp. Some you can still half read. You choose not to finish them.", "Then you look at your own hands. Both are wrapped in a dirty bandage, yellowed and stiff, wound tight from wrist to fingertip. Strangely... there is no pain. No throbbing, no sting. Only a cold numbness, as if those hands no longer belong to you.", "You try to remember. Who you are. How you got here. What happened. All you find is emptiness \u2014 dark, silent, and vast, like staring down a bottomless well. You do not know what this place is. You do not know why you are here. And you do not know what you are supposed to do now."], "kickerEn": "Part 1: The Beginning"}, "prolog2": {"story": ["Kau berjalan maju, melangkah ragu di atas pecahan kaca yang berderak pelan di bawah sepatumu. Lalu, di depanmu, lorong itu berhenti \u2014 atau lebih tepatnya, menawarkan pilihan. Empat pintu berdiri di hadapanmu, masing-masing dengan kesan yang berbeda, masing-masing menyimpan janji dan ancamannya sendiri.", "Pintu paling kiri tertutup rapat. Engselnya berkarat dan berdebu \u2014 tapi gagangnya... gagangnya bersih. Terlalu bersih. Seperti baru saja digenggam, belum lama. Pintu kedua di kiri menganga lebar, setengah rusak, daun pintunya robek seperti disobek sesuatu yang kuat dan marah.", "Di sisi kanan, pintu pertama berayun perlahan dengan sendirinya. Kreek... kreek... derit kecil yang ritmis, padahal udara di sini mati total \u2014 tidak ada angin, tidak ada apa-apa. Seolah sesuatu yang tak terlihat sedang mendorongnya, bermain-main. Pintu kedua di kanan tampak tenang, biasa saja \u2014 sampai kau menyadari ada bayangan samar bergeser di atas meja, di balik celahnya.", "Lorong terus berlanjut ke depan, menelan cahaya semakin dalam. Lampu-lampu di langit-langit berkedip tak beraturan \u2014 hidup, mati, hidup \u2014 dan di sela-sela kedipan itu kau sempat mendengarnya: suara gemerisik, seperti kain diseret di atas beton. Lalu hening. Hening total. Hening yang terlalu rapat, terlalu disengaja."], "storyEn": ["You walk forward, stepping uncertainly over glass shards that crunch softly under your shoes. Then, ahead of you, the corridor ends \u2014 or rather, offers you a choice. Four doors stand before you, each with its own impression, each holding its own promise and its own threat.", "The leftmost door is shut tight. Its hinges are rusted and dusty \u2014 but its handle... its handle is clean. Too clean. As if it was gripped not long ago. The second door on the left gapes wide, half destroyed, its panel torn as though ripped apart by something strong and furious.", "On the right side, the first door swings slowly on its own. Creak... creak... a small rhythmic groan, though the air here is utterly dead \u2014 no wind, nothing at all. As if something unseen were pushing it, playing. The second door on the right looks calm, ordinary \u2014 until you notice a faint shadow shifting across a table, glimpsed through its crack.", "The corridor stretches on ahead, swallowing the light ever deeper. The ceiling lamps flicker erratically \u2014 on, off, on \u2014 and between the flickers you catch it: a rustling sound, like cloth being dragged across concrete. Then silence. Total silence. A silence too thick, too deliberate."], "kickerEn": "Part 1: The Beginning"}, "opening": {"story": ["Kau berdiri di tengah lorong, napasmu menggema pelan di antara dinding-dinding yang lembap. Empat pintu mengapitmu \u2014 dua di kiri, dua di kanan \u2014 dan di depan, lorong itu terus berlanjut, menukik ke dalam kegelapan yang semakin pekat, semakin lapar.", "Apa yang akan kau lakukan?"], "storyEn": ["You stand in the middle of the corridor, your breathing echoing softly between the damp walls. Four doors flank you \u2014 two on the left, two on the right \u2014 and ahead, the corridor stretches on, diving into the Darkness growing thicker, hungrier.", "What will you do?"], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Periksa pintu pertama di kiri", "textEn": "Inspect the first door on the left", "doneText": "\u2713 Pintu pertama di kiri", "doneTextEn": "\u2713 First door on the left"}, {"text": "Periksa pintu kedua di kiri", "textEn": "Inspect the second door on the left", "doneText": "\u2713 Pintu kedua di kiri", "doneTextEn": "\u2713 Second door on the left"}, {"text": "Periksa pintu pertama di kanan", "textEn": "Inspect the first door on the right", "doneText": "\u2713 Pintu pertama di kanan", "doneTextEn": "\u2713 First door on the right"}, {"text": "Periksa pintu kedua di kanan", "textEn": "Inspect the second door on the right", "doneText": "\u2713 Pintu kedua di kanan", "doneTextEn": "\u2713 Second door on the right"}, {"text": "Telan rasa takutmu \u2014 terus maju.", "textEn": "Swallow your fear \u2014 keep moving forward."}]}, "d1_hub": {"story": ["Kau mendekati pintu paling kiri. Daunnya tertutup rapat, bingkainya melengkung dimakan waktu. Engselnya berkarat parah \u2014 tapi gagang pintunya bersih. Terlalu bersih untuk tempat sekotor dan seterlantar ini, seolah baru saja dibersihkan oleh genggaman sebuah tangan.", "Seperti baru saja digenggam. Oleh seseorang. Atau... sesuatu.", "Kau mengulurkan tangan. Kayunya dingin \u2014 dingin yang menusuk, seperti menyentuh mayat."], "storyEn": ["You approach the leftmost door. Its panel is shut tight, the frame warped by time. The hinges are badly rusted \u2014 but the door handle is clean. Too clean for a place this filthy and forsaken, as if freshly wiped by the grip of a hand.", "As if it was just gripped. By someone. Or... something.", "You reach out. The wood is cold \u2014 a piercing cold, like touching a corpse."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Dengarkan dulu \u2014 tempelkan telinga ke pintu", "textEn": "Listen first \u2014 press your ear to the door"}, {"text": "Dorong perlahan, intip lewat celah", "textEn": "Push it gently, peek through the crack"}, {"text": "Buka lebar-lebar sekaligus", "textEn": "Throw it wide open at once"}]}, "d1_a": {"story": ["Kau menempelkan telinga ke permukaan kayu yang dingin dan menahan napas. Dinginnya meresap ke pipimu, ke tulangmu.", "Hening.", "Kau memusatkan seluruh pendengaranmu \u2014 mencari apa pun di balik pintu. Tidak ada. Hanya dengung darah di telingamu sendiri, dan... tunggu. Apakah itu detak? Ritmis. Pelan. Makin jelas.", "Detak jantungmu sendiri, tentu saja. Pasti itu. Tidak mungkin yang lain.", "Tidak ada suara lain. Ruangan di baliknya sepertinya kosong. Sepertinya."], "storyEn": ["You press your ear against the cold wooden surface and hold your breath. The cold seeps into your cheek, into your bones.", "Silence.", "You focus every shred of your hearing \u2014 searching for anything beyond the door. Nothing. Only the rush of blood in your own ears, and... wait. Is that a heartbeat? Rhythmic. Soft. Growing clearer.", "Your own heartbeat, of course. It has to be. It could not be anything else.", "No other sound. The room beyond seems empty. Seems."], "kickerEn": "Part 1: The Beginning"}, "d1_a2": {"story": ["Pintu itu diam, menunggumu memutuskan. Keputusanmu?"], "storyEn": ["The door is silent, waiting for you to decide. Your call?"], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Buka pintunya, masuk", "textEn": "Open the door, step inside"}, {"text": "Urungkan \u2014 kembali ke lorong", "textEn": "Think better of it \u2014 head back to the corridor"}]}, "d1_b": {"story": ["Kau mendorong pintu itu satu sentimeter. Lalu dua sentimeter. Kayunya bergeser dengan erangan pelan, dan sebuah celah tipis menganga di hadapanmu. Kau mengintip dengan satu mata, jantung berdebar di tenggorokan.", "Gelap. Bau lembap yang lebih pekat menyeruak keluar dan menghantam wajahmu \u2014 bau jamur, bau tanah basah, bau sesuatu yang membusuk. Samar-samar kau bisa melihat bentuk-bentuk di dalam: meja terbalik, kaki kursi yang patah seperti tulang. Tidak ada gerakan. Tidak ada napas selain napasmu.", "Tapi di ujung penglihatanmu, ada sesuatu yang berkilau redup di lantai \u2014 kilau plastik yang menangkap sisa cahaya lorong. Seperti bungkus. Seperti... persediaan."], "storyEn": ["You push the door one centimeter. Then two. The wood shifts with a soft groan, and a thin crack gapes before you. You peer through it with one eye, your heart pounding in your throat.", "Dark. A thicker damp smell bursts out and strikes your face \u2014 the smell of mold, wet earth, something rotting. Dimly you can make out shapes inside: an overturned table, chair legs snapped like bones. No movement. No breath but yours.", "But at the edge of your vision, something glints dimly on the floor \u2014 plastic catching the corridor's leftover light. Like a wrapper. Like... supplies."], "kickerEn": "Part 1: The Beginning"}, "d1_b2": {"story": ["Celah itu menunggu, gelap dan sabar. Keputusanmu?"], "storyEn": ["The crack waits, dark and patient. Your call?"], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Masuk dan periksa", "textEn": "Step in and investigate"}, {"text": "Tutup perlahan, jangan ambil risiko", "textEn": "Close it gently \u2014 don't take the risk"}]}, "d1_c": {"story": ["Kau menarik napas dalam, menguatkan diri, lalu mendorong pintu itu lebar-lebar dengan sekuat tenaga.", "KRIIEEK.", "Engsel berkarat itu menjerit \u2014 lengkingan logam yang memantul di sepanjang lorong, terlalu keras, terlalu lama, menggema dan menggema seolah lorong itu sendiri ikut berteriak. Jantungmu berhenti sesaat. Kau berdiri mematung, seluruh tubuh menegang, menunggu. Apakah ada yang mendengar? Apakah sesuatu akan datang?", "Satu detik. Dua detik. Tidak ada yang datang. Lorong kembali sunyi \u2014 sunyi yang aneh, seolah tidak terjadi apa-apa, seolah jeritan itu tidak pernah ada.", "Ruangan di baliknya kosong dan gelap. Meja-meja terbalik berserakan seperti bangkai. Hening."], "storyEn": ["You draw a deep breath, steel yourself, then shove the door wide open with all your strength.", "KRIIEEK.", "The rusted hinge screams \u2014 a metallic shriek bouncing down the corridor, too loud, too long, echoing and echoing as if the corridor itself were screaming along. Your heart stops for a moment. You stand frozen, every muscle tensed, waiting. Did anything hear? Will something come?", "One second. Two seconds. Nothing comes. The corridor falls silent again \u2014 a strange silence, as if nothing happened, as if the scream never existed.", "The room beyond is empty and dark. Overturned tables lie scattered like carcasses. Silence."], "kickerEn": "Part 1: The Beginning"}, "d1_c2": {"story": ["Derit itu mungkin terdengar sampai ujung lorong. Mungkin sesuatu mendengarnya. Keputusanmu?"], "storyEn": ["That creak may have carried to the end of the corridor. Something may have heard it. Your call?"], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Masuk cepat sebelum ada yang datang", "textEn": "Slip in quickly before something comes"}, {"text": "Tutup dan mundur \u2014 terlalu berisik", "textEn": "Shut it and back away \u2014 too loud"}]}, "d1_room": {"story": ["Kau melangkah masuk. Udara di sini lebih dingin \u2014 dingin yang merayap naik dari lantai beton ke tulang-tulangmu \u2014 dan baunya... tua. Bau debu yang mengendap bertahun-tahun, bau kertas yang membusuk, bau ruangan yang sudah lama tidak disentuh oleh siapa pun. Atau apa pun.", "Meja-meja terbalik berserakan di sekelilingmu. Di sudut ruangan, ada noda gelap di lantai \u2014 besar, tidak beraturan, meresap jauh ke dalam beton seperti diserap dengan rakus. Kau tidak mau terlalu memikirkan apa itu. Kau benar-benar tidak mau.", "Di bawah salah satu meja yang masih berdiri, matamu menangkap sesuatu: sebungkus plastik bening berisi roti kering, dan di sampingnya, selembar surat terlipat yang kertasnya sudah menguning dimakan waktu."], "storyEn": ["You step inside. The air here is colder \u2014 a cold that creeps up from the concrete floor into your bones \u2014 and it smells... old. The smell of dust settled over years, of paper rotting, of a room long untouched by anyone. Or anything.", "Overturned tables lie scattered around you. In the corner, a dark stain spreads across the floor \u2014 large, irregular, soaked deep into the concrete as if hungrily absorbed. You do not want to think too hard about what it is. You really do not.", "Beneath one of the still-standing tables, your eye catches something: a clear plastic pack of dried bread, and beside it, a folded letter, its paper yellowed with age."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Ambil bungkusan itu", "textEn": "Take the package"}, {"text": "Periksa noda gelap itu dulu", "textEn": "Examine the dark stain first"}]}, "d1_stain": {"story": ["Kau berjongkok di dekat noda itu. Warnanya cokelat kehitaman, tepinya tidak rata \u2014 merembes perlahan, bukan tumpah sekaligus. Dan ketika kau mendekat, bau besi samar masih tercium, tajam dan familiar, menusuk hidungmu.", "Darah. Sudah sangat lama. Kering sepenuhnya, menyatu dengan beton.", "Kau tidak tahu apakah itu membuatmu lega... atau justru lebih takut. Seseorang pernah berdarah di sini. Banyak. Dan sekarang, orang itu tidak ada di mana-mana."], "storyEn": ["You crouch beside the stain. Its color is blackish-brown, its edges uneven \u2014 seeped slowly, not spilled all at once. And as you lean closer, a faint iron smell still lingers, sharp and familiar, stinging your nose.", "Blood. Very old. Completely dry, fused with the concrete.", "You do not know whether that relieves you... or frightens you more. Someone once bled here. A lot. And now, that person is nowhere."], "kickerEn": "Part 1: The Beginning"}, "d1_stain2": {"story": ["Noda gelap itu tidak memberimu jawaban apa pun. Noda itu hanya diam di sana \u2014 menempel seperti luka tua yang menolak sembuh. Dan di bawah meja, bungkusan itu masih menunggu, tak tersentuh, seolah tak pernah ada yang berani menyentuhnya."], "storyEn": ["The dark stain offers you no answers. It only lies there, silent \u2014 clinging like an old wound that refuses to heal. And beneath the table, the package still waits, untouched, as though no one has ever dared to lay a hand on it."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Kembali dan raih bungkusan itu", "textEn": "Go back and grab the package"}, {"text": "Tinggalkan semuanya \u2014 pergi dari sini", "textEn": "Leave it all behind \u2014 get out of here"}]}, "d1_loot": {"story": ["Kau mengulurkan tangan dan meraih bungkusan plastik itu. Isinya: roti kering \u2014 tiga potong, masih tersegel dalam kemasan, dingin dan sedikit keras di telapakmu. Di sampingnya, surat terlipat itu terasa rapuh di antara jemarimu, seperti kulit yang bisa robek hanya dengan satu napas.", "Kau membukanya sekilas. Tulisan tangan yang gemetar, tinta yang pudar: \u2018Maafkan aku. Aku tidak bisa pulang. Jangan cari aku.\u2019 Tidak ada nama. Tidak ada tanggal. Hanya kata-kata itu \u2014 dan kau bertanya-tanya, berapa lama surat ini menunggu di dalam gelap sebelum tanganmu menemukannya.", "Kau melipatnya kembali dan menyimpan keduanya. Setidaknya, untuk sementara waktu, perutmu tidak akan kosong \u2014 dan di tempat seperti ini, harapan sekecil itu pun terasa berharga."], "storyEn": ["You reach out and take the plastic package. Inside: dried bread \u2014 three pieces, still sealed in their wrapper, cold and slightly hard against your palm. Beside it, the folded letter feels fragile between your fingers, like skin that could tear at a single breath.", "You unfold it just enough to read. Trembling handwriting, faded ink: \u2018Forgive me. I can\u2019t come home. Don\u2019t look for me.\u2019 No name. No date. Only those words \u2014 and you find yourself wondering how long this letter has waited in the dark before your hands found it.", "You fold it back up and keep them both. At least, for a little while, your stomach won\u2019t be empty \u2014 and in a place like this, even that small a hope feels precious."], "tagEn": "[Safe]"}, "d1_empty": {"story": ["Kau memutuskan bungkusan itu tidak sepadan dengan firasat buruk yang merayap dingin di kulitmu. Kau mundur keluar dan menutup pintu perlahan \u2014 sepelan yang kau bisa.", "Lorong menyambutmu kembali \u2014 sama gelapnya, sama sunyinya. Tapi kini keheningan itu terasa sedikit berbeda: seolah lorong ini baru saja memperhatikanmu memilih."], "storyEn": ["You decide the package isn\u2019t worth the cold dread crawling across your skin. You back out and close the door slowly \u2014 as slowly as you can.", "The corridor welcomes you back \u2014 just as dark, just as silent. But now the silence feels slightly different: as though the corridor has just watched you make your choice."], "tagEn": "[Safe]"}, "d2_hub": {"story": ["Pintu kedua di kiri terbuka lebar, setengah rusak \u2014 kayunya retak, tergantung miring pada satu engsel, menunggu saat untuk roboh sepenuhnya.", "Di baliknya: ruang sempit yang dipenuhi lemari-lemari tua berderet, seperti arsip atau gudang penyimpanan yang dilupakan dunia. Bau kapur barus dan kayu lapuk menyambutmu \u2014 tebal, menusuk hidung, dan membuat tenggorokanmu gatal.", "Semuanya diam. Terlalu diam? Bahkan bunyi kecil dari dirimu sendiri \u2014 langkah, napas, detak jantung \u2014 terdengar terlalu keras di sini, seolah ruangan ini sedang menahan napas."], "storyEn": ["The second door on the left stands wide open, half ruined \u2014 its wood cracked, hanging crooked on a single hinge, waiting for the moment it finally gives way.", "Beyond it: a cramped room crowded with rows of old cabinets, like an archive or storeroom the world has forgotten. The smell of mothballs and rotting wood greets you \u2014 thick, stinging your nose, itching in your throat.", "Everything is silent. Too silent? Even the small sounds of your own body \u2014 footsteps, breathing, heartbeat \u2014 sound far too loud here, as though the room itself is holding its breath."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Lempar sesuatu ke dalam \u2014 dengarkan", "textEn": "Toss something inside \u2014 and listen"}, {"text": "Masuk, buka lemari satu per satu", "textEn": "Step inside, open the cabinets one by one"}, {"text": "Firasat buruk \u2014 mundur", "textEn": "A bad feeling \u2014 back away"}]}, "d2_a": {"story": ["Kau memungut pecahan kaca dari lantai \u2014 dingin, tajam di ujung jemarimu \u2014 dan melemparkannya ke dalam ruangan. KLONTANG \u2014 bunyinya memantul di lantai beton, menggelinding, lalu berhenti.", "Sunyi. Lalu... dari dalam salah satu lemari, terdengar bunyi pelan: tuk. Sekali. Pelan. Seolah ruangan itu baru saja memutuskan untuk menjawab.", "Seperti sesuatu yang jatuh. Atau bergeser \u2014 kain yang terseret di kayu, atau sesuatu yang mengubah posisinya dengan sangat hati-hati.", "Kau menunggu. Tanpa sadar, kau menahan napas. Tidak ada lagi."], "storyEn": ["You pick up a shard of glass from the floor \u2014 cold, sharp against your fingertips \u2014 and hurl it into the room. CLANG \u2014 the sound echoes off the concrete floor, rolls, then stops.", "Silence. Then... from inside one of the cabinets, a soft sound: tok. Once. Quiet. As though the room has just decided to answer.", "Like something falling. Or shifting \u2014 cloth dragged across wood, or something changing its position very carefully.", "You wait. Without realizing it, you\u2019ve been holding your breath. Nothing more."], "kickerEn": "Part 1: The Beginning"}, "d2_a2": {"story": ["Bunyi itu tidak terulang. Hanya keheningan yang kembali menelan ruangan \u2014 dan sebuah pertanyaan yang menggantung di udara: apa keputusanmu?"], "storyEn": ["The sound does not come again. Only silence, swallowing the room once more \u2014 and a question hanging in the air: what is your decision?"], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Masuk dan periksa", "textEn": "Go in and investigate"}, {"text": "Batalkan \u2014 kembali ke lorong", "textEn": "Call it off \u2014 head back to the corridor"}]}, "d2_c": {"story": ["Kau mempercayai firasatmu dan melangkah mundur \u2014 satu langkah, lalu satu lagi \u2014 hingga punggungmu nyaris menyentuh dinding lorong.", "Tidak terjadi apa-apa. Dan justru itu yang mengganggumu \u2014 keheningan ruangan itu terasa... memperhatikan. Seperti mata-mata tak terlihat yang sedang mengikutimu."], "storyEn": ["You trust your instincts and step back \u2014 one step, then another \u2014 until your back nearly touches the corridor wall.", "Nothing happens. And that is precisely what unsettles you \u2014 the room\u2019s silence feels... watchful. Like unseen eyes following you."], "kickerEn": "Part 1: The Beginning"}, "d2_room": {"story": ["Ruangan sempit. Tiga lemari tua berderet di dinding, pintunya kusam dan berbintik kelembapan. Bau kapur barus menusuk hidung \u2014 tajam, basi, dan membuat matamu berair.", "Lemari pertama: pintunya sedikit terbuka, menganga seperti mulut yang kelelahan. Lemari kedua: tertutup rapat, tanpa celah. Lemari ketiga: terkunci \u2014 dan di permukaannya ada goresan-goresan panjang. Dari dalam."], "storyEn": ["A cramped room. Three old cabinets line the wall, their doors dull and speckled with damp. The smell of mothballs stings your nose \u2014 sharp, stale, making your eyes water.", "The first cabinet: its door hangs slightly ajar, gaping like an exhausted mouth. The second: shut tight, no gap at all. The third: locked \u2014 and across its surface run long scratches. From the inside."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Buka lemari pertama", "textEn": "Open the first cabinet"}, {"text": "Buka lemari kedua", "textEn": "Open the second cabinet"}, {"text": "Periksa lemari ketiga yang terkunci", "textEn": "Examine the locked third cabinet"}, {"text": "Keluar dari ruangan ini", "textEn": "Leave this room"}]}, "d2_c1": {"story": ["Kosong. Hanya debu tebal dan bau apek yang membuat tenggorokanmu kering. Tapi di sudut bawahnya ada sesuatu yang terlipat: sepotong kain putih kusam \u2014 perban, masih digulung, meski kotor.", "Kau mengambilnya. Lebih baik daripada tidak sama sekali. Mungkin. Meski jarimu ragu sesaat sebelum menyentuhnya."], "storyEn": ["Empty. Only thick dust and a musty smell that dries your throat. But folded in the bottom corner lies something: a scrap of dingy white cloth \u2014 a bandage, still rolled, though dirty.", "You take it. Better than nothing at all. Maybe. Though your fingers hesitate for a heartbeat before touching it."], "tagEn": "[Safe]"}, "d2_c2": {"story": ["Kau membuka lemari kedua \u2014 dan sesuatu jatuh dari rak atas: sepatu kecil. Sepatu anak. Mendarat miring di lantai dengan bunyi lembut yang terasa terlalu keras di keheningan ini.", "Kau menatapnya sesaat \u2014 terlalu lama, mungkin \u2014 lalu memaksakan diri melihat isi lemari: di rak bawah ada sebatang cokelat yang masih terbungkus rapat. Sedikit meleleh, tapi utuh. Seolah ditinggalkan untuk seseorang yang tidak pernah kembali.", "Kau mengambil cokelat itu. Sepatu itu kau biarkan. Kau tidak sanggup menyentuhnya \u2014 tidak dengan tanganmu, tidak hari ini."], "storyEn": ["You open the second cabinet \u2014 and something falls from the top shelf: a small shoe. A child\u2019s shoe. It lands tilted on the floor with a soft thud that feels far too loud in this silence.", "You stare at it for a moment \u2014 perhaps a moment too long \u2014 then force yourself to look at the cabinet\u2019s contents: on the bottom shelf, a bar of chocolate, still sealed tight. Slightly melted, but whole. As though it had been left for someone who never came back.", "You take the chocolate. The shoe you leave behind. You cannot bring yourself to touch it \u2014 not with your hands, not today."], "tagEn": "[Safe]"}, "d2_c3": {"story": ["Kau mendekati lemari ketiga. Terkunci. Goresan-goresan panjang menghiasi pintunya \u2014 dalam, berulang, berlapis-lapis, seperti dibuat dengan kuku yang putus asa. Dari dalam.", "Kau menempelkan tangan ke kayunya. Dingin. Dingin yang terasa salah untuk kayu tua \u2014 dingin yang meresap hingga ke tulang."], "storyEn": ["You approach the third cabinet. Locked. Long scratches scar its door \u2014 deep, repeated, layered, as though made by desperate fingernails. From the inside.", "You press your hand against the wood. Cold. A cold that feels wrong for old wood \u2014 a cold that seeps all the way to the bone."], "kickerEn": "Part 1: The Beginning"}, "d2_c3x": {"story": ["Lemari itu diam. Terlalu diam \u2014 seolah sedang menunggumu melakukan kesalahan."], "storyEn": ["The cabinet is silent. Too silent \u2014 as though it is waiting for you to make a mistake."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Tempelkan telinga ke pintunya \u2014 dengarkan", "textEn": "Press your ear to the door \u2014 listen"}, {"text": "Jangan sentuh. Mundur.", "textEn": "Don\u2019t touch it. Back away."}]}, "d2_c3b": {"story": ["Keheningan memadat di udara... lalu memecah: bunyi napas. Pelan, berat, dan entah bagaimana terasa lembap \u2014 tepat di balik papan kayu yang memisahkan kalian, sedekat selembar kain basah dari wajahmu.", "Kau tersentak mundur, jantungmu menghantam tulang rusuk seolah ingin lepas dari sangkarnya. Dan seketika itu juga, napas itu berhenti. Lenyap begitu saja, seperti tidak pernah ada.", "Apapun yang ada di sana \u2014 entah masih berdiri membisu di balik kayu itu, atau baru saja merangkak pergi dalam gelap \u2014 kau tidak ingin mencari tahu. Beberapa jawaban lebih baik tidak pernah ditemukan."], "storyEn": ["Silence thickens in the air... then shatters: the sound of breathing. Slow, heavy, and somehow damp-feeling \u2014 right behind the wooden panel separating you, as close as a wet cloth from your face.", "You flinch backward, your heart slamming against your ribs as if trying to break free of its cage. And in that same instant, the breathing stops. Vanishes completely, as if it had never been there.", "Whatever was in there \u2014 whether still standing mute behind the wood, or having just crawled away into the dark \u2014 you have no desire to find out. Some answers are better never discovered."], "tagEn": "[Safe]"}, "d2_c3c": {"story": ["Kau mundur dengan langkah pelan dan terkendali, matamu tak sekalipun lepas dari pintu lemari itu \u2014 menatap dalam, seolah tatapan saja bisa menahannya tetap tertutup.", "Tidak ada yang terjadi. Malam ini, untuk sekali ini saja, kehati-hatianmu akhirnya dibayar lunas \u2014 bukan dengan kelegaan, melainkan dengan keheningan yang masih terasa mengawasi."], "storyEn": ["You step back in slow, controlled strides, your eyes never once leaving the wardrobe door \u2014 staring deep, as if your gaze alone could hold it shut.", "Nothing happens. Tonight, for once, your caution is finally paid in full \u2014 not with relief, but with a silence that still feels like it is watching."], "tagEn": "[Safe]"}, "d2_done": {"story": ["Kau melangkahkan kaki keluar dari ruang lemari itu dan kembali menjejaki lorong yang dingin, udara di dadamu terasa sedikit lebih ringan.", "Di belakangmu, ruangan itu tenggelam kembali ke dalam sunyi \u2014 tapi jauh di tulang-tulangmu, kau tidak bisa mengenyahkan perasaan bahwa keheningan itu sedang menunggu. Menunggumu kembali."], "storyEn": ["You step out of the wardrobe room and back into the cold corridor, the air in your chest feeling a little lighter.", "Behind you, the room sinks back into silence \u2014 but deep in your bones, you cannot shake the feeling that the quiet is waiting. Waiting for you to return."], "tagEn": "[Safe]"}, "d3_hub": {"story": ["Pintu pertama di kanan berayun pelan \u2014 berderit kecil. Tidak ada angin di sini, tidak ada apa pun yang bisa menggerakkannya... kecuali sesuatu yang tak terlihat sedang menghembuskannya dari sisi lain.", "Dari celah gelapnya, kau menangkap bunyi itu: detak. Pelan, teratur, berdenyut di telingamu. Seperti... detak jantung? Atau jarum jam yang berputar di dalam ruangan yang seharusnya kosong?", "Udara yang merembes keluar dari celah itu menggigit kulitmu \u2014 dingin yang tidak seharusnya ada, dingin yang tidak mengenal musim."], "storyEn": ["The first door on the right swings slowly \u2014 it creaked softly. There is no wind here, nothing that could move it... unless something unseen is breathing it from the other side.", "From its dark slit, you catch the sound: a thump. Slow, steady, pulsing in your ears. Like... a heartbeat? Or a clock hand ticking inside a room that should be empty?", "The air seeping from the gap bites at your skin \u2014 a cold that should not exist, a cold that knows no season."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Masuk mengikuti detak itu", "textEn": "Follow the thumping \u2014 go inside"}, {"text": "Amati dari ambang pintu", "textEn": "Watch from the doorway"}, {"text": "Mundur dan tutup pintunya", "textEn": "Back away and shut the door"}]}, "d3_a": {"story": ["Kau melangkah melewati ambang pintu, dan seketika dingin menyergap naik dari pergelangan kakimu \u2014 merayap perlahan, seperti genangan air es yang bergerak sendiri.", "Detak itu kini terdengar lebih jelas \u2014 dan di sanalah kau sadar: ini bukan bunyi jam. Terlalu kacau ritmenya. Terlalu... hidup.", "Lalu kau melihatnya. Di sudut terjauh ruangan, udara beriak seperti permukaan air yang disentuh \u2014 dan dari dalam Kegelapan yang tak berbentuk, sepasang mata merah menyala perlahan terbuka.", "Ia melihatmu."], "storyEn": ["You step across the threshold, and instantly the cold seizes your ankles \u2014 creeping upward, like a pool of ice water moving on its own.", "The thumping is clearer now \u2014 and there you realize: this is no clock. Its rhythm is too broken. Too... alive.", "Then you see it. In the far corner of the room, the air ripples like touched water \u2014 and from within the formless Darkness, a pair of burning red eyes slowly opens.", "It sees you."], "kickerEn": "Part 1: The Beginning"}, "d3_a2": {"story": ["Mata merah itu menyipit hingga menjadi celah tajam \u2014 dan perlahan, ia mulai melayang mendekat ke arahmu, dingin yang dibawanya menusuk lebih dalam setiap inci."], "storyEn": ["The red eyes narrow into sharp slits \u2014 and slowly, it begins to drift toward you, the cold it carries cutting deeper with every inch."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Beku di tempat \u2014 jangan bergerak", "textEn": "Freeze \u2014 don't move at all"}, {"text": "Berbalik dan lari sekencang-kencangnya", "textEn": "Turn around and RUN"}]}, "d3_a2a": {"story": ["Kau memaksa setiap serat ototmu untuk diam. Jangan bernapas. Jangan berkedip. Bahkan detak jantungmu sendiri terasa terlalu berisik.", "Sosok transparan itu melayang mendekat. Dingin menusuk hingga ke sumsum tulangmu saat ia mengitarimu perlahan \u2014 dan kau bisa merasakannya, kebencian yang memancar darinya seperti radiasi, membakar udara di antara kalian.", "Lalu... ia berhenti. Sepasang mata merah itu menyipit, menilaimu. Perlahan, sangat perlahan, ia mundur \u2014 melebur kembali ke dalam Kegelapan ruangan itu, hingga tidak tersisa apa pun selain dingin.", "Kau tidak tahu kenapa ia melepaskanmu. Dan kau tidak mau tahu. Kakimu gemetar tak terkendali saat kau melangkah mundur keluar dari ruangan itu."], "storyEn": ["You force every fiber of muscle to stay still. Don't breathe. Don't blink. Even your own heartbeat feels too loud.", "The Transparent One drifts closer. Cold pierces to your marrow as it circles you slowly \u2014 and you can feel it, the hatred radiating from it like radiation, scorching the air between you.", "Then... it stops. The pair of red eyes narrows, judging you. Slowly, so slowly, it withdraws \u2014 dissolving back into the Darkness of the room, until nothing remains but the cold.", "You don't know why it let you go. And you don't want to know. Your legs tremble uncontrollably as you back out of the room."], "tagEn": "[In danger]"}, "d3_a2b": {"story": ["Kau berbalik dan berlari \u2014 tapi ia lebih cepat darimu.", "Dingin membakar lengan kirimu saat sesuatu yang tak terlihat mencakar melewatinya. Kau terhuyung, tapi kakimu terus menghentak lantai, menerobos pintu dan membantingnya keras di belakangmu.", "Napasmu terengah memburu. Lengan kirimu berdenyut perih \u2014 tiga garis merah menganga di kulitmu, dan dingin dari cakaran itu masih menusuk hingga ke tulang.", "Kau terluka. Dan di tengah napasmu yang tersengal, kau menyadari satu hal: ia tidak mengejarmu keluar. Ia hanya... menjaga ruangan itu. Menunggu yang berikutnya."], "storyEn": ["You spin around and run \u2014 but it is faster than you.", "Cold burns your left arm as something unseen slashes across it. You stumble, but your feet keep pounding the floor, bursting through the door and slamming it shut behind you.", "Your breath comes in ragged gasps. Your left arm throbs \u2014 three red lines gape open across your skin, and the cold of the claw marks still pierces to the bone.", "You are wounded. And through your heaving breaths, you realize one thing: it did not chase you out. It was merely... guarding that room. Waiting for the next one."], "tagEn": "[Wounded]"}, "d3_b": {"story": ["Kau bertahan di ambang pintu, tidak berani masuk. Hanya mengamati dari jarak yang terasa aman \u2014 kalau ada yang aman di sini.", "Detak itu terus berdenyut. Lalu, perlahan, dari dalam kegelapan \u2014 sepasang mata merah menyala muncul, dan menatap lurus ke arahmu.", "Kau tidak bergerak. Ia tidak bergerak. Waktu seolah berhenti bernapas.", "Kemudian mata itu berkedip \u2014 sekali saja \u2014 dan menghilang. Detak itu pun berhenti, meninggalkan keheningan yang berat.", "Pesannya jelas, tanpa sepatah kata pun: ia tahu kau di sini. Dan ia membiarkanmu pergi. Untuk sekarang."], "storyEn": ["You hold your ground at the threshold, not daring to enter. Just watching from a distance that feels safe \u2014 if anything is safe here.", "The thumping keeps pulsing. Then, slowly, from within the darkness \u2014 a pair of burning red eyes emerges, staring straight at you.", "You don't move. It doesn't move. Time itself seems to stop breathing.", "Then the eyes blink \u2014 just once \u2014 and vanish. The thumping stops too, leaving behind a heavy silence.", "The message is clear, without a single word: it knows you are here. And it is letting you go. For now."], "tagEn": "[In danger]"}, "d3_c": {"story": ["Kau mundur selangkah. Dua langkah. Jari-jarimu yang dingin meraih gagang pintu.", "Tepat saat daun pintu hampir rapat \u2014 detak itu... berhenti. Mendadak, seolah seseorang menekan tombol.", "Hening total, begitu pekat hingga telingamu berdenging. Lalu, dari balik pintu yang tinggal sejengkal itu, terdengar gesekan pelan \u2014 seperti kuku yang diseret di atas kayu. Sekali. Dua kali.", "Kau menutup pintu sepenuhnya dan mundur menjauh. Jantungmu masih berdebar keras, lama setelahnya."], "storyEn": ["You step back. Two steps. Your cold fingers reach for the door handle.", "Just as the door nearly closes \u2014 the thumping... stops. Abruptly, as if someone pressed a switch.", "Total silence, so thick your ears ring. Then, from behind the door with its single crack of opening, a faint scraping \u2014 like nails dragged across wood. Once. Twice.", "You shut the door fully and back away. Your heart keeps pounding, long after."], "tagEn": "[Safe]"}, "d4_hub": {"story": ["Pintu kedua di kanan terasa lebih tenang. Dari celah sempitnya, kau bisa mengintip sebuah meja \u2014 dan di atasnya, bayangan samar yang belum jelas bentuknya.", "Kau mendorong pintu itu perlahan. Ruangan kecil. Meja kayu di tengah. Dan di atasnya...", "Sebuah boneka beruang. Bulunya usang dan kusam, satu matanya telah lepas dari jahitan \u2014 tapi ia bersih. Terlalu bersih untuk tempat seperti ini. Seolah ada seseorang, entah siapa, yang merawatnya dengan penuh sayang."], "storyEn": ["The second door on the right feels calmer. Through its narrow slit, you can glimpse a table \u2014 and on it, a vague shape you cannot yet make out.", "You push the door open slowly. A small room. A wooden table in the center. And on it...", "A teddy bear. Its fur is worn and dull, one eye torn from its stitches \u2014 but it is clean. Too clean for a place like this. As if someone, whoever they are, has been caring for it with love."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Ambil boneka beruangnya", "textEn": "Pick up the teddy bear"}, {"text": "Periksa meja dan sekitarnya dulu", "textEn": "Inspect the table and its surroundings first"}, {"text": "Jangan sentuh apa pun \u2014 pergi dari sini", "textEn": "Don't touch anything \u2014 leave"}]}, "d4_a": {"story": ["Kau mengangkat boneka itu ke dalam dekapanmu. Ringan. Dan... hangat. Hangat, seperti baru saja turun dari pelukan seseorang.", "Kehangatan yang janggal itu merambat ke telapak tanganmu, naik ke lenganmu \u2014 kau merinding, bulu kudukmu berdiri satu per satu.", "Lalu kau menyadarinya, dan darahmu seolah berhenti mengalir: satu mata boneka yang masih tersisa itu... sedang menatapmu. Lurus. Tadi, saat ia tergeletak di atas meja, ia menghadap ke arah lain. Bukankah begitu?", "Kau memeluknya erat-erat ke dadamu. Entah kenapa, benda ini terasa penting. Dan anehnya, hangatnya tidak kunjung hilang dari tanganmu."], "storyEn": ["You lift the bear into your arms. Light. And... warm. Warm, as if it had just come from someone's embrace.", "The strange warmth creeps into your palms, up your arms \u2014 you shiver, goosebumps rising one by one.", "Then you notice, and your blood seems to stop flowing: the bear's one remaining eye... is looking at you. Straight at you. Just now, when it lay on the table, it was facing the other way. Wasn't it?", "You clutch it tight against your chest. You don't know why, but this thing feels important. And strangely, its warmth never fades from your hands."], "tagEn": "[Safe]"}, "d4_b": {"story": ["Kau menahan napas dan memaksa dirimu memeriksa ruangan itu dulu \u2014 perlahan, seperti seseorang yang takut membangunkan sesuatu. Meja kayu itu kosong, kecuali boneka beruang yang duduk diam di atasnya. Tapi saat kau menunduk, matamu menangkap sesuatu yang terselip di bawah meja: selembar kertas gambar anak-anak, digambar dengan crayon.", "Gambarnya sederhana dan mengerikan sekaligus: sebuah keluarga \u2014 ayah, ibu, dan anak kecil \u2014 bergandengan tangan di bawah matahari yang tersenyum. Dan di belakang mereka, menjulang tinggi, sosok hitam legam dengan dua titik merah menyala sebagai matanya.", "Si penggambar menekan crayon merahnya begitu keras pada kedua titik itu sampai kertasnya sobek tepat di bagian mata si sosok \u2014 seolah anak itu berusaha menghapusnya dari dunia, dan gagal."], "storyEn": ["You hold your breath and force yourself to search the room first \u2014 slowly, like someone afraid of waking something up. The wooden desk is empty, except for the teddy bear sitting motionless on top of it. But as you crouch down, your eyes catch something tucked beneath the desk: a child's drawing on a sheet of paper, drawn in crayon.", "The drawing is simple and horrifying at once: a family \u2014 father, mother, and a small child \u2014 holding hands beneath a smiling sun. And behind them, towering, a pitch-black figure with two burning red dots for eyes.", "Whoever drew it pressed the red crayon so hard onto those two dots that the paper tore right through the figure's eyes \u2014 as if the child had tried to erase it from the world, and failed."], "kickerEn": "Part 1: The Beginning"}, "d4_b2": {"story": ["Kertas gambar itu terasa dingin di antara jarimu \u2014 dingin yang tidak wajar untuk selembar kertas yang tersimpan di ruangan pengap ini. Di atas meja, boneka beruang itu masih duduk diam. Menunggu."], "storyEn": ["The drawing feels cold between your fingers \u2014 unnaturally cold for a sheet of paper kept in this stuffy room. On the desk, the teddy bear still sits motionless. Waiting."], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Bawa bonekanya juga", "textEn": "Take the teddy bear too"}, {"text": "Ambil gambarnya saja, tinggalkan bonekanya", "textEn": "Take only the drawing, leave the bear"}, {"text": "Jangan sentuh apa pun", "textEn": "Touch nothing"}]}, "d4_draw": {"story": ["Kau mengambil gambar crayon itu dan melipatnya perlahan, hati-hati, seperti melipat sesuatu yang bisa pecah \u2014 lalu menyelipkannya ke dalam saku. Boneka beruangnya kau biarkan tetap duduk di atas meja.", "Saat kau berbalik menuju pintu, dari sudut matamu kau menangkap sesuatu \u2014 kau bersumpah kepala boneka itu kini sedikit miring. Mengikutimu dengan mata kancingnya yang mati.", "Kau tidak menoleh lagi. Tidak kali ini."], "storyEn": ["You pick up the crayon drawing and fold it slowly, carefully, like folding something that could shatter \u2014 then slip it into your pocket. You leave the teddy bear sitting on the desk.", "As you turn toward the door, from the corner of your eye you catch something \u2014 you swear the bear's head is now tilted slightly. Following you with its dead button eyes.", "You don't look back again. Not this time."], "tagEn": "[Safe]"}, "d4_c": {"story": ["Kau memutuskan untuk tidak menyentuh apa pun. Setiap helai nalurimu berteriak menyuruhmu menjauh.", "Kau melangkah mundur menuju pintu, tumit lebih dulu, mata tak lepas dari meja itu. Dan saat itulah kau mendengarnya \u2014 pelan, nyaris bukan suara:", "'...jangan pergi.'", "Suaranya seperti anak kecil \u2014 kecil, serak, dan terlalu dekat. Berasal dari... boneka itu? Atau bergema dari dalam kepalamu sendiri? Kau tidak berani memastikan.", "Kau menyelinap keluar dan menutup pintu rapat-rapat. Tanganmu gemetar hebat sampai gagang pintu terasa licin."], "storyEn": ["You decide to touch nothing. Every fiber of your instinct screams at you to stay away.", "You step backward toward the door, heel first, eyes never leaving that desk. And that's when you hear it \u2014 faint, barely a sound at all:", "'...don't go.'", "It sounds like a small child \u2014 small, hoarse, and far too close. Coming from... the bear? Or echoing from inside your own head? You don't dare find out.", "You slip out and pull the door firmly shut. Your hands are shaking so hard the doorknob feels slick."], "tagEn": "[Safe]"}, "d5_1": {"story": ["Kau mengabaikan pintu-pintu itu dan terus melangkah, menyusuri lorong sampai ke ujungnya yang gelap.", "Lampu-lampu neon di langit-langit berkedip makin cepat, memandikan lorong dalam cahaya putih yang patah-patah. Langkah kakimu bergema di lantai beton... dan kemudian kau menyadarinya: gemanya salah. Ada setengah ketukan tambahan yang menyelinap di antara langkah-langkahmu \u2014 seperti ada sesuatu yang berjalan bersamamu, selangkah di belakang, sedikit tidak selaras.", "Kau berhenti mendadak. Gema itu pun berhenti... setengah detik lebih lambat darimu.", "Di depan, deretan lampu berkedip liar seperti kesetanan \u2014 kecuali satu. Satu lampu menyala stabil, terang benderang, mengundang. Lingkaran cahayanya tampak hangat di tengah lorong yang dingin.", "Dan di bawah lampu yang stabil itu, kau melihat sesuatu yang membuat bulu kudukmu berdiri: lantainya bersih. Tidak ada debu, tidak ada puing, tidak ada jejak \u2014 padahal seluruh lorong ini kotor dan berantakan. Seolah petak lantai itu... dirawat. Atau sering ditunggu.", "Lalu ingatan itu menghantammu: tadi, saat bayangan besar itu melintas di kejauhan, setiap lampu yang dilewatinya berkedip liar \u2014 persis seperti ini."], "storyEn": ["You ignore those doors and keep walking, following the corridor all the way to its dark end.", "The fluorescent tubes overhead flicker faster and faster, bathing the corridor in broken white light. Your footsteps echo off the concrete floor... and then you notice it: the echo is wrong. An extra half-beat slips in between your steps \u2014 like something is walking with you, a pace behind, slightly out of sync.", "You stop abruptly. The echo stops too... half a second later than you.", "Ahead, the row of lamps flickers wildly like something possessed \u2014 except one. One lamp burns steady, bright, inviting. Its pool of light looks warm in the middle of the cold corridor.", "And beneath that steady lamp, you see something that raises the hairs on your neck: the floor is clean. No dust, no debris, no footprints \u2014 though the entire corridor is filthy and strewn with rubble. As if that patch of floor were... tended. Or often waited upon.", "Then the memory hits you: earlier, when that huge shadow passed in the distance, every lamp it crossed flickered wildly \u2014 exactly like this."], "kickerEn": "Part 1: The Beginning"}, "d5_1c": {"story": ["Gema langkah itu masih ada \u2014 setengah ketukan di belakangmu, sabar, tidak terburu-buru. Lampu yang stabil itu menunggu, cahayanya tak bergeming.", "Udara terasa lebih dingin di tengkukmu. Apa yang akan kau lakukan?"], "storyEn": ["That footstep echo is still there \u2014 half a beat behind you, patient, unhurried. The steady lamp waits, its light unwavering.", "The air feels colder on the back of your neck. What will you do?"], "kickerEn": "Part 1: The Beginning", "choices": [{"text": "Berlari menuju cahaya \u2014 terang berarti aman", "textEn": "Run toward the light \u2014 brightness means safety"}, {"text": "Menyelinap di antara kedipan lampu, tetap dalam bayangan", "textEn": "Slip between the lamp flickers, stay in the shadows", "condNote": "Butuh fokus \u2014 mental maksimal Gelisah", "condNoteEn": "Requires focus \u2014 mental at most Uneasy"}, {"text": "Berbalik \u2014 kembali ke persimpangan pintu", "textEn": "Turn back \u2014 return to the door junction"}]}, "d5_trap": {"story": ["Kau berlari menuju cahaya. Terang berarti aman \u2014 itu naluri, itu logika, itu yang diajarkan dunia padamu sejak kecil.", "Cahaya itu menyilaukan, membutakan \u2014 dan justru karena itulah kau tidak melihat kegelapan yang mengerumuninya. Di situlah ia berdiri, di jantung lingkaran terang itu.", "Sosok raksasa tanpa kepala. Lengan-lengannya \u2014 terlalu banyak untuk dihitung \u2014 menjuntai seperti dahan-dahan mati. Sebuah kapak besar terangkat tinggi di atas tempat yang seharusnya menjadi kepalanya.", "Lampu yang stabil itu bukan tempat yang aman. Itu tempatnya menunggu. Lampu-lampu lain berkedip liar karena ia lewat \u2014 dan yang satu ini menyala stabil karena ia tidak pernah pergi dari sana.", "Kapak itu turun. Kau bahkan tak sempat menyesal."], "storyEn": ["You run toward the light. Bright means safe \u2014 that's instinct, that's logic, that's what the world has taught you since childhood.", "The light is blinding \u2014 and precisely because of that, you don't see the darkness crowding around it. That's where it stands, at the heart of that circle of brightness.", "A giant headless figure. Its arms \u2014 too many to count \u2014 dangle like dead branches. A massive axe is raised high above where its head should be.", "That steady lamp was never a safe place. It was where it waits. The other lamps flicker wildly because it passes them \u2014 and this one burns steady because it never leaves.", "The axe comes down. You don't even get the chance to regret."]}, "d5_smart": {"story": ["Kau memaksa kakimu berhenti. Menarik napas pelan-pelan lewat hidung. Mengamati \u2014 benar-benar mengamati.", "Pola kedip lampu-lampu itu... tidak acak. Setiap beberapa detik, satu lampu berkedip liar \u2014 lalu berpindah ke lampu berikutnya, semakin dekat. Sesuatu sedang bergerak di lorong itu, melompat dari satu lampu ke lampu lain.", "Kau bergerak hanya saat lampu di depanmu padam di tengah kedipnya \u2014 berlari pendek menembus gelap, membeku dalam bayangan. Jantungmu menghantam tulang rusuk seperti ingin keluar, tapi kakimu tidak berhenti.", "Saat kau melewati lampu yang stabil itu, kau tidak menoleh sedikit pun. Kau sudah tahu apa yang menunggu di bawahnya.", "Lorong itu terbuka ke sebuah pertigaan. Kau berhasil \u2014 untuk kali ini."], "storyEn": ["You force your legs to stop. You breathe slowly through your nose. You watch \u2014 truly watch.", "The flicker pattern of those lamps... isn't random. Every few seconds, one lamp flickers wildly \u2014 then it shifts to the next lamp, drawing closer. Something is moving through that corridor, leaping from lamp to lamp.", "You move only when the lamp ahead of you dies mid-flicker \u2014 sprinting short bursts through the dark, freezing inside shadows. Your heart hammers against your ribs like it wants out, but your legs don't stop.", "As you pass beneath that steady lamp, you don't glance at it once. You already know what's waiting under it.", "The corridor opens into a three-way junction. You made it \u2014 this time."], "tagEn": "[Safe]"}, "d5_back": {"story": ["Kau berbalik \u2014 perlahan, menjaga bahumu tetap menghadap lorong, tanpa membelakangi kegelapan lebih lama dari yang perlu.", "Gema setengah ketukan itu mengikutimu beberapa langkah... lalu hilang. Begitu saja. Seolah ia tidak pernah ada.", "Kau tiba kembali di persimpangan pintu dengan napas memburu dan keringat dingin di pelipis. Setidaknya \u2014 setidaknya kau masih hidup."], "storyEn": ["You turn around \u2014 slowly, keeping your shoulders squared toward the corridor, without turning your back on the darkness longer than you must.", "That half-beat echo follows you for a few steps... then vanishes. Just like that. As if it had never been there.", "You reach the door junction again, breath ragged, cold sweat on your temples. At least \u2014 at least you're still alive."], "tagEn": "[Safe]"}, "hub_exit": {"story": ["Kau melangkah hati-hati hingga tiba di sebuah pertigaan lorong. Di tengahnya berdiri meja resepsionis tua yang nyaris hancur dimakan waktu \u2014 kayunya lapuk, salah satu kakinya patah sehingga meja itu miring menyedihkan. Di atasnya berserakan tumpukan kertas berdebu yang menguning, dan dari balik meja itu dua lorong lain membentang ke kiri dan ke kanan. Lorong kiri gelap gulita dan sunyi senyap seperti tenggorokan binatang buas, sementara dari ujung lorong kanan memancar secercah cahaya redup yang berdenyut pelan, seolah mengundangmu mendekat.", "Bulu kudukmu meremang. Tempat ini terasa salah \u2014 sangat salah \u2014 dan di suatu tempat di belakangmu, suara-suara aneh itu masih mengikutimu, berbisik di batas pendengaran."], "storyEn": ["You step carefully until you reach a three-way junction of corridors. In its center stands an old reception desk, nearly destroyed by time \u2014 its wood rotten, one leg broken so that it tilts pitifully. Dusty, yellowed stacks of paper lie scattered across it, and from behind the desk two more corridors stretch to the left and right. The left corridor is pitch black and silent as a beast's throat, while from the far end of the right corridor pulses a faint, throbbing glimmer of light, as if inviting you closer.", "The hairs on your neck stand up. This place feels wrong \u2014 deeply wrong \u2014 and somewhere behind you, those strange sounds are still following, whispering at the edge of hearing."], "kickerEn": "Part 1: The Beginning"}, "tbc": {}};
+(function(){
+  for(const id of Object.keys(NODES_I18N)){
+    const n=NODES[id], o=NODES_I18N[id];
+    if(!n||!o) continue;
+    if(o.story) n.story=o.story;
+    for(const k of ["storyEn","kickerEn","tagEn"]) if(o[k]!==undefined) n[k]=o[k];
+    if(o.choices && n.choices) o.choices.forEach((c,i)=>{
+      if(!n.choices[i]) return;
+      if(c.text) n.choices[i].text=c.text;
+      for(const k of ["textEn","doneText","doneTextEn","condNote","condNoteEn"])
+        if(c[k]!==undefined) n.choices[i][k]=c[k];
+    });
+  }
+  const ACHV_I18N = {"wake_up": {"nameEn": "The Awakening", "descEn": "Your eyes opened \u2014 and this world was never the same.", "name": "Kebangkitan", "desc": "Matamu terbuka \u2014 dan dunia ini tidak lagi sama."}, "first_death": {"nameEn": "First Blood", "descEn": "The Darkness tasted you for the first time.", "name": "Darah Pertama", "desc": "Kegelapan mencicipimu untuk pertama kali."}, "five_deaths": {"nameEn": "Five Deaths", "descEn": "The Darkness is beginning to memorize your name.", "name": "Lima Kematian", "desc": "Kegelapan mulai menghafal namamu."}, "trap_victim": {"nameEn": "The Deceiving Light", "descEn": "You ran toward the light. The light ran toward you.", "name": "Terang yang Menipu", "desc": "Kau berlari menuju cahaya. Cahaya itu berlari ke arahmu."}, "smart_cross": {"nameEn": "The Cunning Shadow", "descEn": "You became one with the dark \u2014 and the dark let you pass.", "name": "Bayangan yang Cerdik", "desc": "Kau menjadi satu dengan gelap \u2014 dan gelap membiarkanmu lewat."}, "frozen": {"nameEn": "Stillness Is Life", "descEn": "It passed by. You did not breathe. You are still here.", "name": "Diam Adalah Hidup", "desc": "Ia lewat. Kau tidak bernapas. Kau masih di sini."}, "teddy_friend": {"nameEn": "A Friend in the Darkness", "descEn": "In a place with no one, you chose not to be alone.", "name": "Teman di Kegelapan", "desc": "Di tempat tanpa siapa pun, kau memilih untuk tidak sendirian."}, "teddy_dropped": {"nameEn": "No Need for Memories", "descEn": "Some things are better left behind.", "name": "Tak Butuh Kenangan", "desc": "Beberapa hal lebih baik ditinggalkan."}, "explorer": {"nameEn": "All Doors Open", "descEn": "Your curiosity outweighed your fear. For now.", "name": "Semua Pintu Terbuka", "desc": "Rasa ingin tahumu lebih besar dari rasa takutmu. Untuk saat ini."}, "wounded_heal": {"nameEn": "Filthy Remedy", "descEn": "You dressed your wound with whatever was at hand. It worked. Somehow.", "name": "Obat Kotor", "desc": "Kau membalut lukamu dengan apa yang ada. Itu berhasil. Entah bagaimana."}, "reader": {"nameEn": "The Unsent Letter", "descEn": "Someone's last words, finally read.", "name": "Surat yang Tak Terkirim", "desc": "Kata-kata terakhir seseorang, akhirnya dibaca."}, "empty_tank": {"nameEn": "Total Exhaustion", "descEn": "Your body gave up before your mind could.", "name": "Kelelahan Total", "desc": "Tubuhmu menyerah sebelum pikiranmu sempat."}, "dice_fate": {"nameEn": "Dice of Fate", "descEn": "When reason surrenders, fate takes over.", "name": "Dadu Takdir", "desc": "Ketika akal menyerah, nasib yang mengambil alih."}, "lemas_body": {"nameEn": "The Body Surrenders", "descEn": "Your legs no longer listen to you.", "name": "Tubuh Menyerah", "desc": "Kakimu tidak lagi mau mendengarkanmu."}};
+  ACHV.forEach(a=>{ const o=ACHV_I18N[a.id]; if(o) Object.assign(a,o); });
+  const DEX_I18N = {"roti_kering": {"nameEn": "Dried Bread", "descEn": "Three pieces of dried bread, still sealed in their plastic wrapper \u2014 hard, cold, and worth more than gold in a place like this."}, "surat_terlipat": {"nameEn": "Folded Letter", "descEn": "A letter that was never sent \u2014 its ink trembling: \u2018Forgive me. I can\u2019t come home. Don\u2019t look for me.\u2019"}, "perban_kotor": {"nameEn": "Dirty Bandage", "descEn": "A stained roll of bandage \u2014 filthy, but better than leaving a wound open."}, "cokelat": {"nameEn": "Chocolate Bar", "descEn": "A bar of chocolate, still sealed tight \u2014 slightly melted, but whole. A rare sweetness in a place like this."}, "boneka": {"nameEn": "Teddy Bear", "descEn": "A shabby teddy bear with button eyes, cold in your grip. Why are you carrying it? You don\u2019t know \u2014 but you can\u2019t let it go."}, "gambar_crayon": {"nameEn": "Crayon Drawing", "descEn": "A family drawn in crayon \u2014 father, mother, and child, smiling on paper yellowed at the edges."}};
+  ITEM_DEX.forEach(d=>{ const o=DEX_I18N[d.id]; if(o) Object.assign(d,o); });
+  const TUTSTEPS_I18N = [{"t": "Selamat Datang di The Asylum", "h": "Kau adalah seorang <b>player</b> yang terbangun di dalam sebuah cerita \u2014 dan cerita ini tidak akan menunggumu siap.<br><br>Tujuanmu hanya satu: <b>bertahan hidup</b>. Setiap pilihan adalah takdir yang harus kau jalani sampai akhir. Tidak ada tombol kembali. Tidak ada kesempatan kedua.", "tEn": "Welcome to The Asylum", "hEn": "You are a <b>player</b> who has awakened inside a story \u2014 and this story will not wait for you to be ready.<br><br>Your goal is only one: <b>survive</b>. Every choice is a fate you must live out to the end. There is no back button. No second chances."}, {"t": "Membaca Situasi dengan Teliti", "h": "Setiap adegan ditulis sebagai <b>teks cerita</b> \u2014 bacalah dengan teliti, karena di tempat ini, petunjuk sering bersembunyi di antara detail yang paling kecil dan paling sepele.<br><br><b>Arti warna teks:</b><br>\u2022 <span class=\"c-gray\">Teks <b>abu-abu</b> adalah teks cerita.</span><br>\u2022 <span class=\"c-white\">Teks <b>putih</b> adalah teks pilihan/option.</span><br>\u2022 <span class=\"c-green\">Teks <b>hijau</b> berarti hasil pilihanmu aman dan baik.</span><br>\u2022 <span class=\"c-yellow\">Teks <b>kuning</b> berarti hasil pilihanmu membawamu dalam bahaya.</span><br>\u2022 <span class=\"c-red\">Teks <b>merah</b> berarti pilihan itu berakhir pada dead end \u2014 kematian.</span><br>\u2022 <span class=\"c-black\">Teks <b class='c-black'>hitam</b> adalah kejadian langka dan spesial.</span>", "tEn": "Reading the Situation", "hEn": "Every scene is written as <b>story text</b> \u2014 read it carefully, because in this place, clues often hide among the smallest, most trivial details.<br><br><b>Text color meanings:</b><br>\u2022 <span class=\"c-gray\"><b>Gray</b> text is story text.</span><br>\u2022 <span class=\"c-white\"><b>White</b> text is choice/option text.</span><br>\u2022 <span class=\"c-green\"><b>Green</b> text means your choice's outcome is safe and good.</span><br>\u2022 <span class=\"c-yellow\"><b>Yellow</b> text means your choice's outcome puts you in danger.</span><br>\u2022 <span class=\"c-red\"><b>Red</b> text means the choice ends in a dead end \u2014 death.</span><br>\u2022 <span class=\"c-black\"><b class='c-black'>Black</b> text is a rare, special occurrence.</span>"}, {"t": "Memilih Tindakan", "h": "Setiap pilihan membuka <b>jalan cerita yang berbeda</b> \u2014 dan tidak semua jalan kembali. Pilihlah dengan cermat, karena beberapa pilihan menyimpan risiko yang tidak terlihat di awal, menunggu seperti jebakan dalam gelap.<br><br>Kadang muncul momen khusus bertanda <span class=\"tag c-white\">[Pilihan!]</span>: di sanalah ceritamu berlanjut mengikuti kehendakmu sendiri.", "tEn": "Making Your Choice", "hEn": "Every choice opens a <b>different story path</b> \u2014 and not every path leads back. Choose carefully, because some choices hide risks unseen at first, waiting like traps in the dark.<br><br>Sometimes a special moment marked <span class=\"tag c-white\">[Choose!]</span> appears: there, your story continues following your own will."}, {"t": "Kondisimu", "h": "Awasi layar statusmu seperti nyawamu bergantung padanya \u2014 karena memang begitu:<br>\u2022 <b>Situasi</b> \u2014 <i>Aman</i>, <span class=\"tag c-yellow\">[Dalam bahaya]</span>, atau <span class=\"tag\" style=\"color:#fb923c\">[Terluka]</span> (beberapa pilihan akan terkunci).<br>\u2022 <b>Kondisi Mental</b> \u2014 <i>Tenang \u2192 Hancur</i>. Bisa memburuk, <i>dan</i> bisa pulih kembali.<br>\u2022 <b>\u26a1 Energi</b> \u2014 setiap pilihan mengurasnya. Makanlah untuk memulihkan.<br><br>Detail tiap sistem akan <b>dijelaskan saat pertama kali muncul</b> \u2014 tidak perlu menghafal apa pun sekarang.", "tEn": "Your Condition", "hEn": "Watch your status screen like your life depends on it \u2014 because it does:<br>\u2022 <b>Situation</b> \u2014 <i>Safe</i>, <span class=\"tag c-yellow\">[In danger]</span>, or <span class=\"tag\" style=\"color:#fb923c\">[Wounded]</span> (some choices will be locked).<br>\u2022 <b>Mental State</b> \u2014 <i>Calm \u2192 Shattered</i>. It can worsen, <i>and</i> it can recover.<br>\u2022 <b>\u26a1 Energy</b> \u2014 every choice drains it. Eat to restore it.<br><br>Each system's details will be <b>explained when it first appears</b> \u2014 no need to memorize anything now."}, {"t": "Tas & Item", "h": "Pilihanmu bisa memberimu <b>item</b> \u2014 masing-masing dengan <b>ikonnya sendiri</b> di dalam tasmu \ud83c\udf92. Jangan remehkan barang sekecil apa pun; di sini, benda mati bisa berarti hidup atau mati.<br><br>Beberapa item bisa <b>dipakai langsung</b> dari tas (makanan, perban...). Kau akan diberi tahu setiap kali mendapatkannya.", "tEn": "Bag & Items", "hEn": "Your choices can grant you <b>items</b> \u2014 each with <b>its own icon</b> in your bag \ud83c\udf92. Never underestimate even the smallest object; here, a lifeless thing can mean life or death.<br><br>Some items can be <b>used directly</b> from the bag (food, bandages...). You will be notified whenever you receive one."}, {"t": "Perlengkapan", "h": "<b>PERLENGKAPAN</b> berbeda dengan <b>inventori</b>: senjata dan perlengkapan khusus harus di-<b>EQUIP</b> dulu agar benar-benar bisa dipakai \u2014 kelolalah lewat tasmu \ud83c\udf92.<br><br>Beberapa pilihan hanya bisa dilewati jika perlengkapan yang tepat sudah <b>terpasang</b> di tubuhmu.", "tEn": "Equipment", "hEn": "<b>EQUIPMENT</b> is different from <b>inventory</b>: weapons and special gear must be <b>EQUIPPED</b> before they can actually be used \u2014 manage them through your bag \ud83c\udf92.<br><br>Some choices can only be passed if the right equipment is <b>equipped</b> on you."}, {"t": "Kematian & Progres", "h": "Pilihan yang berakhir <b>Tewas</b> berarti kau gagal \u2014 tapi sebagai <b>\"Player\"</b>, kau bisa <b>bangkit di tempat</b>, tepat di mana kau jatuh. Setiap kematian menaikkan <b>Death Count</b> yang menggantung di atas kepalamu; jagalah angka itu tetap rendah, karena ia menentukan <b>\"Akhir\"</b> seperti apa yang menunggumu.<br><br>Progresmu tersimpan otomatis di perangkatmu. Kau juga bisa <b>export/import</b> save sebagai file.", "tEn": "Death & Progress", "hEn": "A choice that ends in <b>Death</b> means you failed \u2014 but as a <b>\"Player\"</b>, you can <b>rise again on the spot</b>, exactly where you fell. Every death raises the <b>Death Count</b> hanging above your head; keep that number low, because it determines what kind of <b>\"Ending\"</b> awaits you.<br><br>Your progress is saved automatically on your device. You can also <b>export/import</b> your save as a file."}];
+  TUT_STEPS.forEach((st,i)=>{ const o=TUTSTEPS_I18N[i]; if(o) Object.assign(st,o); });
+  const TUTPOP_I18N = {"energy_brief": {"t": "\u26a1 ENERGI \u2014 BACA DULU, INI PENTING", "h": "Setiap pilihan yang kau ambil menguras <b>4 Energi</b> \u2014 perhatikan angka <b>-4 \u26a1</b> yang melayang setiap kali kau memilih.<br><br>\u2022 Beberapa pilihan <b>menuntut energimu cukup</b>. Terlalu lelah? Pilihan itu terkunci rapat.<br>\u2022 <b>Makin rendah energimu, makin rentan kau terhadap bahaya.</b> Kalau pilihanmu berujung buruk dan kau harus <b>lari</b>... kakimu tak akan sanggup.<br>\u2022 <b>Gunakan energimu dengan bijak.</b> Tidak semua tempat bisa kau jelajahi sekaligus \u2014 kadang ada isinya, kadang hanya lorong kosong. Pilihlah dengan cermat.<br><br>Lapar? Buka tas \ud83c\udf92, tekan <b>PAKAI</b> pada makanan untuk memulihkan energi.", "tEn": "\u26a1 ENERGY \u2014 READ THIS FIRST, IT MATTERS", "hEn": "Every choice you make drains <b>4 Energy</b> \u2014 watch for the floating <b>-4 \u26a1</b> each time you choose.<br><br>\u2022 Some choices <b>demand enough energy</b>. Too exhausted? That choice stays locked.<br>\u2022 <b>The lower your energy, the more vulnerable you are to danger.</b> If your choice goes wrong and you have to <b>run</b>... your legs won't carry you.<br>\u2022 <b>Spend your energy wisely.</b> You can't explore everywhere at once \u2014 sometimes there's something there, sometimes only an empty corridor. Choose carefully.<br><br>Hungry? Open your bag \ud83c\udf92 and press <b>USE</b> on food to restore energy."}, "tier": {"t": "\ud83d\udcca EFEK BERTINGKAT", "h": "Efek seperti <b>Stress</b>, <b>Keracunan</b>, dan <b>Kelelahan</b> memiliki 4 tingkat: <i>Ringan \u2192 Sedang \u2192 Tinggi \u2192 Ekstrim</i>. Pilihan-pilihanmu bisa menaikkan atau menurunkannya satu tingkat.<br><br>Hati-hati di tingkat <b>Ekstrim</b>: Kelelahan Ekstrim membuatmu <b>Lemas</b> (setara Terluka), dan Stress Ekstrim membuat pilihanmu <b>ditentukan dadu</b> \u2014 bukan olehmu!", "tEn": "\ud83d\udcca TIERED EFFECTS", "hEn": "Effects like <b>Stress</b>, <b>Poisoning</b>, and <b>Fatigue</b> have 4 tiers: <i>Mild \u2192 Moderate \u2192 Severe \u2192 Extreme</i>. Your choices can raise or lower them by one tier.<br><br>Beware the <b>Extreme</b> tier: Extreme Fatigue leaves you <b>Limp</b> (equal to Wounded), and Extreme Stress lets <b>the dice decide your choices</b> \u2014 not you!"}, "energy": {"t": "\u26a1 ENERGI", "h": "Setiap pilihan menguras <b>4 Energi</b> \u2014 perhatikan angka yang melayang. Lapar? Buka tas \ud83c\udf92 lalu tekan <b>PAKAI</b> pada makanan untuk memulihkan.<br><br>Energi habis total? Setiap pilihan akan menaikkan Kelelahan \u2014 dan saat menyentuh 0, kau <b>dipaksa mengikuti jalan termudah</b>, suka atau tidak.", "tEn": "\u26a1 ENERGY", "hEn": "Every choice drains <b>4 Energy</b> \u2014 watch the floating numbers. Hungry? Open your bag \ud83c\udf92 and press <b>USE</b> on food to recover.<br><br>Energy fully depleted? Every choice will raise Fatigue \u2014 and at 0, you are <b>forced down the easiest path</b>, like it or not."}, "emotion": {"t": "\ud83d\udcad EMOSI", "h": "Perasaan sesaat \u2014 <b>Takut</b>, <b>Lega</b>, <b>Sedih</b> \u2014 lahir dari kejadian-kejadian dan memudar seiring waktu.<br><br>Saat kau <b>goyah</b> (Panik, atau Takut yang tinggi), pilihan-pilihan yang membutuhkan ketenangan akan terkunci.", "tEn": "\ud83d\udcad EMOTION", "hEn": "Fleeting feelings \u2014 <b>Fear</b>, <b>Relief</b>, <b>Sorrow</b> \u2014 are born from events and fade with time.<br><br>When you are <b>shaken</b> (Panicked, or high Fear), choices that require calm will be locked."}, "wounded": {"t": "\ud83e\ude78 TERLUKA", "h": "Kau <b>Terluka</b> \u2014 beberapa pilihan kini terkunci untukmu.<br><br>Tidak ada yang akan menyembuhkanmu dengan sendirinya di tempat ini. Buka tas \ud83c\udf92 dan tekan <b>PAKAI</b> pada perban \u2014 atau tanggung sendiri lukamu.", "tEn": "\ud83e\ude78 WOUNDED", "hEn": "You are <b>Wounded</b> \u2014 several choices are now locked to you.<br><br>Nothing here will heal you on its own. Open your bag \ud83c\udf92 and press <b>USE</b> on a bandage \u2014 or bear the wound yourself."}, "condchoice": {"t": "\ud83d\udd00 PILIHAN BERSYARAT", "h": "Nomor boleh sama, <b>hasil bisa beda</b> \u2014 tergantung kondisimu saat memilih: terluka? panik? kelelahan?<br><br>Selalu periksa statusmu sebelum memilih. Pilihan semacam ini ditandai secara khusus.", "tEn": "\ud83d\udd00 CONDITIONAL CHOICES", "hEn": "Same number, <b>different outcome</b> \u2014 depending on your condition when you choose: wounded? panicked? exhausted?<br><br>Always check your status before choosing. Choices like this are specially marked."}, "input": {"t": "\u2328\ufe0f TEKA-TEKI", "h": "Ketik jawabanmu pada kolom yang tersedia.<br><br>Ingat: jawaban yang salah <b>ada konsekuensinya</b> \u2014 berpikirlah baik-baik sebelum menekan kirim.", "tEn": "\u2328\ufe0f RIDDLE", "hEn": "Type your answer into the field provided.<br><br>Remember: a wrong answer <b>has consequences</b> \u2014 think carefully before you submit."}, "keypad": {"t": "\ud83d\udd22 PANEL ANGKA", "h": "Masukkan kode yang benar melalui tombol-tombol angka.<br><br>Terlalu banyak kesalahan akan <b>berakibat fatal</b>. Jangan asal tebak.", "tEn": "\ud83d\udd22 KEYPAD", "hEn": "Enter the correct code using the number buttons.<br><br>Too many wrong attempts will be <b>fatal</b>. Don't guess blindly."}, "objective": {"t": "\ud83c\udfaf OBJECTIVE", "h": "Tujuan barumu telah tercatat di <b>layar status</b>.<br><br>Selesaikan \u2014 kalau kau ingin tetap hidup.", "tEn": "\ud83c\udfaf OBJECTIVE", "hEn": "Your new objective has been recorded on the <b>status screen</b>.<br><br>Complete it \u2014 if you want to stay alive."}, "favor": {"t": "\ud83d\udc9e HUBUNGAN", "h": "Tindakan-tindakanmu mengubah cara seseorang memandangmu \u2014 tercatat di layar status.<br><br>Hubungan bisa menjadi kunci keselamatan... atau jerat yang manis.", "tEn": "\ud83d\udc9e FAVOR", "hEn": "Your actions change how someone sees you \u2014 recorded on the status screen.<br><br>Favor can be a key to safety... or a sweet trap."}, "temp": {"t": "\u23f3 EFEK SEMENTARA", "h": "Efek ini hanya bertahan <b>beberapa adegan</b>, lalu menghilang dengan sendirinya.<br><br>Manfaatkan waktunya selagi ada.", "tEn": "\u23f3 TEMPORARY EFFECT", "hEn": "This effect lasts only <b>a few scenes</b>, then fades on its own.<br><br>Make use of it while it lasts."}, "lemas": {"t": "\ud83e\udd40 LEMAS", "h": "Kelelahanmu telah mencapai <b>Ekstrim</b>. Tubuhmu lemas tak bertenaga \u2014 setara <b>Terluka</b>: pilihan-pilihan fisik terkunci.<br><br>Makan dan beristirahatlah sebelum melanjutkan.", "tEn": "\ud83e\udd40 LIMP", "hEn": "Your fatigue has reached <b>Extreme</b>. Your body is limp and powerless \u2014 equal to <b>Wounded</b>: physical choices are locked.<br><br>Eat and rest before going on."}, "bingung": {"t": "\ud83c\udfb2 KEBINGUNGAN AKUT", "h": "Stress-mu mencapai <b>Ekstrim</b>!<br><br>Pilihanmu berikutnya <b>ditentukan oleh dadu</b>, bukan olehmu. Tenangkan dirimu \u2014 cepat.", "tEn": "\ud83c\udfb2 ACUTE CONFUSION", "hEn": "Your stress has reached <b>Extreme</b>!<br><br>Your next choice will be <b>decided by the dice</b>, not by you. Calm yourself \u2014 quickly."}, "usable": {"t": "\ud83c\udf92 PAKAI ITEM", "h": "Item ini bisa <b>dipakai langsung dari tas</b>: makanan, perban, dan lainnya.<br><br>Buka \ud83c\udf92 kapan saja dan tekan <b>PAKAI</b>. Kelola sumber dayamu baik-baik \u2014 tidak ada yang gratis di tempat ini.", "tEn": "\ud83c\udf92 USE ITEMS", "hEn": "This item can be <b>used straight from your bag</b>: food, bandages, and more.<br><br>Open \ud83c\udf92 anytime and press <b>USE</b>. Manage your resources well \u2014 nothing is free in this place."}};
+  Object.keys(TUTPOP_I18N).forEach(k=>{ if(TUTPOP[k]) Object.assign(TUTPOP[k], TUTPOP_I18N[k]); });
+  const REACTIONS_I18N = {"death": {"text": ["Kegelapan menelanmu bulat-bulat. Namun sebagai \"Player\", kau bangkit kembali \u2014 Death Count: {deathCount}.", "Kau tewas. Kegelapan melepaskanmu \u2014 dengan harga: Death Count {deathCount}."], "textEn": ["The Darkness swallows you whole. But as a \"Player\", you rise again \u2014 Death Count: {deathCount}.", "You died. The Darkness releases you \u2014 for a price: Death Count {deathCount}."]}, "status_danger": {"text": ["Hawa di sekitarmu berubah \u2014 kau dalam bahaya.", "Sesuatu sedang mengawasimu. Bahaya mengintai dekat."], "textEn": ["The air around you shifts \u2014 you are in danger.", "Something is watching you. Danger lurks close."]}, "status_wounded": {"text": ["Tubuhmu terluka. Beberapa pilihan tak bisa kau ambil.", "Luka itu membatasi setiap gerakanmu."], "textEn": ["Your body is wounded. Some choices are beyond your reach.", "The wound limits your every move."]}, "status_safe": {"text": ["Kau bisa bernapas lega... untuk sekarang."], "textEn": ["You can breathe easy... for now."]}, "mental_worse": {"text": ["Kegelisahan merayap di benakmu. ({label})", "Pikiranmu kian gelap. ({label})"], "textEn": ["Unease creeps through your mind. ({label})", "Your thoughts grow darker. ({label})"]}, "mental_better": {"text": ["Ketenangan kembali menyelimutimu. ({label})"], "textEn": ["Calm settles over you once more. ({label})"]}, "item_gained": {"text": ["Kau mendapatkan: {name}.", "Sesuatu kini tersimpan di tasmu: {name}."], "textEn": ["You obtained: {name}.", "Something now rests in your bag: {name}."]}, "item_lost": {"text": ["Kehilangan: {name}."], "textEn": ["Lost: {name}."]}, "equipment_equipped": {"text": ["{name} terpasang di {slotName}."], "textEn": ["{name} equipped to {slotName}."]}, "equipment_unequipped": {"text": ["{name} dilepas dari {slotName}."], "textEn": ["{name} unequipped from {slotName}."]}, "effect_started": {"text": ["Efek baru menyelimutimu: {effect}."], "textEn": ["A new effect takes hold of you: {effect}."]}, "tier_changed": {"text": ["{name}: {from} \u2192 {to}.", "Efek {name} kini {label}."], "textEn": ["{name}: {from} \u2192 {to}.", "The {name} effect is now {label}."]}, "derived_lemas": {"text": ["{note}"], "textEn": ["{note}"]}, "derived_bingung": {"text": ["{note}"], "textEn": ["{note}"]}, "derived_lemas_end": {"text": ["{note}"], "textEn": ["{note}"]}, "derived_bingung_end": {"text": ["{note}"], "textEn": ["{note}"]}, "emotion_changed": {"text": ["{name} {dir} dalam dirimu."], "textEn": ["{name} {dir} inside you."]}, "favor_changed": {"text": ["Hubungan dengan {name} berubah ({dstr})."], "textEn": ["Favor with {name} changed ({dstr})."]}, "objective_changed": {"text": ["\ud83c\udfaf Objective baru: {objective}.", "Tujuanmu diperbarui: {objective}."], "textEn": ["\ud83c\udfaf New objective: {objective}.", "Your objective has been updated: {objective}."]}, "temp_started": {"text": ["Efek sementara: {name}."], "textEn": ["Temporary effect: {name}."]}, "temp_ended": {"text": ["{name} mereda."], "textEn": ["{name} fades."]}, "body_changed": {"text": ["Kondisi tubuhmu: {to}."], "textEn": ["Your body condition: {to}."]}, "energy_tier": {"text": ["{tierText}"], "textEn": ["{tierText}"]}};
+  Object.keys(REACTIONS_I18N).forEach(k=>{ if(REACTIONS[k]) Object.assign(REACTIONS[k], REACTIONS_I18N[k]); });
+  const ITEM_I18N = {"roti_kering": {"nameEn": "Dry Bread", "noteEn": "USE: +15 Energy"}, "surat_terlipat": {"nameEn": "Folded Letter", "noteEn": "The letter that was never sent"}, "perban_kotor": {"nameEn": "Dirty Bandage", "noteEn": "USE: heal wounds, but dirty"}, "cokelat": {"nameEn": "Chocolate Bar", "noteEn": "USE: +20 Energy, -1 Stress"}, "boneka": {"nameEn": "Teddy Bear", "noteEn": "A shabby bear \u2014 no idea why you carry it", "storyHintEn": "This shabby teddy bear... why am I carrying it? No idea. But it feels like I should keep it."}, "gambar_crayon": {"nameEn": "Crayon Drawing", "noteEn": "A family drawing \u2014 USE: reflect on it"}};
+  for(const id of Object.keys(NODES)){
+    const n=NODES[id];
+    (n.grantItems||[]).forEach(it=>{ const o=ITEM_I18N[it.id]; if(o) Object.assign(it,o); });
+    if(n.item){ const o=ITEM_I18N[n.item.id]; if(o) Object.assign(n.item,o); }
+  }
+})();
+
+
 (function init(){
+  applyStaticLang();
   const sv = loadSave();
   if(sv && sv.registered) showTitle(); /* pemain kembali → judul (LANJUTKAN) */
   else goTarget("prolog1");            /* buka website → prolog → judul */
