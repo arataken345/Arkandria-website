@@ -2791,7 +2791,7 @@ function restAttack(){
     btn: ui("rest_continue"),
     onDone: ()=>{ rerenderNode(); }
   });
-  try{ if(globalThis.AudioSys) AudioSys.sfx("metal_clang"); }catch(e){}
+  try{ if(globalThis.AudioSys) AudioSys.sfx(kind==="robbed" ? "paper_rustle" : "death_sting", kind==="robbed" ? null : {gain:0.35}); }catch(e){}
 }
 /* Interlude generik: intro typewriter -> tap -> body + tombol. */
 function renderInterlude(o){
@@ -3942,6 +3942,7 @@ function renderNode(id){
       note.textContent = ui("tired_note");
       cbox.appendChild(note);
     }
+    try{ if(globalThis.AudioSys && cbox.querySelector(".choice")) AudioSys.sfx("choice_appear"); }catch(e){}
     cbox.querySelectorAll(".choice:not(:disabled)").forEach(btn=>{
       btn.addEventListener("click", (e)=>{
         cbox.querySelectorAll(".choice").forEach(b=>b.disabled=true);
@@ -3952,6 +3953,7 @@ function renderNode(id){
         setTimeout(()=>{
           if(rollFaint()){ doFaint(); return; } /* PINGSAN: pilihan batal, nasib yang bicara */
           if(isBingung()){ /* Kebingungan Akut: dadu yang memilih */
+            try{ if(globalThis.AudioSys) AudioSys.sfx("dice_roll"); }catch(e){}
             const avail = n.choices.filter(cc=>!isChoiceLocked(cc));
             const pick = avail.length ? avail[rollDie(avail.length)-1] : c;
             toast(ui("dice_pick")+choiceText(pick));
@@ -3996,6 +3998,7 @@ function goTarget(target, opts){
     }
   }catch(e){}
   applyEnterMutations(n);         /* sistem baru: tier, body, mental, emosi, objective, favor, item */
+  try{ if(globalThis.AudioSys && n.setStatus==="wounded") AudioSys.sfx("death_sting", {gain:0.3}); }catch(e){}
   if(n.tutPop) tutPop(n.tutPop);      /* popup tutorial kontekstual dari node */
   persist();
   if(n.kind==="result") renderResult(target);
