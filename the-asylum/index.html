@@ -325,6 +325,15 @@
   #tutModal{position:fixed; inset:0; z-index:200; display:flex; align-items:center;
     justify-content:center; background:rgba(0,0,0,.74); padding:1.2rem}
   #tutModal[hidden]{display:none}
+  /* ===== TOAST KECIL TENGAH (item story) ===== */
+  #storyToast{position:fixed; left:50%; top:42%; transform:translate(-50%,-50%) scale(.96);
+    z-index:220; background:rgba(10,10,16,.94); border:1px solid var(--blood-dim);
+    color:var(--bone); padding:.75rem 1.15rem; border-radius:10px; font-size:.85rem;
+    max-width:82%; text-align:center; line-height:1.7; opacity:0; pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    box-shadow:0 0 30px rgba(0,0,0,.6)}
+  #storyToast.show{opacity:1; transform:translate(-50%,-50%) scale(1)}
+  @media (prefers-reduced-motion: reduce){ #storyToast{transition:none} }
   .tutmodal-box{max-width:440px; width:100%; background:#101016;
     border:1px solid var(--blood-dim); border-radius:14px; padding:1.6rem; text-align:center;
     box-shadow:0 0 40px rgba(220,20,60,.18)}
@@ -355,6 +364,7 @@
   </div>
 </div>
 <input type="file" id="importFile" accept=".json,application/json" hidden />
+<div id="storyToast"></div>
 <div id="tutModal" hidden>
   <div class="tutmodal-box">
     <h3 id="tutPopT"></h3>
@@ -815,7 +825,8 @@ const NODES = {
       "Kau memeluknya erat-erat. Entah kenapa, benda ini terasa penting."
     ],
     grantItems: [
-      { id: "boneka", name: "Boneka Beruang", icon: "🧸", note: "+1 Boneka beruang — PAKAI: tenangkan diri", kind: "consumable", use: { mentalBetter: 1 } }
+      { id: "boneka", name: "Boneka Beruang", icon: "🧸", story: true, note: "Boneka lusuh — entah kenapa kau membawanya",
+      storyHint: "Boneka beruang lusuh ini... kenapa aku membawanya? Entahlah. Tapi rasanya aku harus menyimpannya." }
     ],
     addEmotion: [{ n: "Lega", amt: 1 }, { n: "Takut", amt: 1 }],
     setFlag: { d4: true },
@@ -1304,7 +1315,13 @@ function spendEnergy(n, x, y){
 /* Pakai item manual dari tas (makan, perban, dll). */
 function useItem(id){
   const it = S.items.find(x=>x.id===id);
-  if(!it || !it.use) return;
+  if(!it) return;
+  /* Item story-related: belum waktunya dipakai — hanya pesan misterius. */
+  if(it.story){
+    storyToast(it.storyHint || "Item ini apaan? Kenapa aku membawanya? Entahlah... Mungkin nanti ada gunanya.");
+    return;
+  }
+  if(!it.use) return;
   const before = snapshotState();
   const u = it.use;
   if(u.energy) S.energy = Math.min(100, Math.max(0, (S.energy||0)+u.energy));
@@ -1691,7 +1708,7 @@ function openInventory(){
     ? S.items.map(it=>{
         const eq = it.kind==="equipment"
           ? `<button class="mini-btn" data-equip="${esc(it.id)}">EQUIP</button>` : "";
-        const use = it.use
+        const use = (it.use || it.story)
           ? `<button class="mini-btn" data-use="${esc(it.id)}">PAKAI</button>` : "";
         return `<div class="inv-item"><span>${esc(it.icon||"🎒")} ${esc(it.name)}<br/><small>${esc(it.note||"")}</small></span><span class="inv-right"><b>+${it.qty||1}</b>${eq}${use}</span></div>`;
       }).join("")
@@ -1741,6 +1758,15 @@ $("#tutPopOk").addEventListener("click", dismissTutPop);
 $("#tutModal").addEventListener("click", (e)=>{ if(e.target.id==="tutModal") dismissTutPop(); });
 
 /* ---------- TOAST ---------- */
+let _storyToastT = null;
+function storyToast(msg){
+  const el = $("#storyToast");
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add("show");
+  if(_storyToastT) clearTimeout(_storyToastT);
+  _storyToastT = setTimeout(()=>el.classList.remove("show"), 2200);
+}
 function toast(msg){
   let t = $("#toast");
   if(!t){ t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
