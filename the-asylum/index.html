@@ -505,7 +505,7 @@ function _swell(p,t,peak,a,h,r){ p.setValueAtTime(0.0001,t); p.exponentialRampTo
 
 // ---------------------------------------------------------------- key lists (EXACT)
 const AMBIENT_KEYS = ["title","corridor","doorhub","saferoom","darkstare","teddyroom","steeldoor","reception","leftcorridor","hall","crates","death","none"];
-const SFX_KEYS = ["ui_click","ui_hover","type_tick","choice_appear","pickup","achievement","death_sting","heal","dice_roll","paper_rustle","door_creak","metal_clang","whisper","footstep","energy_low","teddy","faint"];
+const SFX_KEYS = ["ui_click","ui_hover","type_tick","choice_appear","pickup","achievement","death_sting","heal","dice_roll","paper_rustle","door_creak","metal_clang","whisper","footstep","energy_low","teddy","faint","ui_toggle","ui_back","ui_confirm","ui_error","ui_drop","door_open","door_close","page_turn","book_open","book_close","coins","cloth","keypad_beep","keypad_ok","keypad_err","lock","hit","glitch","growl","jumpscare","thunder","chains","breath"];
 
 // ---------------------------------------------------------------- AudioSys
 let _ac=null,_master=null,_ambBus=null,_sfxBus=null;
@@ -513,6 +513,80 @@ let _muted=false;
 try{ if(typeof localStorage!=="undefined") _muted=localStorage.getItem("asylum_mute_v1")==="1"; }catch(e){}
 const _AMBF={}, _SFXF={};
 let _curKey=null,_curInst=null,_curGain=null;
+/* ---- file-audio layer: rekaman asli dulu, synth sebagai fallback ---- */
+let _fArmed=false;
+const _fCache={}, _fBad={};
+let _fAmbEl=null,_fAmbKey=null,_fAmbTimer=null,_thTimer=null;
+function _fArm(){
+  if(_fArmed) return; _fArmed=true;
+  try{
+    if(typeof window==="undefined"||typeof window.Audio==="undefined") return;
+    for(const k in SFX_FILES){ const a=new window.Audio(); a.preload="auto"; a.src=SFX_FILES[k]; _fCache[k]=a;
+      (function(kk){ a.addEventListener("error",function(){ _fBad[kk]=1; }); })(k); }
+    for(const k in AMB_FILES){ const a=new window.Audio(); a.preload="auto"; a.loop=true; a.src=AMB_FILES[k]; _fCache["~"+k]=a;
+      (function(kk){ a.addEventListener("error",function(){ _fBad["~"+kk]=1; }); })(k); }
+    _thSchedule();
+  }catch(e){}
+}
+function _fPlaySfx(name,opts){
+  const url=SFX_FILES[name];
+  if(!url||_fBad[name]) return false;
+  try{
+    _fArm();
+    const base=_fCache[name];
+    if(!base) return false;
+    const a=base.cloneNode();
+    a.volume=(_muted?0:0.85)*((opts&&opts.gain)||1);
+    if(opts&&opts.rate) a.playbackRate=opts.rate;
+    const p=a.play();
+    if(p&&typeof p.catch==="function") p.catch(function(){});
+    return true;
+  }catch(e){ return false; }
+}
+function _fFade(el,to,dur,done){
+  try{
+    const from=el.volume, steps=12, dt=Math.max(30,dur/steps); let i=0;
+    if(_fAmbTimer) clearInterval(_fAmbTimer);
+    _fAmbTimer=setInterval(function(){
+      i++; try{ el.volume=from+(to-from)*(i/steps); }catch(e){}
+      if(i>=steps){ clearInterval(_fAmbTimer); _fAmbTimer=null; if(done)done(); }
+    },dt);
+  }catch(e){ if(done)done(); }
+}
+function _fStopAmb(){
+  const old=_fAmbEl; _fAmbEl=null; _fAmbKey=null;
+  if(old){ _fFade(old,0,900,function(){ try{old.pause();}catch(e){} }); }
+}
+function _fStartAmb(key){
+  const url=AMB_FILES[key];
+  if(!url||_fBad["~"+key]) return false;
+  try{
+    _fArm();
+    if(_fAmbKey===key&&_fAmbEl) return true;
+    _fStopAmb();
+    const el=_fCache["~"+key];
+    if(!el) return false;
+    _fAmbEl=el; _fAmbKey=key;
+    el.volume=0;
+    const p=el.play(); if(p&&typeof p.catch==="function") p.catch(function(){});
+    _fFade(el,_muted?0:0.5,2200);
+    return true;
+  }catch(e){ return false; }
+}
+function _thSchedule(){
+  /* guntur jauh acak saat ambience angin aktif */
+  const loop=function(){
+    _thTimer=setTimeout(function(){
+      try{ if(_fAmbKey==="corridor"||_fAmbKey==="leftcorridor") _fPlaySfx("thunder",{gain:0.2}); }catch(e){}
+      loop();
+    }, 45000+Math.random()*55000);
+  };
+  loop();
+}
+if(typeof window!=="undefined" && typeof window.addEventListener==="function"){
+  window.addEventListener("pointerdown",_fArm,{once:true});
+  window.addEventListener("keydown",_fArm,{once:true});
+}
 
 function _ctx(){
   if(!_ac){
@@ -547,7 +621,9 @@ function setAmbient(key){
         },2200);
       }catch(e){}
     }
-    if(key==="none") return;
+    if(key==="none"){ _fStopAmb(); return; }
+    if(AMB_FILES[key] && !_fBad["~"+key]){ _fStartAmb(key); return; }
+    _fStopAmb();
     const fn=_AMBF[key];
     if(!fn) return;
     const ctx=_ctx();
@@ -566,6 +642,7 @@ function setAmbient(key){
 function sfx(name,opts){
   try{
     opts=opts||{};
+    if(_fPlaySfx(name,opts)) return;
     const fn=_SFXF[name];
     if(!fn) return;
     const ctx=_ctx();
@@ -618,6 +695,7 @@ function toggleMute(){
   _muted=!_muted;
   try{ if(typeof localStorage!=="undefined") localStorage.setItem("asylum_mute_v1",_muted?"1":"0"); }catch(e){}
   try{ if(_master) _master.gain.setTargetAtTime(_muted?0:0.9,_ac.currentTime,0.05); }catch(e){}
+  try{ if(_fAmbEl) _fAmbEl.volume=_muted?0:0.5; }catch(e){}
   return _muted;
 }
 function isMuted(){ return _muted; }
@@ -635,6 +713,19 @@ function init(){
   }catch(e){}
 }
 
+const SFX_FILES = {
+  "ui_click":"audio/ui_click.mp3","ui_hover":"audio/ui_hover.mp3","ui_toggle":"audio/ui_toggle.mp3",
+  "ui_back":"audio/ui_back.mp3","ui_confirm":"audio/ui_confirm.mp3","ui_error":"audio/ui_error.mp3",
+  "ui_drop":"audio/ui_drop.mp3","door_open":"audio/door_open.mp3","door_close":"audio/door_close.mp3",
+  "door_creak":"audio/door_creak.mp3","page_turn":"audio/page_turn.mp3","book_open":"audio/book_open.mp3",
+  "book_close":"audio/book_close.mp3","footstep":"audio/footstep.mp3","metal_clang":"audio/metal_clang.mp3",
+  "coins":"audio/coins.mp3","cloth":"audio/cloth.mp3","keypad_beep":"audio/keypad_beep.mp3",
+  "keypad_ok":"audio/keypad_ok.mp3","keypad_err":"audio/keypad_err.mp3","lock":"audio/lock.mp3",
+  "hit":"audio/hit.mp3","glitch":"audio/glitch.mp3",
+  "growl":"audio/growl.mp3","jumpscare":"audio/jumpscare.mp3","thunder":"audio/thunder.mp3",
+  "chains":"audio/chains.mp3","breath":"audio/breath.mp3"
+};
+const AMB_FILES = { "darkstare":"audio/amb_dark.mp3", "corridor":"audio/amb_wind.mp3", "leftcorridor":"audio/amb_wind.mp3" };
 const AudioSys={ init:init, toggleMute:toggleMute, isMuted:isMuted, setAmbient:setAmbient, sfx:sfx, heartbeat:heartbeat, _regAmb:function(k,f){_AMBF[k]=f;}, _regSfx:function(n,f){_SFXF[n]=f;} };
 
 if(typeof globalThis!=="undefined"){ globalThis.AudioSys=AudioSys; globalThis.AMBIENT_KEYS=AMBIENT_KEYS; globalThis.SFX_KEYS=SFX_KEYS; }
@@ -2663,13 +2754,14 @@ function rollFaintOutcome(){
   return pool[pool.length-1];
 }
 function doFaint(){
-  try{ if(globalThis.AudioSys) AudioSys.sfx("faint"); }catch(e){}
+  try{ if(globalThis.AudioSys){ AudioSys.sfx("faint"); AudioSys.sfx("breath",{gain:0.5}); } }catch(e){}
   const out = rollFaintOutcome();
   if(out==="killed"){
     NODES.faint_killed.next = S.node; /* bangkit di tempat pingsan */
     goTarget("faint_killed");
     return;
   }
+  if(out==="wounded"){ try{ if(globalThis.AudioSys) AudioSys.sfx("growl",{gain:0.4}); }catch(e){} }
   renderFaint(out);
 }
 function renderFaint(out, data){
@@ -2801,7 +2893,7 @@ function restAttack(){
     btn: ui("rest_continue"),
     onDone: ()=>{ rerenderNode(); }
   });
-  try{ if(globalThis.AudioSys) AudioSys.sfx(kind==="robbed" ? "paper_rustle" : "death_sting", kind==="robbed" ? null : {gain:0.35}); }catch(e){}
+  try{ if(globalThis.AudioSys){ if(kind==="robbed") AudioSys.sfx("paper_rustle"); else { AudioSys.sfx("hit",{gain:0.8}); AudioSys.sfx("growl",{gain:0.45}); } } }catch(e){}
 }
 /* Interlude generik: intro typewriter -> tap -> body + tombol. */
 function renderInterlude(o){
@@ -3000,7 +3092,7 @@ function applyEnterMutations(n){
   if(n.clearObjective){ S.objective = null; S.objectiveEn = null; }
   if(n.favor) Object.keys(n.favor).forEach(k=>favorAdd(k, n.favor[k]));
   if(n.grantItems) n.grantItems.forEach(item=>{
-    try{ if(globalThis.AudioSys) AudioSys.sfx(item.id==="boneka" ? "teddy" : "pickup"); }catch(e){}
+    try{ if(globalThis.AudioSys) AudioSys.sfx(item.id==="boneka" ? "teddy" : item.id==="koin_logam" ? "coins" : "pickup"); }catch(e){}
     collAdd(item.id);
     const ex = S.items.find(x=>x.id===item.id);
     if(ex){ ex.qty = (ex.qty||1)+1; if(item.use && !ex.use) ex.use = item.use; }
@@ -3427,6 +3519,7 @@ function dropItem(id){
 function equipItem(id){
   const it = S.items.find(x=>x.id===id);
   if(!it || it.kind!=="equipment") return;
+  try{ if(globalThis.AudioSys) AudioSys.sfx("cloth",{gain:0.6}); }catch(e){}
   const before = snapshotState();
   const slot = it.slot || "senjata";
   const cur = S.equipment[slot];
@@ -3624,6 +3717,7 @@ const BG_FILES = {
 };
 let bgCur = null, bgFlip = false, bgPreloaded = false;
 let lastET = null;
+let _lastDoor = 0;
 let interludeOpen = false; /* true saat overlay pingsan/diserang tampil */
 /* SFX khusus per node */
 const NODE_SFX = {
@@ -3659,6 +3753,7 @@ function bgPreloadAll(){
   Object.values(BG_FILES).forEach(u=>{ const im = new Image(); im.src = u; });
 }
 function showTitle(){
+  try{ if(globalThis.AudioSys) AudioSys.sfx("glitch",{gain:0.35}); }catch(e){}
   S.node = "title"; updateHUD();
   setBG("title"); bgPreloadAll();
   try{ if(globalThis.AudioSys) AudioSys.heartbeat(false); }catch(e){}
@@ -3985,6 +4080,8 @@ function renderNode(id){
     if(k>=1 && k<=n.choices.length){
       const btn = app.querySelector(`.choice[data-i="${k-1}"]:not(:disabled)`);
       if(btn) btn.click();
+      else{ const lb = app.querySelector(`.choice[data-i="${k-1}"]`);
+        if(lb){ try{ if(globalThis.AudioSys) AudioSys.sfx("lock",{gain:0.6}); }catch(e){} } }
     }
   };
 }
@@ -4005,6 +4102,11 @@ function goTarget(target, opts){
       lastET = _et;
       const _nsfx = NODE_SFX[target];
       if(_nsfx) AudioSys.sfx(_nsfx);
+      const _now = Date.now();
+      if(/^d[1-4]_/.test(target) && _now-(_lastDoor||0)>8000){ _lastDoor=_now; AudioSys.sfx("door_open",{gain:0.65}); }
+      const _bgk = bgFor(target);
+      if(/corridor|hall/.test(_bgk) && Math.random()<0.35) AudioSys.sfx("footstep",{gain:0.4});
+      if(_bgk==="steeldoor" && Math.random()<0.4) AudioSys.sfx("chains",{gain:0.28});
     }
   }catch(e){}
   applyEnterMutations(n);         /* sistem baru: tier, body, mental, emosi, objective, favor, item */
@@ -4097,23 +4199,24 @@ function renderKeypad(id){
   $("#keyPad").querySelectorAll(".keybtn").forEach(b=>{
     b.onclick = ()=>{
       if(b.dataset.d==="→"){ $("#keyGo").click(); return; }
-      if(buf.length<8){ buf += b.dataset.d; draw(); }
+      if(buf.length<8){ buf += b.dataset.d; draw(); try{ if(globalThis.AudioSys) AudioSys.sfx("keypad_beep",{gain:0.5}); }catch(e){} }
     };
   });
   $("#keyClear").onclick = ()=>{ buf = ""; draw(); };
   $("#keyGo").onclick = (e)=>{
     const r=e.target.getBoundingClientRect(); spendEnergy(4, r.left+r.width/2, r.top);
-    if(buf===(n.code||"")){ toast(ui("key_ok")); goTarget(n.onSuccess); return; }
+    if(buf===(n.code||"")){ toast(ui("key_ok")); try{ if(globalThis.AudioSys) AudioSys.sfx("keypad_ok"); }catch(e){} goTarget(n.onSuccess); return; }
     left--; $("#keyLeft").textContent = left;
     const d = $("#keyDisp");
     d.classList.add("err"); setTimeout(()=>d.classList.remove("err"), 450);
     buf = ""; draw();
+    try{ if(globalThis.AudioSys) AudioSys.sfx("keypad_err"); }catch(e){}
     if(left<=0) goTarget(n.onFail);
     else toast(ui("key_wrong"));
   };
   document.onkeydown = (e)=>{
     if(e.key===" "||e.key==="Enter"){ skip(); return; }
-    if(/^[0-9]$/.test(e.key) && buf.length<8){ buf += e.key; draw(); }
+    if(/^[0-9]$/.test(e.key) && buf.length<8){ buf += e.key; draw(); try{ if(globalThis.AudioSys) AudioSys.sfx("keypad_beep",{gain:0.5}); }catch(e){} }
     else if(e.key==="Backspace"){ buf = buf.slice(0,-1); draw(); }
   };
 }
@@ -4149,7 +4252,7 @@ function renderStory(id){
 
 /* ---------- RENDER HASIL ---------- */
 function grantItem(item){
-  try{ if(globalThis.AudioSys) AudioSys.sfx(item.id==="boneka" ? "teddy" : "pickup"); }catch(e){}
+  try{ if(globalThis.AudioSys) AudioSys.sfx(item.id==="boneka" ? "teddy" : item.id==="koin_logam" ? "coins" : "pickup"); }catch(e){}
   const before = snapshotState();
   const ex = S.items.find(it=>it.id===item.id);
   if(ex) ex.qty = (ex.qty||1)+1;
@@ -4196,11 +4299,12 @@ function renderResult(id){
 }
 
 /* ---------- RENDER KEMATIAN ---------- */
+const JUMPSCARE_DEATHS = ["opening_d1","d3_a2_d1","s12_hub_d1","s12_run_2_d1"];
 function renderDeath(id){
   const n = NODES[id];
   updateHUD(); persist();
   setBG("death");
-  try{ if(globalThis.AudioSys){ AudioSys.sfx("death_sting"); AudioSys.heartbeat(false); } }catch(e){}
+  try{ if(globalThis.AudioSys){ AudioSys.sfx("death_sting"); if(JUMPSCARE_DEATHS.indexOf(id)>=0) AudioSys.sfx("jumpscare",{gain:0.55}); AudioSys.heartbeat(false); } }catch(e){}
   document.body.classList.remove("dying"); void document.body.offsetWidth;
   document.body.classList.add("dying");
   setTimeout(()=>document.body.classList.remove("dying"), 950);
@@ -4318,6 +4422,16 @@ const NODES_I18N = {"prolog1": {"story": ["Kau terbangun di ujung sebuah lorong 
         if(ev.target && ev.target.closest && ev.target.closest("button") && ev.target.id!=="muteBtn")
           AudioSys.sfx("ui_click");
       });
+      /* hover blip — hanya perangkat dengan hover (desktop) */
+      try{
+        if(window.matchMedia && window.matchMedia("(hover:hover)").matches){
+          let _hovEl=null;
+          document.addEventListener("mouseover", ev=>{
+            const t = ev.target && ev.target.closest ? ev.target.closest("button:not(:disabled)") : null;
+            if(t && t!==_hovEl){ _hovEl=t; try{ AudioSys.sfx("ui_hover",{gain:0.22}); }catch(e){} }
+          });
+        }
+      }catch(e){}
     }
   }catch(e){}
   const sv = loadSave();
