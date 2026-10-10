@@ -15,12 +15,15 @@
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Pirata+One&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 <style>
   :root{
     --blood:#dc143c;
+    --blood-hot:#f0224f;
     --gold:#c9a86a;
     --bone:#e8e4e0;
     --ash:#a8a8a8;
@@ -36,6 +39,10 @@
     font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
     line-height:1.7;
     overflow-x:hidden;
+  }
+  body::before{ /* pola titik halus ala Hero Patterns */
+    content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.045'/%3E%3C/svg%3E");
   }
   body::after{ /* vignette */
     content:""; position:fixed; inset:0; pointer-events:none; z-index:60;
@@ -80,6 +87,10 @@
   section{padding:clamp(4rem,10vh,7rem) clamp(1.2rem,6vw,4rem)}
   .wrap{max-width:1020px; margin:0 auto}
 
+  /* ===== Reveal on scroll (Animate.css dipicu IntersectionObserver) ===== */
+  .reveal{opacity:0}
+  .reveal.is-visible{opacity:1}
+
   /* ===== Hero ===== */
   .hero{
     min-height:100svh; display:flex; align-items:center; justify-content:center;
@@ -107,50 +118,79 @@
     animation:fogdrift 30s ease-in-out infinite alternate;
   }
   @keyframes fogdrift{from{transform:translateX(-4%)} to{transform:translateX(4%)}}
+  .embers{position:absolute; inset:0; pointer-events:none; overflow:hidden}
+  .embers span{
+    position:absolute; bottom:-12px; border-radius:50%;
+    background:radial-gradient(circle, rgba(240,34,79,.85), rgba(220,20,60,0) 70%);
+    animation:rise linear infinite;
+  }
+  @keyframes rise{
+    from{transform:translateY(0) translateX(0); opacity:0}
+    12%{opacity:.8}
+    to{transform:translateY(-72vh) translateX(24px); opacity:0}
+  }
   .hero-inner{position:relative; max-width:820px; padding:0 1.2rem}
   .eyebrow{
     font-size:.7rem; font-weight:800; letter-spacing:.5em; text-indent:.5em;
     color:var(--gold); text-transform:uppercase; margin-bottom:1.6rem;
+    display:flex; align-items:center; justify-content:center; gap:.7rem;
   }
+  .eyebrow svg{width:15px; height:15px; stroke:var(--gold)}
   .hero h1{
-    font-family:"Special Elite",cursive;
-    font-size:clamp(3.4rem,13vw,8.5rem);
-    letter-spacing:.1em; text-indent:.1em; line-height:1;
+    font-family:"Pirata One",cursive;
+    font-size:clamp(3.8rem,14vw,9.5rem);
+    letter-spacing:.06em; line-height:1;
     color:var(--bone);
     text-shadow:0 0 60px rgba(220,20,60,.25), 0 2px 0 #000;
     margin-bottom:1.4rem;
+    animation:titleflicker 7s infinite;
+  }
+  @keyframes titleflicker{
+    0%,100%{opacity:1}
+    91%{opacity:1; text-shadow:0 0 60px rgba(220,20,60,.25), 0 2px 0 #000}
+    92%{opacity:.72; text-shadow:-3px 0 rgba(240,34,79,.6), 3px 0 rgba(120,180,255,.4), 0 2px 0 #000}
+    93%{opacity:1; text-shadow:0 0 60px rgba(220,20,60,.25), 0 2px 0 #000}
+    96%{opacity:.85}
+    97%{opacity:1}
   }
   .lede{
-    font-size:clamp(1rem,2.6vw,1.25rem); color:var(--ash);
+    font-family:"Cormorant Garamond",serif; font-style:italic;
+    font-size:clamp(1.15rem,3vw,1.45rem); color:var(--ash);
     max-width:620px; margin:0 auto 2.6rem; line-height:1.9;
   }
   .cta-row{display:flex; gap:1rem; justify-content:center; flex-wrap:wrap}
   .btn{
-    display:inline-block; text-decoration:none; cursor:pointer; font-family:inherit;
+    display:inline-flex; align-items:center; gap:.6rem; text-decoration:none; cursor:pointer; font-family:inherit;
     font-size:.82rem; font-weight:800; letter-spacing:.24em; text-indent:.24em; text-transform:uppercase;
     padding:1rem 2.4rem; border-radius:999px; transition:.2s; border:1px solid transparent;
   }
+  .btn svg{width:16px; height:16px}
   .btn-primary{background:var(--blood); color:#fff; border-color:var(--blood)}
-  .btn-primary:hover{background:#f0224f; box-shadow:0 0 30px rgba(220,20,60,.45); transform:translateY(-2px)}
+  .btn-primary:hover{background:var(--blood-hot); box-shadow:0 0 30px rgba(220,20,60,.45); transform:translateY(-2px)}
   .btn-ghost{background:transparent; color:var(--bone); border-color:#4a4a4a}
   .btn-ghost:hover{border-color:var(--gold); color:var(--gold)}
   .scroll-cue{
     position:absolute; bottom:2rem; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:.35rem;
     font-size:.62rem; letter-spacing:.4em; text-indent:.4em; text-transform:uppercase; color:var(--dim);
     animation:cue 2.6s ease-in-out infinite;
   }
+  .scroll-cue svg{width:18px; height:18px}
   @keyframes cue{0%,100%{opacity:.4} 50%{opacity:1}}
 
   /* ===== Sections ===== */
   .sec-head{max-width:720px; margin-bottom:3rem}
   .sec-head h2{
-    font-family:"Special Elite",cursive;
-    font-size:clamp(1.9rem,5.5vw,3rem); letter-spacing:.04em; line-height:1.2;
+    font-family:"Pirata One",cursive;
+    font-size:clamp(2.2rem,6vw,3.4rem); letter-spacing:.03em; line-height:1.15;
     margin:.9rem 0 1.2rem; color:var(--bone);
   }
   .sec-head p{color:var(--ash); font-size:clamp(.98rem,2.4vw,1.1rem)}
-  .rule{width:64px; height:1px; background:var(--gold); opacity:.7; margin:2.2rem 0}
-  .prose p{color:var(--ash); font-size:clamp(1rem,2.5vw,1.14rem); max-width:680px; margin-bottom:1.4rem}
+  .rule{width:64px; height:1px; background:linear-gradient(90deg, var(--gold), transparent); box-shadow:0 0 12px rgba(201,168,106,.5); margin:2.2rem 0}
+  .prose p{
+    font-family:"Cormorant Garamond",serif; font-size:clamp(1.15rem,2.8vw,1.35rem);
+    color:var(--ash); max-width:680px; margin-bottom:1.4rem; line-height:1.85;
+  }
   .prose p strong{color:var(--bone); font-weight:600}
 
   /* ===== Story cards ===== */
@@ -161,17 +201,30 @@
     background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,0));
     text-decoration:none; transition:.22s; position:relative; overflow:hidden;
   }
+  .card-icon{
+    width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background:rgba(201,168,106,.08); border:1px solid var(--line); margin-bottom:.2rem;
+  }
+  .card-icon svg{width:22px; height:22px; stroke:var(--gold)}
+  a.card .card-icon{background:rgba(220,20,60,.08); border-color:rgba(220,20,60,.3)}
+  a.card .card-icon svg{stroke:var(--blood)}
   a.card:hover{border-color:var(--blood); transform:translateY(-4px); box-shadow:0 18px 50px rgba(0,0,0,.55), 0 0 26px rgba(220,20,60,.12)}
   a.card:hover .go{color:var(--blood)}
+  a.card:hover .card-icon{animation:cardbreathe 1.6s ease-in-out infinite}
+  @keyframes cardbreathe{0%,100%{box-shadow:0 0 0 rgba(220,20,60,0)} 50%{box-shadow:0 0 22px rgba(220,20,60,.45)}}
   .card .kicker{font-size:.64rem; font-weight:800; letter-spacing:.32em; color:var(--gold); text-transform:uppercase}
-  .card h3{font-family:"Special Elite",cursive; font-size:1.7rem; letter-spacing:.05em; color:var(--bone)}
+  .card h3{font-family:"Pirata One",cursive; font-size:2rem; letter-spacing:.04em; color:var(--bone); font-weight:400}
   .card .hook{color:var(--ash); font-size:.94rem; flex:1}
   .card .meta{display:flex; align-items:center; justify-content:space-between; gap:.8rem; margin-top:.4rem}
   .status{
     font-size:.64rem; font-weight:800; letter-spacing:.22em; text-transform:uppercase;
     padding:.4rem .9rem; border-radius:999px; border:1px solid;
   }
-  .status.live{color:var(--blood); border-color:var(--blood); background:rgba(220,20,60,.08)}
+  .status.live{
+    color:var(--blood-hot); border-color:var(--blood); background:rgba(220,20,60,.08);
+    animation:livepulse 2.4s ease-in-out infinite;
+  }
+  @keyframes livepulse{0%,100%{box-shadow:0 0 0 rgba(220,20,60,0)} 50%{box-shadow:0 0 14px rgba(220,20,60,.5)}}
   .status.soon{color:var(--dim); border-color:#3a3a3a}
   .go{font-size:.8rem; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:var(--ash); transition:.2s}
   .card.soon{opacity:.55; cursor:default; border-style:dashed}
@@ -180,12 +233,12 @@
   /* ===== Closing ===== */
   .closing{text-align:center}
   .closing .line1{
-    font-family:"Special Elite",cursive; color:var(--ash);
-    font-size:clamp(1.3rem,4.5vw,2.1rem); letter-spacing:.06em; margin-bottom:1rem;
+    font-family:"Cormorant Garamond",serif; font-style:italic; color:var(--ash);
+    font-size:clamp(1.5rem,4.5vw,2.3rem); letter-spacing:.04em; margin-bottom:1rem;
   }
   .closing .line2{
-    font-family:"Special Elite",cursive; color:var(--blood);
-    font-size:clamp(1.3rem,4.5vw,2.1rem); letter-spacing:.06em;
+    font-family:"Pirata One",cursive; color:var(--blood);
+    font-size:clamp(1.8rem,5.5vw,2.8rem); letter-spacing:.05em;
     text-shadow:0 0 30px rgba(220,20,60,.35);
   }
 
@@ -201,13 +254,14 @@
 
   @media (max-width:560px){
     .site-header{padding:.9rem 1rem}
-    .cta-row .btn{width:100%; text-align:center}
+    .cta-row .btn{width:100%; text-align:center; justify-content:center}
     footer{justify-content:center; text-align:center}
   }
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto}
     *,*::before,*::after{animation:none !important; transition:none !important}
     .doorway{opacity:.8}
+    .reveal{opacity:1}
   }
 </style>
 </head>
@@ -230,26 +284,27 @@
     <div class="hero-veil" aria-hidden="true"></div>
     <div class="doorway" aria-hidden="true"></div>
     <div class="fog" aria-hidden="true"></div>
+    <div class="embers" id="embers" aria-hidden="true"></div>
     <div class="hero-inner">
-      <p class="eyebrow" data-i18n="hero_eyebrow">AMBANG YANG TAK DIKENAL</p>
-      <h1 id="hero-title">ARKANDRIA</h1>
-      <p class="lede" data-i18n="hero_lede">Sebuah dimensi di antara dunia — tempat setiap portal membuka sebuah cerita, dan setiap cerita menunggu seseorang yang cukup berani untuk melangkah masuk.</p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="#cerita" data-i18n="hero_cta1">Jelajahi cerita</a>
-        <a class="btn btn-ghost" href="#dunia" data-i18n="hero_cta2">Apa itu Arkandria?</a>
+      <p class="eyebrow animate__animated animate__fadeInDown"><i data-lucide="moon-star"></i><span data-i18n="hero_eyebrow">AMBANG YANG TAK DIKENAL</span></p>
+      <h1 id="hero-title" class="animate__animated animate__fadeIn" style="animation-delay:.15s">ARKANDRIA</h1>
+      <p class="lede animate__animated animate__fadeInUp" style="animation-delay:.35s" data-i18n="hero_lede">Sebuah dimensi di antara dunia — tempat setiap portal membuka sebuah cerita, dan setiap cerita menunggu seseorang yang cukup berani untuk melangkah masuk.</p>
+      <div class="cta-row animate__animated animate__fadeInUp" style="animation-delay:.55s">
+        <a class="btn btn-primary" href="#cerita"><i data-lucide="door-open"></i><span data-i18n="hero_cta1">Jelajahi cerita</span></a>
+        <a class="btn btn-ghost" href="#dunia"><i data-lucide="book-open"></i><span data-i18n="hero_cta2">Apa itu Arkandria?</span></a>
       </div>
     </div>
-    <p class="scroll-cue" data-i18n="scroll">gulir</p>
+    <p class="scroll-cue"><i data-lucide="chevron-down"></i><span data-i18n="scroll">gulir</span></p>
   </section>
 
   <!-- PREMISE -->
   <section id="dunia" aria-labelledby="dunia-title">
     <div class="wrap">
-      <div class="sec-head">
-        <p class="eyebrow" data-i18n="dunia_eyebrow">PREMIS</p>
+      <div class="sec-head reveal">
+        <p class="eyebrow"><i data-lucide="sparkles"></i><span data-i18n="dunia_eyebrow">PREMIS</span></p>
         <h2 id="dunia-title" data-i18n="dunia_h2">Sebuah ambang, bukan perpustakaan</h2>
       </div>
-      <div class="prose">
+      <div class="prose reveal">
         <p data-i18n="dunia_p1"><strong>Arkandria bukan kumpulan buku.</strong> Ia adalah sebuah dimensi — ruang liminal antara dunia yang biasa dan yang tak dikenal.</p>
         <p data-i18n="dunia_p2">Tersebar di dalamnya ada ambang-ambang: pintu, benda, dan tempat yang terbuka menuju cerita-cerita yang hidup. Kau tidak membacanya dari kejauhan. Kau melangkah masuk — dan cerita itu mulai mengenalmu.</p>
       </div>
@@ -260,13 +315,14 @@
   <!-- STORIES -->
   <section id="cerita" aria-labelledby="cerita-title">
     <div class="wrap">
-      <div class="sec-head">
-        <p class="eyebrow" data-i18n="cerita_eyebrow">PORTAL CERITA</p>
+      <div class="sec-head reveal">
+        <p class="eyebrow"><i data-lucide="layers"></i><span data-i18n="cerita_eyebrow">PORTAL CERITA</span></p>
         <h2 id="cerita-title" data-i18n="cerita_h2">Pilih ambangmu</h2>
         <p data-i18n="cerita_sub">Setiap portal menuju tempat yang berbeda. Pilih dengan hati-hati — tidak semua cerita membiarkanmu pergi.</p>
       </div>
-      <div class="cards">
+      <div class="cards reveal">
         <a class="card" href="/the-asylum/">
+          <span class="card-icon"><i data-lucide="door-open"></i></span>
           <span class="kicker" data-i18n="asylum_kicker">PART 1 · HOROR INTERAKTIF</span>
           <h3>The Asylum</h3>
           <p class="hook" data-i18n="asylum_hook">Kau terbangun di ujung lorong gelap dengan tangan diperban dan tanpa ingatan. Empat pintu. Salah satunya sudah mengawasimu.</p>
@@ -276,6 +332,7 @@
           </span>
         </a>
         <div class="card soon" aria-disabled="true">
+          <span class="card-icon"><i data-lucide="ghost"></i></span>
           <span class="kicker">???</span>
           <h3 data-i18n="soon_title">Ambang berikutnya</h3>
           <p class="hook" data-i18n="soon_hook">Ambang kedua sedang terbentuk dalam kegelapan. Cerita berikutnya akan segera terungkap.</p>
@@ -289,7 +346,7 @@
 
   <!-- CLOSING -->
   <section class="closing" aria-label="Penutup">
-    <div class="wrap">
+    <div class="wrap reveal">
       <p class="line1" data-i18n="close_1">Tidak semua pintu seharusnya dibuka.</p>
       <p class="line2" data-i18n="close_2">Tapi kau sudah sampai sejauh ini.</p>
     </div>
@@ -393,6 +450,48 @@ document.getElementById("langEn").addEventListener("click", ()=>setLang("en"));
   let lang = "id";
   try{ lang = localStorage.getItem(LANG_KEY) || "id"; }catch(e){}
   setLang(lang);
+})();
+
+/* Ikon Lucide */
+function initIcons(){
+  if(window.lucide){ try{ lucide.createIcons(); }catch(e){} }
+}
+if(document.readyState === "complete"){ initIcons(); }
+else{ window.addEventListener("load", initIcons); }
+
+/* Reveal on scroll — Animate.css via IntersectionObserver */
+(function(){
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const els = document.querySelectorAll(".reveal");
+  if(reduced || !("IntersectionObserver" in window)){
+    els.forEach(el=>el.classList.add("is-visible"));
+    return;
+  }
+  const io = new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(en.isIntersecting){
+        en.target.classList.add("is-visible","animate__animated","animate__fadeInUp");
+        io.unobserve(en.target);
+      }
+    });
+  }, {threshold:.12});
+  els.forEach(el=>io.observe(el));
+})();
+
+/* Bara api melayang di hero */
+(function(){
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const box = document.getElementById("embers");
+  if(!box) return;
+  for(let i=0;i<14;i++){
+    const s = document.createElement("span");
+    const size = 3 + Math.random()*7;
+    s.style.width = s.style.height = size.toFixed(1)+"px";
+    s.style.left = (Math.random()*100).toFixed(1)+"%";
+    s.style.animationDuration = (7+Math.random()*9).toFixed(1)+"s";
+    s.style.animationDelay = (Math.random()*9).toFixed(1)+"s";
+    box.appendChild(s);
+  }
 })();
 </script>
 </body>
