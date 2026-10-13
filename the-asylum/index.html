@@ -1746,7 +1746,7 @@ const Screens = (() => {
     const entry = {name, def, params: params||{}};
     stack.push(entry);
     elFor(name); // ensure container
-    def.show.call(entry, entry.params, elFor(name));
+    def.show.call(def, entry.params, elFor(name));
     _render();
     Bus.emit('screen:push', {name});
     return entry;
@@ -1768,7 +1768,7 @@ const Screens = (() => {
     if(cur && cur.def.onHide) cur.def.onHide(cur.params);
     const entry = {name, def, params: params||{}};
     stack.push(entry);
-    def.show.call(entry, entry.params, elFor(name));
+    def.show.call(def, entry.params, elFor(name));
     _render();
     Bus.emit('screen:replace', {name});
     return entry;
