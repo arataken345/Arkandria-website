@@ -1806,6 +1806,7 @@ id: {
   btn_tut_start:"MULAI TUTORIAL", btn_continue:"LANJUTKAN", btn_new:"CERITA BARU", btn_start:"MULAI",
   btn_tutorial:"TUTORIAL", btn_achievement:"ACHIEVEMENT", btn_collection:"KOLEKSI ITEM",
   btn_export:"EXPORT", btn_import:"IMPORT", lang_btn:"EN",
+  confirm_yes:"YA", confirm_no:"BATAL",
   confirm_new:"Mulai CERITA BARU? Semua progres (nama, item, death count) akan dihapus permanen.\nAchievement & koleksi item tetap tersimpan.",
   reg_kicker:"Ingatan", reg_title:"INGATAN YANG HILANG",
   reg_flavor:"Kau terbangun tanpa mengingat apa pun, termasuk alasan kenapa kau terbaring di sini. Kau melirik ke bawah dan melihat kedua tanganmu dibalut oleh perban.<br/><br/>Kau mencoba menggerakkan jari-jari tanganmu, dan syukurlah mereka masih mau menurut. Tapi ketika kau mencoba mengingat bagaimana caranya kau sampai di tempat ini, yang kau temukan hanyalah kekosongan.<br/><br/>Setiap orang pasti punya nama, dan milikmu pasti terkubur di suatu tempat dalam kepalamu yang berdenyut nyeri. Gali dan tarik paksa ingatan itu keluar \u2014 sebelum kegelapan di sekelilingmu lebih dulu mengenal siapa dirimu.",
@@ -1902,6 +1903,7 @@ en: {
   btn_tut_start:"START TUTORIAL", btn_continue:"CONTINUE", btn_new:"NEW STORY", btn_start:"BEGIN",
   btn_tutorial:"TUTORIAL", btn_achievement:"ACHIEVEMENTS", btn_collection:"ITEM COLLECTION",
   btn_export:"EXPORT", btn_import:"IMPORT", lang_btn:"ID",
+  confirm_yes:"YES", confirm_no:"CANCEL",
   confirm_new:"Start a NEW STORY? All progress (name, items, death count) will be permanently erased.\nAchievements & item collection stay saved.",
   reg_kicker:"Memory", reg_title:"LOST MEMORIES",
   reg_flavor:"You wake with no memory of anything, not even why you lie here. You glance down and see both your hands wrapped in bandages.<br/><br/>You try to move your fingers, and thankfully they still obey. But when you try to remember how you came to this place, all you find is emptiness.<br/><br/>Everyone must have a name, and yours must be buried somewhere inside your throbbing head. Dig it out and force that memory free \u2014 before the darkness around you learns who you are first.",
@@ -4179,6 +4181,26 @@ Bus.on('screen:replace', ()=>HUD.refresh());
 
 const UIX = {
   setBG(name){ if(typeof setBG!=="undefined") setBG(name); },
+  /* In-game confirm modal (replaces native confirm()): diegetic, automation-safe. */
+  confirmDialog(msg){ return new Promise((resolve)=>{
+    const ov = document.createElement("div");
+    ov.className = "modal"; ov.setAttribute("role","alertdialog"); ov.setAttribute("aria-modal","true");
+    ov.innerHTML = '<div class="modal-box"><p class="cfmsg">'+esc(String(msg)).replace(/\n/g,"<br/>")+'</p>'
+      + '<div class="center btnrow" style="margin-top:1.2rem">'
+      + '<button class="big primary" data-cf="1">'+esc(ui("confirm_yes"))+'</button>'
+      + '<button class="big ghost" data-cf="0">'+esc(ui("confirm_no"))+'</button>'
+      + '</div></div>';
+    const done = (v)=>{ ov.remove(); document.removeEventListener("keydown", onKey, true); resolve(v); };
+    const onKey = (e)=>{ if(e.key==="Escape") done(false); };
+    ov.addEventListener("click", (e)=>{
+      const b = e.target.closest("[data-cf]");
+      if(b) done(b.getAttribute("data-cf")==="1");
+      else if(e.target===ov) done(false);
+    });
+    document.addEventListener("keydown", onKey, true);
+    document.body.appendChild(ov);
+    const y = ov.querySelector('[data-cf="1"]'); if(y) y.focus();
+  }); },
   /* small beat before choice resolution (picked-button feel) */
   choiceBeat(fn){ setTimeout(fn, 450); }
 };
@@ -4687,10 +4709,11 @@ Screens.register('title', {
     };
     const nw = q("#btnNew");
     if(nw) nw.onclick = ()=>{
-      if(confirm(ui("confirm_new"))){
+      UIX.confirmDialog(ui("confirm_new")).then((ok)=>{
+        if(!ok) return;
         Save.wipe(0); Store.reset(); applyLangToSettings();
         document.body.style.overflow=""; Screens.push('pact');
-      }
+      });
     };
     const bt = q("#btnTut"); if(bt) bt.onclick = ()=>{ document.body.style.overflow=""; Screens.push('tutorial'); };
     const ba = q("#btnAchv"); if(ba) ba.onclick = ()=>{ document.body.style.overflow=""; Screens.push('achievements'); };
