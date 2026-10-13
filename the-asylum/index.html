@@ -2032,6 +2032,7 @@ function tutPopT(p){ return L(p.tEn, p.t); }
 function tutPopH(p){ return L(p.hEn, p.h); }
 function reactVariant(e, i){ const arr=(LANG==="en"&&e.textEn&&e.textEn.length)?e.textEn:e.text; return arr[i % arr.length]; }
 const MENTAL_EN = ["Calm","Tense","Uneasy","Panicked","Shattered"];
+const MENTAL = ["Tenang","Tegang","Gelisah","Panik","Hancur"];
 function mentalName(i){ return LANG==="en" ? (MENTAL_EN[i]||MENTAL[i]) : (MENTAL[i]||"?"); }
 const TIER_NAMES_EN = ["Mild","Moderate","Severe","Extreme"];
 const TIER_DISP = {"Kelelahan":"Exhaustion","Stress":"Stress","Pendarahan":"Bleeding","Keracunan":"Poisoning"};
@@ -2056,8 +2057,9 @@ function dispLabel(v){
   return v;
 }
 function itemDispName(id){
-  const it = (S.items||[]).find(x=>x.id===id);
-  const o = it || Object.values(S.equipment||{}).find(e=>e&&e.id===id);
+  const _S = (typeof Store!=="undefined") ? Store._raw() : {};
+  const it = (_S.items||[]).find(x=>x.id===id);
+  const o = it || Object.values(_S.equipment||{}).find(e=>e&&e.id===id);
   const c = ITEM_EN[id];
   return o ? L(o.nameEn||(c&&c.nameEn), o.name) : ((c&&LANG==="en") ? c.nameEn : id);
 }
@@ -2932,6 +2934,55 @@ function bgFor(id){
   return "corridor";
 }
 
+/* ---------- 3.x REACTIONS ---------- */
+const REACTIONS = {
+  death:               { text:["Kegelapan menelanmu. Namun sebagai Player, kau bangkit kembali — Death Count: {deathCount}.",
+                               "Kau tewas. Kegelapan melepaskanmu kembali, dengan harga: Death Count {deathCount}."] },
+  status_danger:       { text:["Hawa di sekitarmu berubah — kau dalam bahaya.",
+                               "Sesuatu mengawasimu. Bahaya mengintai."] },
+  status_wounded:      { text:["Tubuhmu terluka. Beberapa pilihan tak bisa kau ambil.",
+                               "Luka itu membatasi gerakmu."] },
+  status_safe:         { text:["Kau bisa bernapas lega... untuk sekarang."] },
+  mental_worse:        { text:["Kegelisahan merayap di benakmu. ({label})",
+                               "Pikiranmu semakin gelap. ({label})"] },
+  mental_better:       { text:["Ketenangan kembali menyelimutimu. ({label})"] },
+  item_gained:         { text:["Kau mendapatkan: {name}.",
+                               "Sesuatu kini ada di tasmu: {name}."] },
+  item_lost:           { text:["Kehilangan: {name}."] },
+  equipment_equipped:  { text:["{name} terpasang di {slotName}."] },
+  equipment_unequipped:{ text:["{name} dilepas dari {slotName}."] },
+  effect_started:      { text:["Efek baru menyelimutimu: {effect}."] },
+  tier_changed:        { text:["{name}: {from} → {to}.",
+                               "Efek {name} kini {label}."] },
+  derived_lemas:       { text:["{note}"] },
+  derived_bingung:     { text:["{note}"] },
+  derived_lemas_end:   { text:["{note}"] },
+  derived_bingung_end: { text:["{note}"] },
+  emotion_changed:     { text:["{name} {dir} dalam dirimu."] },
+  favor_changed:       { text:["Hubungan dengan {name} berubah ({dstr})."] },
+  objective_changed:   { text:["🎯 Objective baru: {objective}.",
+                               "Tujuanmu diperbarui: {objective}."] },
+  temp_started:        { text:["Efek sementara: {name}."] },
+  temp_ended:          { text:["{name} mereda."] },
+  body_changed:        { text:["Kondisi tubuhmu: {to}."] },
+  energy_tier:         { text:["{tierText}"] },
+}
+
+
+
+/* ---------- 3.x energy tier text ---------- */
+const ENERGY_TIER_TEXT = {
+  tired:    { down: "Tubuhmu mulai terasa berat. Napasmu memendek.",
+              up: "Sedikit tenaga kembali ke tubuhmu." },
+  weary:    { down: "Kakimu gemetar. Kau butuh makan — segera.",
+              up: "Kakimu kembali mantap." },
+  critical: { down: "Penglihatanmu berkunang. Sedikit lagi kau tumbang.",
+              up: "Kunang-kunang di matamu mereda." },
+  empty:    { down: "Energimu habis. Tubuhmu bergerak atas kemauannya sendiri — mengikuti jalan termudah.",
+              up: "Tenaga kembali mengalir. Kau bisa berpikir lagi." },
+  fit:      { down: "", up: "Tubuhmu kembali bugar." }
+}
+
 /* ================= 4. SYSTEMS ================= */
 /* Clean contracts, event-emitting. Canon behavior preserved exactly.
    UI subscribes to events; systems never touch the DOM (except via
@@ -3190,7 +3241,9 @@ const Inventory = {
     if(u.addEmotion) u.addEmotion.forEach(e=>Status.addEmotion(e.n, e.amt));
     if(id==="perban_kotor" && u.heal) Achievements.unlock("wounded_heal");
     if(id==="surat_terlipat") Achievements.unlock("reader");
+    const _before = Reactions.snapshot();
     this.remove(id, 1);
+    Reactions.process(_before, "use", id);
     Bus.emit('toast',{key:'toast_use', param:itemNameL(it)});
     Bus.emit('item:used',{id});
     return true;
@@ -3210,9 +3263,11 @@ const Inventory = {
     }
     it.qty=(it.qty||1)-1;
     if(it.qty<=0) S.items = S.items.filter(x=>x.id!==id);
+    const _before = Reactions.snapshot();
     S.equipment[slot] = { id:it.id, name:it.name, note:it.note||"", icon:it.icon||"🗡", kind:"equipment", slot };
     Bus.emit('items:changed', {items:S.items});
     Bus.emit('equipment:changed', {equipment:S.equipment});
+    Reactions.process(_before, "equipment", id);
     return true;
   },
   unequip(slot){
@@ -3222,9 +3277,11 @@ const Inventory = {
     const ex = S.items.find(x=>x.id===cur.id);
     if(ex) ex.qty=(ex.qty||1)+1;
     else S.items.push(Object.assign({}, cur, {qty:1}));
+    const _before = Reactions.snapshot();
     S.equipment[slot] = null;
     Bus.emit('items:changed', {items:S.items});
     Bus.emit('equipment:changed', {equipment:S.equipment});
+    Reactions.process(_before, "equipment", slot);
     return true;
   },
   equippedIn(slot){ return (Store.get('equipment')||{})[slot] || null; },
@@ -3295,6 +3352,234 @@ const Audio = {
   heartbeat(on){ try{ const s=this._sys(); if(s) s.heartbeat(on); }catch(e){} },
   muted(){ try{ const s=this._sys(); return s ? !!s.isMuted() : false; }catch(e){ return false; } },
   toggleMute(){ try{ const s=this._sys(); if(s) s.toggleMute(); }catch(e){} Bus.emit('audio:mute', {muted:this.muted()}); }
+};
+
+/* ================= 4g. REACTIONS ================= */
+/* Derives semantic events from before/after state diffs (was deriveEvents
+   + presentReaction + achvCheck + tutPopForEvents). Emits on Bus; shows
+   the reaction bar; checks achievements; fires contextual tutorial pops. */
+const TIER_NAMES = ["Ringan","Sedang","Tinggi","Ekstrim"];
+
+const Reactions = {
+  seq: 0,
+  snapshot(){
+    const S = Store._raw();
+    const items = {};
+    (S.items||[]).forEach(it=>{ items[it.id] = (items[it.id]||0) + (it.qty||1); });
+    const equipment = {};
+    Object.keys(S.equipment||{}).forEach(k=>{ equipment[k] = S.equipment[k] ? S.equipment[k].id : null; });
+    return { status:S.status, mental:S.mental||0, deathCount:S.deathCount||0,
+             items, equipment, effects:[...(S.effects||[])],
+             tiers:{...(S.tiers||{})}, temp:(S.temp||[]).map(t=>t.n).sort(),
+             emotions:{...(S.emotions||{})}, favor:{...(S.favor||{})},
+             objective:S.objective||null, objectiveEn:S.objectiveEn||null,
+             body:S.body||null, energyTier:Energy.tier() };
+  },
+  derive(before, after, source){
+    const evts = [];
+    const push = (type, severity, changes, reactionKey)=>{
+      evts.push({ id:"ev"+(++this.seq), type, severity, changes,
+                  source, context:{ node:Store.get('node') }, reactionKey });
+    };
+    if(after.deathCount > before.deathCount)
+      push("death", "critical",
+           { from:before.deathCount, to:after.deathCount, deathCount:after.deathCount },
+           "death");
+    if(after.status !== before.status){
+      const to = after.status;
+      const sev = (to==="danger"||to==="wounded") ? "high" : "moderate";
+      push("status_changed", sev, { from:before.status, to }, "status_"+(to||"safe"));
+    }
+    if(after.mental !== before.mental){
+      const worse = after.mental > before.mental;
+      push("mental_changed", worse ? (after.mental>=4 ? "high" : "moderate") : "low",
+           { from:before.mental, to:after.mental, label:MENTAL_TIERS[after.mental]||"" },
+           "mental_"+(worse?"worse":"better"));
+    }
+    const ids = new Set([...Object.keys(before.items), ...Object.keys(after.items)]);
+    ids.forEach(id=>{
+      const b = before.items[id]||0, a = after.items[id]||0;
+      if(a > b) push("item_gained", "low",
+                     { id, name:itemDispName(id), from:b, to:a, qty:a-b }, "item_gained");
+      else if(a < b) push("item_lost", "low",
+                     { id, name:itemDispName(id), from:b, to:a, qty:b-a }, "item_lost");
+    });
+    Object.keys(after.equipment).forEach(slot=>{
+      if(after.equipment[slot] !== before.equipment[slot]){
+        const equipped = !!after.equipment[slot];
+        push("equipment_changed", "low",
+             { slot, slotName:eqSlotNameL(slot),
+               from:before.equipment[slot], to:after.equipment[slot],
+               name:itemDispName(after.equipment[slot]||before.equipment[slot]) },
+             equipped ? "equipment_equipped" : "equipment_unequipped");
+      }
+    });
+    after.effects.forEach(ef=>{
+      if(!before.effects.includes(ef))
+        push("effect_started", "moderate", { effect:ef }, "effect_started");
+    });
+    const tnames = new Set([...Object.keys(before.tiers), ...Object.keys(after.tiers)]);
+    tnames.forEach(name=>{
+      const b = before.tiers[name], a = after.tiers[name];
+      if(b===a) return;
+      const bl = (b===undefined) ? "—" : TIER_NAMES[b];
+      const al = (a===undefined) ? "Hilang" : TIER_NAMES[a];
+      push("tier_changed", (a===3||b===3) ? "high" : "moderate",
+           { name, from:bl, to:al, label:al }, "tier_changed");
+      if(name==="Kelelahan" && a===3 && b!==3)
+        push("derived", "high", { name:"Lemas",
+          note:"Kelelahan mencapai Ekstrim — tubuhmu Lemas, setara Terluka." }, "derived_lemas");
+      if(name==="Stress" && a===3 && b!==3)
+        push("derived", "high", { name:"Kebingungan Akut",
+          note:"Stress mencapai Ekstrim — pilihanmu berikutnya ditentukan dadu." }, "derived_bingung");
+      if(name==="Kelelahan" && b===3 && a!==3)
+        push("derived", "low", { name:"Lemas", note:"Rasa lemasmu mereda." }, "derived_lemas_end");
+      if(name==="Stress" && b===3 && a!==3)
+        push("derived", "low", { name:"Kebingungan Akut", note:"Pikiranmu kembali jernih." }, "derived_bingung_end");
+    });
+    const enames = new Set([...Object.keys(before.emotions), ...Object.keys(after.emotions)]);
+    enames.forEach(name=>{
+      const b = before.emotions[name]||0, a = after.emotions[name]||0;
+      if(a===b) return;
+      push("emotion_changed", (a>b && a>=2) ? "moderate" : "low",
+           { name, from:b, to:a, dir: a>b ? "naik" : "turun" }, "emotion_changed");
+    });
+    const fnames = new Set([...Object.keys(before.favor), ...Object.keys(after.favor)]);
+    fnames.forEach(name=>{
+      const b = before.favor[name]||0, a = after.favor[name]||0;
+      if(a!==b){
+        const d = a-b;
+        push("favor_changed", "low",
+             { name, from:b, to:a, delta:d, dstr:(d>0?"+":"")+d }, "favor_changed");
+      }
+    });
+    if(after.objective!==before.objective)
+      push("objective_changed", "moderate",
+           { from:before.objective||"—", to:after.objective||"—",
+             objective:after.objective||"", objectiveEn:after.objectiveEn||null }, "objective_changed");
+    const bt = new Set(before.temp), at = new Set(after.temp);
+    at.forEach(t=>{ if(!bt.has(t)) push("temp_started", "low", { name:t }, "temp_started"); });
+    bt.forEach(t=>{ if(!at.has(t)) push("temp_ended", "low", { name:t }, "temp_ended"); });
+    if(after.energyTier!==before.energyTier){
+      const order = { fit:4, tired:3, weary:2, critical:1, empty:0 };
+      const to = after.energyTier;
+      const d = (order[to]??4) < (order[before.energyTier]??4) ? "down" : "up";
+      const txt = energyTierText(to, d);
+      if(txt) push("energy_tier", to==="empty"||to==="critical" ? "high" : "low",
+                   { from:before.energyTier, to, dir:d, tierText:txt }, "energy_tier");
+    }
+    if(after.body!==before.body && (after.body || before.body))
+      push("body_changed", "low",
+           { from:before.body||"—", to:after.body||"—" }, "body_changed");
+    return evts;
+  },
+  present(evts){
+    if(!evts || !evts.length) return;
+    const order = { critical:0, high:1, moderate:2, low:3 };
+    const sorted = [...evts].sort((a,b)=>(order[a.severity]??3)-(order[b.severity]??3));
+    const primary = sorted[0];
+    const key = primary.reactionKey;
+    let variant = 0;
+    if(key===this._lastKey){ this._repeat = (this._repeat||0)+1; variant = this._repeat % 2; }
+    else this._repeat = 0;
+    this._lastKey = key;
+    const entry = REACTIONS[key];
+    if(!entry) return;
+    const msg = this.fillTpl(reactVariant(entry, variant), this.dispChanges(primary.changes));
+    this.showBar(msg, primary.severity);
+  },
+  fillTpl(tpl, changes){
+    let s = tpl;
+    for(const k of Object.keys(changes||{})) s = s.split("{"+k+"}").join(changes[k]);
+    return s;
+  },
+  dispChanges(ch){
+    const o = {};
+    for(const k of Object.keys(ch||{})){
+      const v = ch[k];
+      o[k] = (v==null) ? "—" : (typeof v==="object" ? JSON.stringify(v) : String(v));
+    }
+    return o;
+  },
+  showBar(msg, severity){
+    let bar = $("#reactionBar");
+    if(!bar){
+      bar = document.createElement("div");
+      bar.id = "reactionBar";
+      bar.setAttribute("role","status");
+      bar.setAttribute("aria-live","polite");
+      document.body.appendChild(bar);
+    }
+    bar.className = "show sev-"+severity;
+    bar.textContent = msg;
+    clearTimeout(bar._h);
+    bar._h = setTimeout(()=>{ bar.className = ""; }, 2600);
+  },
+  /* achievement auto-checks (was achvCheck) */
+  checkAchievements(evts, target){
+    const S = Store._raw();
+    if(!S || !S.registered) return;
+    const has = t => evts.some(e=>e.type===t);
+    if(has("death")){
+      Achievements.unlock("first_death");
+      if((S.deathCount||0) >= 5) Achievements.unlock("five_deaths");
+    }
+    if(target==="d5_trap") Achievements.unlock("trap_victim");
+    if(target==="d5_smart") Achievements.unlock("smart_cross");
+    if(target==="d3_a2a") Achievements.unlock("frozen");
+    evts.forEach(e=>{
+      if(e.type==="item_gained" && e.changes.id==="boneka") Achievements.unlock("teddy_friend");
+      if(e.type==="item_lost" && e.changes.id==="boneka") Achievements.unlock("teddy_dropped");
+      if(e.type==="energy_tier" && e.changes.to==="empty") Achievements.unlock("empty_tank");
+      if(e.reactionKey==="derived_lemas") Achievements.unlock("lemas_body");
+      if(e.reactionKey==="derived_bingung") Achievements.unlock("dice_fate");
+    });
+    if(S.flags && S.flags.d1 && S.flags.d2 && S.flags.d3 && S.flags.d4) Achievements.unlock("explorer");
+  },
+  /* contextual tutorial pops (was tutPopForEvents) */
+  tutPopsFor(evts){
+    if(!evts || !evts.length) return;
+    let energy=false, wounded=false, tier=false, lemas=false, bingung=false,
+        emotion=false, temp=false, usable=false, objective=false, favor=false;
+    const S = Store._raw();
+    evts.forEach(e=>{
+      if(e.type==="energy_tier" && e.changes.to!=="fit") energy = true;
+      if(e.type==="status_changed" && e.changes.to==="wounded") wounded = true;
+      if(e.type==="tier_changed") tier = true;
+      if(e.reactionKey==="derived_lemas") lemas = true;
+      if(e.reactionKey==="derived_bingung") bingung = true;
+      if(e.type==="emotion_changed" && e.changes.dir==="naik") emotion = true;
+      if(e.type==="temp_started") temp = true;
+      if(e.type==="objective_changed") objective = true;
+      if(e.type==="favor_changed") favor = true;
+      if(e.type==="item_gained"){
+        const it = (S.items||[]).find(x=>x.id===e.changes.id);
+        if(it && it.use) usable = true;
+      }
+    });
+    if(energy) Bus.emit('tutorial:pop',{id:"energy"});
+    if(wounded) Bus.emit('tutorial:pop',{id:"wounded"});
+    if(tier) Bus.emit('tutorial:pop',{id:"tier"});
+    if(lemas) Bus.emit('tutorial:pop',{id:"lemas"});
+    if(bingung) Bus.emit('tutorial:pop',{id:"bingung"});
+    if(emotion) Bus.emit('tutorial:pop',{id:"emotion"});
+    if(temp) Bus.emit('tutorial:pop',{id:"temp"});
+    if(usable) Bus.emit('tutorial:pop',{id:"usable"});
+    if(objective) Bus.emit('tutorial:pop',{id:"objective"});
+    if(favor) Bus.emit('tutorial:pop',{id:"favor"});
+  },
+  /* full pipeline: snapshot -> derive -> present + tutpops + achievements */
+  process(before, source, target){
+    const after = this.snapshot();
+    const evts = this.derive(before, after, source);
+    if(evts.length){
+      this.present(evts);
+      this.tutPopsFor(evts);
+      Bus.emit('reactions', {events: evts, source});
+    }
+    this.checkAchievements(evts, target);
+    return evts;
+  }
 };
 
 /* ================= 5. DIALOGUE RUNNER ================= */
@@ -3398,6 +3683,7 @@ const Runner = {
     opts = opts||{};
     const node = NODES[id];
     if(!node){ Bus.emit('toast',{key:'dead_end'}); return false; }
+    const before = Reactions.snapshot();
     Store.set('node', id, {silent:true});
     /* canon order: temp/emotion ticks per node */
     Status.tickTemp();
@@ -3423,6 +3709,8 @@ const Runner = {
     /* mark seen (for skip) */
     const seen = Store.get('seenText')||[];
     if(!seen.includes(id)) Store.set('seenText', seen.concat([id]), {silent:true});
+    /* reactions: derive events from the transition, present + achievements */
+    Reactions.process(before, "node", id);
     /* persist + render */
     Save.write();
     Screens.replace('story', {nodeId:id});
