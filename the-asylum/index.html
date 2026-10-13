@@ -208,6 +208,77 @@
     box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 4px 14px rgba(0,0,0,.4)}
   button.ghost:hover{border-color:var(--ash)}
 
+  /* ===== Point-and-click corridor menu (phase 2) ===== */
+  #titleScreen.cm{display:block; background:#000}
+  .cm-scene{position:absolute; inset:-4%; background:url("img/bg_corridor_menu.webp") center/cover no-repeat;
+    animation:cmpush 26s ease-in-out infinite alternate; will-change:transform}
+  @keyframes cmpush{from{transform:scale(1)} to{transform:scale(1.07)}}
+  @media (max-aspect-ratio:1/1){ .cm-scene{background-size:contain; background-color:#000} }
+  .cm-flick{position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse 60% 22% at 50% 0%, rgba(235,228,210,.10), transparent 70%);
+    animation:cmflick 9s infinite}
+  @keyframes cmflick{0%,100%{opacity:1} 5%{opacity:.4} 7%{opacity:1} 43%{opacity:1}
+    44%{opacity:.25} 45.5%{opacity:1} 46.5%{opacity:.6} 48%{opacity:1}
+    78%{opacity:1} 79%{opacity:.5} 80.5%{opacity:1}}
+  .cm-fog{position:absolute; inset:-20%; pointer-events:none; opacity:.5;
+    background:
+      radial-gradient(ellipse 40% 26% at 30% 70%, rgba(140,140,145,.12), transparent 70%),
+      radial-gradient(ellipse 36% 24% at 70% 62%, rgba(140,140,145,.10), transparent 70%);
+    animation:cmfog 30s ease-in-out infinite alternate}
+  @keyframes cmfog{from{transform:translateX(-5%)} to{transform:translateX(5%)}}
+  .cm-dust{position:absolute; inset:0; pointer-events:none; overflow:hidden}
+  .cm-dust i{position:absolute; bottom:-4%; width:3px; height:3px; border-radius:50%;
+    background:rgba(215,215,220,.35); animation:cmdust 16s linear infinite}
+  .cm-dust i:nth-child(1){left:11%; animation-delay:0s; animation-duration:15s}
+  .cm-dust i:nth-child(2){left:27%; animation-delay:3s; animation-duration:19s}
+  .cm-dust i:nth-child(3){left:43%; animation-delay:7s; animation-duration:14s}
+  .cm-dust i:nth-child(4){left:58%; animation-delay:1.5s; animation-duration:21s}
+  .cm-dust i:nth-child(5){left:71%; animation-delay:5s; animation-duration:16s}
+  .cm-dust i:nth-child(6){left:84%; animation-delay:9s; animation-duration:18s}
+  .cm-dust i:nth-child(7){left:35%; animation-delay:11s; animation-duration:22s}
+  .cm-dust i:nth-child(8){left:64%; animation-delay:13s; animation-duration:17s}
+  @keyframes cmdust{0%{transform:translateY(0); opacity:0} 12%{opacity:.7}
+    85%{opacity:.4} 100%{transform:translateY(-105vh); opacity:0}}
+  .cm-vig{position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 55%, transparent 55%, rgba(0,0,0,.55) 100%)}
+  .cm-hot{position:absolute; padding:0; border:0; background:transparent; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; z-index:3; touch-action:manipulation}
+  .cm-hot .cm-glow{position:absolute; inset:6%; border-radius:46%;
+    border:1px solid rgba(220,20,60,0);
+    background:radial-gradient(ellipse at center, rgba(220,20,60,.14), transparent 70%);
+    animation:cmpulse 3.2s ease-in-out infinite; transition:opacity .25s, transform .25s, border-color .25s}
+  @keyframes cmpulse{0%,100%{opacity:.55; transform:scale(.96)} 50%{opacity:1; transform:scale(1.04)}}
+  .cm-hot:hover .cm-glow,.cm-hot:focus-visible .cm-glow,.cm-hot:active .cm-glow{
+    animation:none; opacity:1; transform:scale(1.08); border-color:rgba(220,20,60,.55);
+    background:radial-gradient(ellipse at center, rgba(220,20,60,.30), transparent 70%);
+    box-shadow:0 0 34px rgba(220,20,60,.35)}
+  .cm-hot:focus{outline:none}
+  .cm-hot:focus-visible{outline:1px dashed rgba(220,20,60,.8); outline-offset:4px}
+  /* fallback geometry before JS projects the hotspots (overridden with px by cmLayoutHotspots) */
+  #cmCorr{left:37%; top:25%; width:27%; height:48%}
+  #cmBook{left:74%; top:52%; width:22%; height:22%}
+  #cmBag{left:9%; top:76%; width:20%; height:23%}
+  .cm-word{position:absolute; top:calc(.9rem + env(safe-area-inset-top, 0px)); left:1rem; z-index:5; pointer-events:none}
+  .cm-word h1{font-family:var(--serif); font-weight:600; color:var(--blood); font-size:1.35rem;
+    letter-spacing:.06em; line-height:1; margin:0;
+    text-shadow:0 0 22px rgba(220,20,60,.5), 0 2px 0 #000}
+  .cm-word small{display:block; font-family:var(--type); font-size:.58rem; letter-spacing:.34em;
+    color:var(--ash); margin-top:.3rem}
+  .cm-corner{position:absolute; top:calc(.8rem + env(safe-area-inset-top, 0px)); right:.8rem; z-index:5;
+    display:flex; gap:.5rem}
+  .cm-corner .mini-btn{min-height:44px; min-width:44px}
+  .cm-cap{position:absolute; left:0; right:0; bottom:0; z-index:4;
+    display:flex; align-items:center; justify-content:center; gap:.5rem .7rem; flex-wrap:wrap;
+    padding:.7rem 1rem calc(.7rem + env(safe-area-inset-bottom, 0px));
+    background:rgba(4,4,6,.78); border-top:1px solid rgba(220,20,60,.25);
+    font-size:.82rem; color:var(--ash); letter-spacing:.04em; text-align:center}
+  .cm-cap .cm-hint{color:var(--bone)}
+  .cm-cap .cm-hint b{color:var(--blood)}
+  .cm-cap .mini-btn{min-height:44px}
+  @media (prefers-reduced-motion:reduce){
+    .cm-scene,.cm-fog,.cm-flick,.cm-dust i,.cm-hot .cm-glow{animation:none}
+  }
+
   /* Registrasi — intake form */
   .pact{max-width:580px}
   .pact-title{
@@ -1893,7 +1964,9 @@ id: {
   footer_asylum:"THE ASYLUM PART 1",
   energy_title:"Energi: ",
   kicker_achv:"Pencapaian", kicker_coll:"Arsip",
-  achv_open:"TERBUKA", coll_found:"DITEMUKAN", btn_back:"KEMBALI"
+  achv_open:"TERBUKA", coll_found:"DITEMUKAN", btn_back:"KEMBALI",
+  menu_hint_corridor:"Masuki lorong", menu_hint_book:"Buku catatan — Pencapaian",
+  menu_hint_bag:"Tas — Koleksi", menu_tap_hint:"Ketuk objek di lorong untuk membukanya"
 },
 en: {
   tagline:"Dare you enter?",
@@ -1990,7 +2063,9 @@ en: {
   footer_asylum:"THE ASYLUM PART 1",
   energy_title:"Energy: ",
   kicker_achv:"Achievements", kicker_coll:"Archive",
-  achv_open:"UNLOCKED", coll_found:"FOUND", btn_back:"BACK"
+  achv_open:"UNLOCKED", coll_found:"FOUND", btn_back:"BACK",
+  menu_hint_corridor:"Enter the corridor", menu_hint_book:"Journal — Achievements",
+  menu_hint_bag:"Bag — Collection", menu_tap_hint:"Tap an object in the corridor to open it"
 }};
 
 /* ---------- 3.x narrative helpers ---------- */
@@ -4657,6 +4732,44 @@ function fmtFavorCard(){
 }
 
 /* ---------- title ---------- */
+/* ---------- point-and-click corridor menu helpers (phase 2) ---------- */
+let cmImgW = 2096, cmImgH = 1184;
+function cmPreloadSize(){
+  try{
+    const im = new Image();
+    im.onload = ()=>{ if(im.naturalWidth>0){ cmImgW = im.naturalWidth; cmImgH = im.naturalHeight; cmOnResize(); } };
+    im.src = "img/bg_corridor_menu.webp";
+  }catch(e){}
+}
+function cmOnResize(){
+  const el = document.getElementById("screen-title");
+  if(el && !el.hidden) cmLayoutHotspots(el);
+}
+/* Project image-% hotspot rects onto the rendered scene (cover on wide, contain on portrait). */
+function cmLayoutHotspots(root){
+  const scene = root.querySelector(".cm-scene");
+  const frame = root.querySelector("#titleScreen");
+  if(!scene || !frame) return;
+  const sr = scene.getBoundingClientRect(), fr = frame.getBoundingClientRect();
+  if(sr.width<2 || sr.height<2) return;
+  const portrait = sr.width < sr.height;
+  const sc = portrait ? Math.min(sr.width/cmImgW, sr.height/cmImgH)
+                      : Math.max(sr.width/cmImgW, sr.height/cmImgH);
+  const dw = cmImgW*sc, dh = cmImgH*sc;
+  const ix = (sr.left-fr.left) + (sr.width-dw)/2;
+  const iy = (sr.top-fr.top) + (sr.height-dh)/2;
+  root.querySelectorAll(".cm-hot").forEach(b=>{
+    let x = ix + (parseFloat(b.dataset.hx)||0)/100*dw;
+    let y = iy + (parseFloat(b.dataset.hy)||0)/100*dh;
+    let w = (parseFloat(b.dataset.hw)||0)/100*dw;
+    let h = (parseFloat(b.dataset.hh)||0)/100*dh;
+    if(w<44){ x -= (44-w)/2; w = 44; }
+    if(h<44){ y -= (44-h)/2; h = 44; }
+    b.style.left = x.toFixed(1)+"px"; b.style.top = y.toFixed(1)+"px";
+    b.style.width = w.toFixed(1)+"px"; b.style.height = h.toFixed(1)+"px";
+  });
+}
+
 Screens.register('title', {
   show(params, el){
     Audio.play("glitch",{gain:0.35});
@@ -4666,48 +4779,63 @@ Screens.register('title', {
     document.body.style.overflow = "hidden";
     const sv = Save.read(0);
     const tutDone = !!(typeof tutGet!=="undefined" && tutGet());
-    let sub = "", mainBtns = "";
-    if(!tutDone){
-      sub = `<div class="saveinfo">${ui("tut_sub")}</div>`;
-      mainBtns = `<button class="mbtn primary" id="btnTutStart"><span class="mi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg></span><span>${ui("btn_tut_start")}</span></button>`;
-    }else if(sv){
-      const st = sv.state;
-      sub = `<div class="saveinfo">Player <b>${esc(st.name)}</b> · <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-skull"/></svg> ${st.deathCount} · <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pack"/></svg> ${(st.items||[]).reduce((a,i)=>a+(i.qty||1),0)} ${ui("saveinfo_items")}</div>`;
-      mainBtns = `<button class="mbtn primary" id="btnCont"><span class="mi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-play"/></svg></span><span>${ui("btn_continue")}</span></button>
-        <button class="mbtn" id="btnNew"><span class="mi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-scroll"/></svg></span><span>${ui("btn_new")}</span></button>`;
-    }else{
-      mainBtns = `<button class="mbtn primary" id="btnStart"><span class="mi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-drop"/></svg></span><span>${ui("btn_start")}</span></button>`;
-    }
     const S = Store._raw();
     const hasSave = !!(sv || S.registered);
-    const menuGrid = tutDone ? `
-        <div class="menugrid">
-          <button class="mbtn" id="btnTut"><span class="mi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg></span><span>${ui("btn_tutorial")}</span></button>
-          <button class="mbtn" id="btnAchv"><span class="mi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trophy"/></svg></span><span>${ui("btn_achievement")}</span></button>
-        </div>
-        <button class="mbtn" id="btnColl"><span class="mi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pack"/></svg></span><span>${ui("btn_collection")}</span></button>
-        <div class="menugrid">
-          ${hasSave?`<button class="mbtn" id="btnExport"><span class="mi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-save"/></svg></span><span>${ui("btn_export")}</span></button>`:""}
-          <button class="mbtn" id="btnImport"><span class="mi"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tray"/></svg></span><span>${ui("btn_import")}</span></button>
-        </div>` : "";
+    let capHtml = "";
+    if(!tutDone){
+      capHtml = esc(ui("tut_sub"));
+    }else if(sv){
+      const st = sv.state;
+      capHtml = `Player <b>${esc(st.name)}</b> &middot; <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-skull"/></svg> ${st.deathCount} &middot; <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pack"/></svg> ${(st.items||[]).reduce((a,i)=>a+(i.qty||1),0)} ${ui("saveinfo_items")}`;
+    }else{
+      capHtml = esc(ui("tagline")) + " &middot; " + esc(ui("menu_tap_hint"));
+    }
+    const utils = [];
+    if(tutDone) utils.push(`<button class="mini-btn" id="cmTut">${ui("btn_tutorial")}</button>`);
+    if(hasSave) utils.push(`<button class="mini-btn" id="cmNew">${ui("btn_new")}</button>`);
+    if(hasSave) utils.push(`<button class="mini-btn" id="cmExport">${ui("btn_export")}</button>`);
+    if(tutDone) utils.push(`<button class="mini-btn" id="cmImport">${ui("btn_import")}</button>`);
     el.innerHTML = `
-      <div id="titleScreen"><div class="tube"></div><div class="fog"></div><div class="title-inner screen">
-        <div class="pre">${ui("tagline")}</div>
-        <h1>The Asylum</h1>
-        ${sub}
-        <div class="nocheat">${ui("nocheat")}</div>
-        ${mainBtns}
-        ${menuGrid}
-        <div class="center" style="margin-top:.9rem"><button class="mini-btn" id="btnLang">${ui("lang_btn")}</button></div>
-      </div></div>`;
+      <div id="titleScreen" class="cm">
+        <div class="cm-scene" aria-hidden="true"></div>
+        <div class="cm-flick" aria-hidden="true"></div>
+        <div class="cm-fog" aria-hidden="true"></div>
+        <div class="cm-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="cm-vig" aria-hidden="true"></div>
+        <div class="cm-word"><h1>The Asylum</h1><small>${ui("footer_asylum")}</small></div>
+        <div class="cm-corner">
+          <button class="mini-btn" id="cmSet">SET</button>
+          <button class="mini-btn" id="cmLang">${ui("lang_btn")}</button>
+        </div>
+        <button class="cm-hot" id="cmCorr" data-hx="37" data-hy="25" data-hw="27" data-hh="48" aria-label="${esc(ui("menu_hint_corridor"))}"><span class="cm-glow"></span></button>
+        ${tutDone?`
+        <button class="cm-hot" id="cmBook" data-hx="74" data-hy="52" data-hw="22" data-hh="22" aria-label="${esc(ui("menu_hint_book"))}"><span class="cm-glow"></span></button>
+        <button class="cm-hot" id="cmBag" data-hx="9" data-hy="76" data-hw="20" data-hh="23" aria-label="${esc(ui("menu_hint_bag"))}"><span class="cm-glow"></span></button>`:""}
+        <div class="cm-cap"><span class="cm-hint" id="cmHint">${capHtml}</span>${utils.join("")}</div>
+      </div>`;
     const q = s=>el.querySelector(s);
-    const st = q("#btnStart"); if(st) st.onclick = ()=>{ document.body.style.overflow=""; Screens.push('pact'); };
-    const ts = q("#btnTutStart"); if(ts) ts.onclick = ()=>{ document.body.style.overflow=""; Screens.push('tutorial'); };
-    const ct = q("#btnCont");
-    if(ct) ct.onclick = ()=>{
-      if(Save.load(0)){ document.body.style.overflow=""; Screens.push('status',{mode:"continue"}); }
+    const qa = s=>Array.from(el.querySelectorAll(s));
+    /* corridor = start entry (same routing as the old title buttons) */
+    q("#cmCorr").onclick = ()=>{
+      document.body.style.overflow = "";
+      if(!tutDone){ Screens.push('tutorial'); }
+      else if(sv){ if(Save.load(0)){ Screens.push('status',{mode:"continue"}); } }
+      else{ Screens.push('pact'); }
     };
-    const nw = q("#btnNew");
+    const bk = q("#cmBook"); if(bk) bk.onclick = ()=>{ document.body.style.overflow=""; Screens.push('achievements'); };
+    const bg2 = q("#cmBag"); if(bg2) bg2.onclick = ()=>{ document.body.style.overflow=""; Screens.push('collection'); };
+    /* bilingual hover / focus hints */
+    const hintEl = q("#cmHint"), defHint = hintEl.innerHTML;
+    qa(".cm-hot").forEach(b=>{
+      const t = b.getAttribute("aria-label")||"";
+      b.addEventListener("pointerenter", ()=>{ hintEl.textContent = t; });
+      b.addEventListener("pointerleave", ()=>{ hintEl.innerHTML = defHint; });
+      b.addEventListener("focus", ()=>{ hintEl.textContent = t; });
+      b.addEventListener("blur", ()=>{ hintEl.innerHTML = defHint; });
+    });
+    /* caption utilities — same actions as the old title menu grid */
+    const tt = q("#cmTut"); if(tt) tt.onclick = ()=>{ document.body.style.overflow=""; Screens.push('tutorial'); };
+    const nw = q("#cmNew");
     if(nw) nw.onclick = ()=>{
       UIX.confirmDialog(ui("confirm_new")).then((ok)=>{
         if(!ok) return;
@@ -4715,15 +4843,22 @@ Screens.register('title', {
         document.body.style.overflow=""; Screens.push('pact');
       });
     };
-    const bt = q("#btnTut"); if(bt) bt.onclick = ()=>{ document.body.style.overflow=""; Screens.push('tutorial'); };
-    const ba = q("#btnAchv"); if(ba) ba.onclick = ()=>{ document.body.style.overflow=""; Screens.push('achievements'); };
-    const bc = q("#btnColl"); if(bc) bc.onclick = ()=>{ document.body.style.overflow=""; Screens.push('collection'); };
-    const be = q("#btnExport"); if(be) be.onclick = ()=>exportSave();
-    const bi = q("#btnImport"); if(bi) bi.onclick = ()=>$("#importFile").click();
-    const bl = q("#btnLang"); if(bl) bl.onclick = ()=>{ setLang(LANG==="id"?"en":"id"); applyStaticLang(); Screens.replace('title'); };
+    const be = q("#cmExport"); if(be) be.onclick = ()=>exportSave();
+    const bi = q("#cmImport"); if(bi) bi.onclick = ()=>$("#importFile").click();
+    q("#cmSet").onclick = ()=>{ document.body.style.overflow=""; Screens.push('settings'); };
+    q("#cmLang").onclick = ()=>{ setLang(LANG==="id"?"en":"id"); applyStaticLang(); Screens.replace('title'); };
+    cmPreloadSize();
+    cmLayoutHotspots(el);
+    window.addEventListener("resize", cmOnResize);
     Screens.setKey(null);
-  }
+  },
+  onShow(params, el){
+    cmLayoutHotspots(el);
+    window.addEventListener("resize", cmOnResize);
+  },
+  onHide(){ window.removeEventListener("resize", cmOnResize); }
 });
+
 
 /* ---------- pact / registration ---------- */
 Screens.register('pact', {
