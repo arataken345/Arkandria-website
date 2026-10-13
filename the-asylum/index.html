@@ -611,12 +611,12 @@
 <div id="hud" hidden>
   <div class="hud-col">
     <div class="stat" id="deathStat"><svg class="ic" aria-hidden="true"><use href="#i-skull"/></svg> <span id="hudDeathLbl">Death Count</span>&nbsp;<b id="deathCount">0</b></div>
-    <button class="statbtn" id="statusBtn" title="Lihat status player">👤 STATUS</button>
+    <button class="statbtn" id="statusBtn" title="Lihat status player">STATUS</button>
   </div>
   <div class="stat" id="energyStat"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg><span class="ebar"><span class="efill"></span></span></div>
   <button class="statbtn" id="invBtn" title="Cek inventori"><svg class="ic" aria-hidden="true"><use href="#i-pack"/></svg> <b id="itemCount">0</b></button>
   <button class="statbtn" id="muteBtn" title="Suara on/off">🔊</button>
-  <div class="stat"><button id="menuBtn" title="Menu utama (progres tersimpan)">⌂ MENU</button></div>
+  <div class="stat"><button id="menuBtn" title="Menu utama (progres tersimpan)">MENU</button></div>
 </div>
 <div id="actionDock" hidden>
   <button id="restBtn" class="dock-btn"><svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg><span class="db-tx" id="restTx">REST</span></button>
@@ -626,13 +626,13 @@
 <div id="deathflash" aria-hidden="true"></div>
 <div class="modal" id="invModal" hidden>
   <div class="modal-box">
-    <h3 id="invTitle">🎒 PERLENGKAPAN</h3>
+    <h3 id="invTitle">PERLENGKAPAN</h3>
     <div id="invList"></div>
     <div class="center" style="margin-top:1.2rem"><button class="big ghost" id="invClose" style="font-size:.95rem; padding:.6rem 1.8rem">TUTUP</button></div>
   </div>
 </div>
 <input type="file" id="importFile" accept=".json,application/json" hidden />
-<div id="achvToast"><span class="ai"></span><span><div class="at" id="achvToastHead">🏆 ACHIEVEMENT</div><div class="an"></div><div class="ad"></div></span></div>
+<div id="achvToast"><span class="ai"></span><span><div class="at" id="achvToastHead">ACHIEVEMENT</div><div class="an"></div><div class="ad"></div></span></div>
 <div id="tutModal" hidden>
   <div class="tutmodal-box">
     <h3 id="tutPopT"></h3>
@@ -1626,14 +1626,14 @@ id: {
   reg_warn:"Dengan mengingat siapa dirimu, cerita ini menjadi milikmu.<br/>Pilihanmu final. Kematianmu tercatat.",
   tut_step_of:"Langkah {a} dari {b}", tut_back:"\u2190 KEMBALI", tut_next:"LANJUT \u2192",
   tut_start:"\u25B6 MULAI BERMAIN", tut_menu:"\u2302 MENU", tut_ok:"MENGERTI",
-  hud_death:"Death Count", hud_status:"\uD83D\uDC64 STATUS", hud_status_title:"Lihat status player",
-  hud_inv_title:"Cek inventori", hud_menu:"\u2302 MENU", hud_menu_title:"Menu utama (progres tersimpan)",
-  inv_title:"\uD83C\uDF92 PERLENGKAPAN", inv_close:"TUTUP",
+  hud_death:"Death Count", hud_status:"STATUS", hud_status_title:"Lihat status player",
+  hud_inv_title:"Cek inventori", hud_menu:"MENU", hud_menu_title:"Menu utama (progres tersimpan)",
+  inv_title:"PERLENGKAPAN", inv_close:"TUTUP",
   inv_empty:"Kosong.<br/>Kau tidak membawa apa-apa.",
   inv_equip:"EQUIP", inv_use:"PAKAI", inv_unequip:"LEPAS", inv_drop:"BUANG",
   inv_drop_arm:"YAKIN? TAP LAGI", inv_story_title:"Ketuk untuk melihat",
   inv_story_fallback:"Item ini apaan? Kenapa aku membawanya? Entahlah... Mungkin nanti ada gunanya.",
-  st_equip:"\uD83D\uDEE1 PERLENGKAPAN",
+  st_equip:"PERLENGKAPAN",
   st_equip_note:"Senjata & perlengkapan harus di-EQUIP untuk dipakai \u2014 kelola lewat \uD83C\uDF92 inventori.",
   st_cond:"\u2764 KONDISI", st_situation:"Situasi", st_body:"Kondisi Tubuh", st_mental:"Kondisi Mental",
   st_effects:"Efek Status", st_emotions:"Emosi", st_energy:"\u26A1 Energi",
@@ -1683,9 +1683,9 @@ id: {
   toast_imported:"Save berhasil di-import \uD83E\uDE78",
   toast_read_fail:"Gagal membaca file \uD83E\uDE78",
   confirm_import:"Import akan MENIMPA save yang ada. Lanjutkan?",
-  achv_title:"\uD83C\uDFC6 ACHIEVEMENT", achv_toast_head:"\uD83C\uDFC6 ACHIEVEMENT",
+  achv_title:"ACHIEVEMENT", achv_toast_head:"ACHIEVEMENT",
   achv_sub:"Mereka yang berani akan tercatat.",
-  coll_title:"\uD83C\uDF92 KOLEKSI ITEM", coll_sub:"Semua yang pernah kau temukan.",
+  coll_title:"KOLEKSI ITEM", coll_sub:"Semua yang pernah kau temukan.",
   coll_missing:"Belum ditemukan.",
   lock_done:"\u2713 Sudah diperiksa \u2014 tidak ada lagi di sana",
   lock_tired:"\u26A1 Kau terlalu lelah untuk ini",
@@ -1722,14 +1722,14 @@ en: {
   reg_warn:"By remembering who you are, this story becomes yours.<br/>Your choices are final. Your deaths are recorded.",
   tut_step_of:"Step {a} of {b}", tut_back:"\u2190 BACK", tut_next:"NEXT \u2192",
   tut_start:"\u25B6 START PLAYING", tut_menu:"\u2302 MENU", tut_ok:"UNDERSTOOD",
-  hud_death:"Death Count", hud_status:"\uD83D\uDC64 STATUS", hud_status_title:"View player status",
-  hud_inv_title:"Check inventory", hud_menu:"\u2302 MENU", hud_menu_title:"Main menu (progress saved)",
-  inv_title:"\uD83C\uDF92 INVENTORY", inv_close:"CLOSE",
+  hud_death:"Death Count", hud_status:"STATUS", hud_status_title:"View player status",
+  hud_inv_title:"Check inventory", hud_menu:"MENU", hud_menu_title:"Main menu (progress saved)",
+  inv_title:"INVENTORY", inv_close:"CLOSE",
   inv_empty:"Empty.<br/>You carry nothing.",
   inv_equip:"EQUIP", inv_use:"USE", inv_unequip:"UNEQUIP", inv_drop:"DISCARD",
   inv_drop_arm:"SURE? TAP AGAIN", inv_story_title:"Tap to inspect",
   inv_story_fallback:"What is this item? Why am I carrying it? No idea... Maybe it will matter later.",
-  st_equip:"\uD83D\uDEE1 EQUIPMENT",
+  st_equip:"EQUIPMENT",
   st_equip_note:"Weapons & gear must be EQUIPPED to use \u2014 manage via \uD83C\uDF92 inventory.",
   st_cond:"\u2764 CONDITION", st_situation:"Situation", st_body:"Body", st_mental:"Mental State",
   st_effects:"Status Effects", st_emotions:"Emotions", st_energy:"\u26A1 Energy",
@@ -1779,9 +1779,9 @@ en: {
   toast_imported:"Save imported \uD83E\uDE78",
   toast_read_fail:"Failed to read file \uD83E\uDE78",
   confirm_import:"Import will OVERWRITE your current save. Continue?",
-  achv_title:"\uD83C\uDFC6 ACHIEVEMENTS", achv_toast_head:"\uD83C\uDFC6 ACHIEVEMENT",
+  achv_title:"ACHIEVEMENTS", achv_toast_head:"ACHIEVEMENT",
   achv_sub:"The brave shall be recorded.",
-  coll_title:"\uD83C\uDF92 ITEM COLLECTION", coll_sub:"Everything you have ever found.",
+  coll_title:"ITEM COLLECTION", coll_sub:"Everything you have ever found.",
   coll_missing:"Not found yet.",
   lock_done:"\u2713 Already checked \u2014 nothing left there",
   lock_tired:"\u26A1 You are too exhausted for this",
@@ -3959,7 +3959,7 @@ function showTitle(){
     sub = `<div class="saveinfo">${ui("tut_sub")}</div>`;
     mainBtns = `<button class="mbtn primary" id="btnTutStart"><span class="mi">📖</span><span>${ui("btn_tut_start")}</span></button>`;
   }else if(sv){
-    sub = `<div class="saveinfo">Player <b>${esc(sv.name)}</b> · 💀 ${sv.deathCount} · 🎒 ${sv.items.reduce((a,i)=>a+(i.qty||1),0)} ${ui("saveinfo_items")}</div>`;
+    sub = `<div class="saveinfo">Player <b>${esc(sv.name)}</b> · <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-skull"/></svg> ${sv.deathCount} · <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pack"/></svg> ${sv.items.reduce((a,i)=>a+(i.qty||1),0)} ${ui("saveinfo_items")}</div>`;
     mainBtns = `<button class="mbtn primary" id="btnCont"><span class="mi">▶</span><span>${ui("btn_continue")}</span></button>
       <button class="mbtn" id="btnNew"><span class="mi">📜</span><span>${ui("btn_new")}</span></button>`;
   }else{
@@ -4150,7 +4150,7 @@ function showStatus(mode, resumeTarget){
           <div class="pavatar">${esc(initial)}</div>
           <div>
             <div class="pname">${esc(S.name)}</div>
-            <div class="pmeta">${esc(S.gender)} · 💀 Death Count: <b>${S.deathCount}</b></div>
+            <div class="pmeta">${esc(S.gender)} · <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-skull"/></svg> Death Count: <b>${S.deathCount}</b></div>
           </div>
         </div>
         <div class="pcard">
@@ -4537,7 +4537,7 @@ function renderTBC(){
       <h2>${ui("tbc_title")}</h2>
       <p>${ui("tbc_text")}</p>
       <div class="stats">
-        <div>💀 Death Count<b>${S.deathCount}</b></div>
+        <div><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-skull"/></svg> Death Count<b>${S.deathCount}</b></div>
         <div>🎒 Item<b style="font-size:1rem">${items}</b></div>
       </div>
       <div class="btnrow">
