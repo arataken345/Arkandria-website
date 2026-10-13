@@ -5,375 +5,358 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Arkandria — Ambang yang Tak Dikenal</title>
 <meta name="description" content="Arkandria — sebuah dimensi di antara dunia. Setiap portal membuka sebuah cerita. Pilih ambangmu dengan hati-hati." />
-<meta property="og:title" content="Arkandria — The Unknown Threshold" />
+<meta property="og:title" content="Arkandria — Ambang yang Tak Dikenal" />
 <meta property="og:description" content="Sebuah dimensi di antara dunia. Setiap portal membuka sebuah cerita." />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://arkandria.online/" />
+<meta property="og:url" content="https://arkandria.online" />
+<meta property="og:image" content="https://arkandria.online/assets/hero-cosmic-crimson.jpg" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0f'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-size='36' fill='%23dc143c' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<!-- Vercel Web Analytics + Speed Insights -->
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Pirata+One&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 <style>
-  :root{
-    --blood:#dc143c;
-    --blood-hot:#f0224f;
-    --gold:#c9a86a;
-    --bone:#e8e4e0;
-    --ash:#a8a8a8;
-    --dim:#6e6e6e;
-    --ink:#060608;
-    --line:rgba(201,168,106,.22);
+  :root {
+    --crimson: #dc143c;
+    --crimson-deep: #8f0f28;
+    --gold: #c9a86a;
+    --ink: #060608;
+    --ink-2: #0b0b0e;
+    --paper: #ece7df;
+    --muted: #a8a8a8;
+    --faint: #6e6e6e;
+    --line: rgba(236, 231, 223, 0.14);
+    --serif: "Cormorant Garamond", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{
-    background:var(--ink);
-    color:var(--bone);
-    font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
-    line-height:1.7;
-    overflow-x:hidden;
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { height: 100%; }
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
-  body::before{ /* pola titik halus ala Hero Patterns */
-    content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23ffffff' fill-opacity='0.045'/%3E%3C/svg%3E");
-  }
-  body::after{ /* vignette */
-    content:""; position:fixed; inset:0; pointer-events:none; z-index:60;
-    background:radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,.78) 100%);
-  }
-  .grain{
-    position:fixed; inset:0; z-index:61; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-  ::selection{background:rgba(220,20,60,.4)}
-  a{color:inherit}
-  :focus-visible{outline:2px solid var(--gold); outline-offset:3px; border-radius:2px}
-  .skip{
-    position:fixed; top:-4rem; left:1rem; z-index:100;
-    background:var(--blood); color:#fff; padding:.6rem 1.2rem; border-radius:0 0 8px 8px;
-    text-decoration:none; font-size:.85rem; transition:top .2s;
-  }
-  .skip:focus{top:0}
+  ::selection { background: var(--crimson); color: #fff; }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--ink); }
+  ::-webkit-scrollbar-thumb { background: #2a2a2e; border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--crimson-deep); }
+  :focus-visible { outline: 2px solid var(--crimson); outline-offset: 3px; }
 
-  /* ===== Header (selector bahasa selalu terlihat) ===== */
-  .site-header{
-    position:fixed; top:0; left:0; right:0; z-index:50;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:1rem clamp(1.2rem,4vw,2.5rem);
-    background:linear-gradient(180deg, rgba(6,6,8,.92), rgba(6,6,8,.55) 75%, transparent);
+  .skip {
+    position: fixed; top: -60px; left: 16px; z-index: 200;
+    background: var(--crimson); color: #fff; padding: 0.7rem 1.2rem;
+    border-radius: 8px; text-decoration: none; font-size: 0.85rem;
+    transition: top 0.2s ease;
   }
-  .wordmark{
-    font-family:"Special Elite",cursive; letter-spacing:.28em; text-indent:.28em;
-    font-size:.95rem; color:var(--bone); text-decoration:none;
-  }
-  .wordmark b{color:var(--blood); font-weight:400}
-  .lang-toggle{display:flex; border:1px solid #3a3a3a; border-radius:999px; overflow:hidden}
-  .lang-toggle button{
-    background:transparent; border:none; color:var(--dim); cursor:pointer;
-    font-family:inherit; font-size:.72rem; font-weight:800; letter-spacing:.18em;
-    padding:.45rem .95rem; transition:.15s;
-  }
-  .lang-toggle button[aria-pressed="true"]{background:rgba(220,20,60,.16); color:var(--bone)}
-  .lang-toggle button:hover{color:var(--bone)}
+  .skip:focus { top: 12px; }
 
-  main{position:relative; z-index:1}
-  section{padding:clamp(4rem,10vh,7rem) clamp(1.2rem,6vw,4rem)}
-  .wrap{max-width:1020px; margin:0 auto}
-
-  /* ===== Reveal on scroll (Animate.css dipicu IntersectionObserver) ===== */
-  .reveal{opacity:0}
-  .reveal.is-visible{opacity:1}
-
-  /* ===== Hero ===== */
-  .hero{
-    min-height:100svh; display:flex; align-items:center; justify-content:center;
-    text-align:center; position:relative; overflow:hidden;
-    padding-top:5rem;
+  /* ---- film treatment: grain + vignette sit above everything visual, below HUD text ---- */
+  .grain {
+    position: fixed; inset: -50%; z-index: 60; pointer-events: none; opacity: 0.055;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain 0.9s steps(4) infinite;
   }
-  .hero-bg{position:absolute; inset:0; pointer-events:none;
-    background:url("img/arkandria-hero.jpg") center 38%/cover no-repeat; opacity:.55;}
-  .hero-veil{position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(180deg, rgba(5,5,8,.55), rgba(5,5,8,.15) 40%, rgba(5,5,8,.82));}
-  .doorway{ /* ambang cahaya — monumental, terkendali */
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-58%);
-    width:clamp(120px,22vw,220px); height:72vh; pointer-events:none;
-    background:linear-gradient(180deg, rgba(232,228,224,.10), rgba(201,168,106,.07) 55%, transparent);
-    filter:blur(6px);
-    -webkit-mask-image:linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
-    mask-image:linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
-    animation:doorway 9s ease-in-out infinite alternate;
+  @keyframes grain {
+    0% { transform: translate(0, 0); } 25% { transform: translate(-2%, 3%); }
+    50% { transform: translate(3%, -2%); } 75% { transform: translate(-3%, -3%); }
+    100% { transform: translate(2%, 2%); }
   }
-  @keyframes doorway{from{opacity:.55} to{opacity:1}}
-  .fog{position:absolute; inset:-20%; pointer-events:none; opacity:.5;
+  .vignette {
+    position: fixed; inset: 0; z-index: 59; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 52%, rgba(0,0,0,0.55) 100%);
+  }
+
+  /* ---- HUD chrome ---- */
+  .hud-top {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.4rem 2rem;
+    background: linear-gradient(180deg, rgba(6,6,8,0.72) 0%, transparent 100%);
+  }
+  .wordmark {
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.42em; text-indent: 0.42em;
+    color: var(--paper); text-decoration: none;
+  }
+  .wordmark b { color: var(--crimson); font-weight: 800; }
+  .hud-right { display: flex; align-items: center; gap: 1.4rem; }
+  .status {
+    display: flex; align-items: center; gap: 0.55rem;
+    font-size: 0.66rem; letter-spacing: 0.28em; text-indent: 0.1em; color: var(--muted);
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--crimson); box-shadow: 0 0 10px var(--crimson); animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .lang-toggle { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .lang-toggle button {
+    background: transparent; border: 0; color: var(--faint); cursor: pointer;
+    font-family: var(--sans); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.14em;
+    padding: 0.45rem 0.85rem; transition: all 0.2s ease;
+  }
+  .lang-toggle button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+
+  main { position: relative; z-index: 1; }
+
+  /* ---- HERO: one fullscreen cinematic frame ---- */
+  .hero { position: relative; min-height: 100svh; display: flex; overflow: hidden; }
+  .hero-bg { position: absolute; inset: -6% 0; z-index: 0; will-change: transform; }
+  .hero-bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero-shade {
+    position: absolute; inset: 0; z-index: 1;
     background:
-      radial-gradient(ellipse 40% 28% at 24% 70%, rgba(120,120,125,.09), transparent 70%),
-      radial-gradient(ellipse 34% 24% at 76% 62%, rgba(120,120,125,.07), transparent 70%);
-    animation:fogdrift 30s ease-in-out infinite alternate;
+      linear-gradient(180deg, rgba(6,6,8,0.55) 0%, transparent 26%, transparent 52%, rgba(6,6,8,0.88) 100%),
+      linear-gradient(100deg, rgba(6,6,8,0.5) 0%, transparent 55%);
   }
-  @keyframes fogdrift{from{transform:translateX(-4%)} to{transform:translateX(4%)}}
-  .embers{position:absolute; inset:0; pointer-events:none; overflow:hidden}
-  .embers span{
-    position:absolute; bottom:-12px; border-radius:50%;
-    background:radial-gradient(circle, rgba(240,34,79,.85), rgba(220,20,60,0) 70%);
-    animation:rise linear infinite;
+  #embers { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .hero-frame {
+    position: relative; z-index: 3; flex: 1; display: flex; flex-direction: column; justify-content: flex-end;
+    padding: clamp(5.5rem, 10vh, 7rem) clamp(1.4rem, 5vw, 4rem) clamp(2rem, 5vh, 3rem);
+    max-width: 1400px; margin: 0 auto; width: 100%;
   }
-  @keyframes rise{
-    from{transform:translateY(0) translateX(0); opacity:0}
-    12%{opacity:.8}
-    to{transform:translateY(-72vh) translateX(24px); opacity:0}
+  .hero-title {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(3.2rem, 9.5vw, 7.6rem);
+    line-height: 0.98; letter-spacing: 0.01em;
+    color: var(--paper); text-wrap: balance;
+    text-shadow: 0 2px 40px rgba(0,0,0,0.6);
+    margin-bottom: 1.1rem;
+    opacity: 0; transform: translateY(34px);
+    animation: rise 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
   }
-  .hero-inner{position:relative; max-width:820px; padding:0 1.2rem}
-  .eyebrow{
-    font-size:.7rem; font-weight:800; letter-spacing:.5em; text-indent:.5em;
-    color:var(--gold); text-transform:uppercase; margin-bottom:1.6rem;
-    display:flex; align-items:center; justify-content:center; gap:.7rem;
+  .hero-title em { font-style: italic; color: #f3d9de; }
+  .hero-lede {
+    max-width: 34rem; font-size: clamp(0.98rem, 1.6vw, 1.12rem); line-height: 1.85;
+    color: #cfc9c2; letter-spacing: 0.02em; margin-bottom: 1.9rem;
+    opacity: 0; transform: translateY(26px);
+    animation: rise 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
   }
-  .eyebrow svg{width:15px; height:15px; stroke:var(--gold)}
-  .hero h1{
-    font-family:"Pirata One",cursive;
-    font-size:clamp(3.8rem,14vw,9.5rem);
-    letter-spacing:.06em; line-height:1;
-    color:var(--bone);
-    text-shadow:0 0 60px rgba(220,20,60,.25), 0 2px 0 #000;
-    margin-bottom:1.4rem;
-    animation:titleflicker 7s infinite;
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .hero-ctas {
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+    opacity: 0; transform: translateY(22px);
+    animation: rise 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.65s forwards;
   }
-  @keyframes titleflicker{
-    0%,100%{opacity:1}
-    91%{opacity:1; text-shadow:0 0 60px rgba(220,20,60,.25), 0 2px 0 #000}
-    92%{opacity:.72; text-shadow:-3px 0 rgba(240,34,79,.6), 3px 0 rgba(120,180,255,.4), 0 2px 0 #000}
-    93%{opacity:1; text-shadow:0 0 60px rgba(220,20,60,.25), 0 2px 0 #000}
-    96%{opacity:.85}
-    97%{opacity:1}
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    font-size: 0.74rem; font-weight: 600; letter-spacing: 0.24em; text-indent: 0.1em; text-transform: uppercase;
+    text-decoration: none; border-radius: 999px; padding: 1rem 2.1rem;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
   }
-  .lede{
-    font-family:"Cormorant Garamond",serif; font-style:italic;
-    font-size:clamp(1.15rem,3vw,1.45rem); color:var(--ash);
-    max-width:620px; margin:0 auto 2.6rem; line-height:1.9;
+  .btn-solid { background: linear-gradient(135deg, var(--crimson) 0%, var(--crimson-deep) 100%); color: #fff; border: 1px solid transparent; }
+  .btn-solid:hover { transform: translateY(-2px); box-shadow: 0 12px 34px rgba(220, 20, 60, 0.4); }
+  .btn-ghost { background: transparent; color: var(--paper); border: 1px solid var(--line); }
+  .btn-ghost:hover { border-color: var(--crimson); background: rgba(220, 20, 60, 0.1); transform: translateY(-2px); }
+  .hero-foot {
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem;
+    margin-top: clamp(2.4rem, 7vh, 4.5rem); padding-top: 1.4rem; border-top: 1px solid var(--line);
+    opacity: 0; animation: rise 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.9s forwards;
   }
-  .cta-row{display:flex; gap:1rem; justify-content:center; flex-wrap:wrap}
-  .btn{
-    display:inline-flex; align-items:center; gap:.6rem; text-decoration:none; cursor:pointer; font-family:inherit;
-    font-size:.82rem; font-weight:800; letter-spacing:.24em; text-indent:.24em; text-transform:uppercase;
-    padding:1rem 2.4rem; border-radius:999px; transition:.2s; border:1px solid transparent;
-  }
-  .btn svg{width:16px; height:16px}
-  .btn-primary{background:var(--blood); color:#fff; border-color:var(--blood)}
-  .btn-primary:hover{background:var(--blood-hot); box-shadow:0 0 30px rgba(220,20,60,.45); transform:translateY(-2px)}
-  .btn-ghost{background:transparent; color:var(--bone); border-color:#4a4a4a}
-  .btn-ghost:hover{border-color:var(--gold); color:var(--gold)}
-  .scroll-cue{
-    position:absolute; bottom:2rem; left:50%; transform:translateX(-50%);
-    display:flex; flex-direction:column; align-items:center; gap:.35rem;
-    font-size:.62rem; letter-spacing:.4em; text-indent:.4em; text-transform:uppercase; color:var(--dim);
-    animation:cue 2.6s ease-in-out infinite;
-  }
-  .scroll-cue svg{width:18px; height:18px}
-  @keyframes cue{0%,100%{opacity:.4} 50%{opacity:1}}
+  .scroll-cue { display: flex; align-items: center; gap: 0.9rem; font-size: 0.66rem; letter-spacing: 0.34em; text-transform: uppercase; color: var(--muted); }
+  .scroll-line { display: block; width: 56px; height: 1px; background: var(--line); position: relative; overflow: hidden; }
+  .scroll-line::after { content: ""; position: absolute; inset: 0; background: var(--crimson); transform: translateX(-100%); animation: scan 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+  @keyframes scan { 60%, 100% { transform: translateX(100%); } }
+  .telemetry { text-align: right; font-size: 0.64rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--faint); line-height: 2; }
+  .telemetry b { color: var(--muted); font-weight: 600; }
 
-  /* ===== Sections ===== */
-  .sec-head{max-width:720px; margin-bottom:3rem}
-  .sec-head h2{
-    font-family:"Pirata One",cursive;
-    font-size:clamp(2.2rem,6vw,3.4rem); letter-spacing:.03em; line-height:1.15;
-    margin:.9rem 0 1.2rem; color:var(--bone);
+  /* ---- sections: each a composed frame, text kept to the edges ---- */
+  .frame { position: relative; padding: clamp(5rem, 12vh, 9rem) clamp(1.4rem, 5vw, 4rem); max-width: 1400px; margin: 0 auto; }
+  .frame-tag {
+    font-size: 0.66rem; letter-spacing: 0.34em; text-transform: uppercase; color: var(--crimson);
+    margin-bottom: 1.6rem; display: flex; align-items: center; gap: 0.9rem;
   }
-  .sec-head p{color:var(--ash); font-size:clamp(.98rem,2.4vw,1.1rem)}
-  .rule{width:64px; height:1px; background:linear-gradient(90deg, var(--gold), transparent); box-shadow:0 0 12px rgba(201,168,106,.5); margin:2.2rem 0}
-  .prose p{
-    font-family:"Cormorant Garamond",serif; font-size:clamp(1.15rem,2.8vw,1.35rem);
-    color:var(--ash); max-width:680px; margin-bottom:1.4rem; line-height:1.85;
+  .frame-tag::after { content: ""; height: 1px; width: 64px; background: linear-gradient(90deg, var(--crimson), transparent); }
+  .frame h2 {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(2.2rem, 5.4vw, 4.2rem); line-height: 1.08;
+    max-width: 16ch; text-wrap: balance; margin-bottom: 1.8rem;
   }
-  .prose p strong{color:var(--bone); font-weight:600}
+  .frame .cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.6rem, 4vw, 4rem); max-width: 62rem; }
+  .frame p { color: var(--muted); line-height: 1.95; font-size: clamp(0.96rem, 1.5vw, 1.06rem); letter-spacing: 0.015em; }
+  .frame p strong { color: var(--paper); font-weight: 600; }
+  .frame p + p { margin-top: 1.2rem; }
 
-  /* ===== Story cards ===== */
-  .cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.4rem}
-  .card{
-    display:flex; flex-direction:column; gap:.9rem;
-    border:1px solid #2a2a2e; border-radius:16px; padding:1.8rem 1.6rem;
-    background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,0));
-    text-decoration:none; transition:.22s; position:relative; overflow:hidden;
-  }
-  .card-icon{
-    width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center;
-    background:rgba(201,168,106,.08); border:1px solid var(--line); margin-bottom:.2rem;
-  }
-  .card-icon svg{width:22px; height:22px; stroke:var(--gold)}
-  a.card .card-icon{background:rgba(220,20,60,.08); border-color:rgba(220,20,60,.3)}
-  a.card .card-icon svg{stroke:var(--blood)}
-  a.card:hover{border-color:var(--blood); transform:translateY(-4px); box-shadow:0 18px 50px rgba(0,0,0,.55), 0 0 26px rgba(220,20,60,.12)}
-  a.card:hover .go{color:var(--blood)}
-  a.card:hover .card-icon{animation:cardbreathe 1.6s ease-in-out infinite}
-  @keyframes cardbreathe{0%,100%{box-shadow:0 0 0 rgba(220,20,60,0)} 50%{box-shadow:0 0 22px rgba(220,20,60,.45)}}
-  .card .kicker{font-size:.64rem; font-weight:800; letter-spacing:.32em; color:var(--gold); text-transform:uppercase}
-  .card h3{font-family:"Pirata One",cursive; font-size:2rem; letter-spacing:.04em; color:var(--bone); font-weight:400}
-  .card .hook{color:var(--ash); font-size:.94rem; flex:1}
-  .card .meta{display:flex; align-items:center; justify-content:space-between; gap:.8rem; margin-top:.4rem}
-  .status{
-    font-size:.64rem; font-weight:800; letter-spacing:.22em; text-transform:uppercase;
-    padding:.4rem .9rem; border-radius:999px; border:1px solid;
-  }
-  .status.live{
-    color:var(--blood-hot); border-color:var(--blood); background:rgba(220,20,60,.08);
-    animation:livepulse 2.4s ease-in-out infinite;
-  }
-  @keyframes livepulse{0%,100%{box-shadow:0 0 0 rgba(220,20,60,0)} 50%{box-shadow:0 0 14px rgba(220,20,60,.5)}}
-  .status.soon{color:var(--dim); border-color:#3a3a3a}
-  .go{font-size:.8rem; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:var(--ash); transition:.2s}
-  .card.soon{opacity:.55; cursor:default; border-style:dashed}
-  .card.soon h3{color:var(--dim)}
+  .reveal { opacity: 0; transform: translateY(36px); transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1); }
+  .reveal.in { opacity: 1; transform: none; }
 
-  /* ===== Closing ===== */
-  .closing{text-align:center}
-  .closing .line1{
-    font-family:"Cormorant Garamond",serif; font-style:italic; color:var(--ash);
-    font-size:clamp(1.5rem,4.5vw,2.3rem); letter-spacing:.04em; margin-bottom:1rem;
+  /* ---- portals: one feature, one whisper ---- */
+  .portals { display: grid; grid-template-columns: 7fr 5fr; gap: 1.4rem; margin-top: 1rem; }
+  .portal {
+    position: relative; border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+    padding: clamp(1.8rem, 3.4vw, 3rem); text-decoration: none; color: var(--paper);
+    background: linear-gradient(160deg, rgba(220,20,60,0.09) 0%, rgba(11,11,14,0.6) 55%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+    display: flex; flex-direction: column; justify-content: flex-end; min-height: 380px;
   }
-  .closing .line2{
-    font-family:"Pirata One",cursive; color:var(--blood);
-    font-size:clamp(1.8rem,5.5vw,2.8rem); letter-spacing:.05em;
-    text-shadow:0 0 30px rgba(220,20,60,.35);
+  .portal:hover { transform: translateY(-6px); border-color: rgba(220, 20, 60, 0.55); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(220,20,60,0.15); }
+  .portal .p-kind { font-size: 0.64rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+  .portal h3 { font-family: var(--serif); font-weight: 600; font-size: clamp(2rem, 4vw, 3.2rem); margin-bottom: 1rem; }
+  .portal .p-hook { color: var(--muted); line-height: 1.85; font-size: 0.98rem; max-width: 34ch; margin-bottom: 1.6rem; }
+  .portal .p-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .p-status { font-size: 0.66rem; letter-spacing: 0.26em; text-transform: uppercase; color: #7ee2a8; display: flex; align-items: center; gap: 0.55rem; }
+  .p-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #7ee2a8; box-shadow: 0 0 10px #7ee2a8; animation: pulse 2.4s ease-in-out infinite; }
+  .p-go { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--paper); }
+  .portal .p-go .arrow { display: inline-block; transition: transform 0.25s ease; color: var(--crimson); }
+  .portal:hover .p-go .arrow { transform: translateX(6px); }
+  .portal-soon {
+    background: rgba(11, 11, 14, 0.5); border-style: dashed; cursor: default; min-height: 380px;
   }
+  .portal-soon:hover { transform: none; border-color: var(--line); box-shadow: none; }
+  .portal-soon .p-kind { color: var(--faint); }
+  .portal-soon h3 { color: #8d8d94; }
+  .portal-soon .p-status { color: var(--faint); }
+  .portal-soon .p-status::before { background: var(--faint); box-shadow: none; animation: none; }
 
-  footer{
-    border-top:1px solid #1d1d21; padding:2.4rem clamp(1.2rem,6vw,4rem);
-    display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
-    font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--dim);
-    position:relative; z-index:1;
+  /* ---- closing: a quiet cinematic beat ---- */
+  .closing { text-align: center; padding: clamp(6rem, 16vh, 11rem) 1.4rem; position: relative; }
+  .closing p {
+    font-family: var(--serif); font-size: clamp(1.7rem, 4vw, 3rem); line-height: 1.5;
+    color: var(--paper); max-width: 24ch; margin: 0 auto; text-wrap: balance;
   }
-  footer nav{display:flex; gap:1.4rem}
-  footer a{color:var(--dim); text-decoration:none}
-  footer a:hover{color:var(--bone)}
+  .closing p + p { margin-top: 0.6rem; color: var(--muted); font-size: clamp(1.25rem, 2.6vw, 1.9rem); font-style: italic; }
+  .closing .rule { width: 72px; height: 1px; background: linear-gradient(90deg, transparent, var(--crimson), transparent); margin: 2.6rem auto 0; }
 
-  @media (max-width:560px){
-    .site-header{padding:.9rem 1rem}
-    .cta-row .btn{width:100%; text-align:center; justify-content:center}
-    footer{justify-content:center; text-align:center}
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 2.2rem clamp(1.4rem, 5vw, 4rem);
+    display: flex; flex-wrap: wrap; gap: 1.2rem; justify-content: space-between; align-items: center;
+    max-width: 1400px; margin: 0 auto;
+    font-size: 0.7rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--faint);
   }
-  @media (prefers-reduced-motion: reduce){
-    html{scroll-behavior:auto}
-    *,*::before,*::after{animation:none !important; transition:none !important}
-    .doorway{opacity:.8}
-    .reveal{opacity:1}
+  footer nav { display: flex; gap: 1.6rem; }
+  footer a { color: var(--muted); text-decoration: none; transition: color 0.2s ease; }
+  footer a:hover { color: var(--paper); }
+  footer .tag { color: var(--muted); }
+
+  @media (max-width: 860px) {
+    .frame .cols { grid-template-columns: 1fr; }
+    .portals { grid-template-columns: 1fr; }
+    .portal { min-height: 300px; }
+    .telemetry { display: none; }
+    .status span:last-child { display: none; }
+    .hud-top { padding: 1.1rem 1.2rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .grain, .scroll-line::after, .pulse, .p-status::before { animation: none !important; }
+    .hero-title, .hero-lede, .hero-ctas, .hero-foot { animation: none; opacity: 1; transform: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
   }
 </style>
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="skip">Lewati ke konten</a>
+<div class="vignette" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
-<header class="site-header">
-  <a class="wordmark" href="#top" aria-label="Arkandria — beranda">ARKANDRIA<b>.</b></a>
-  <div class="lang-toggle" role="group" aria-label="Language / Bahasa">
-    <button type="button" id="langId" aria-pressed="true">ID</button>
-    <button type="button" id="langEn" aria-pressed="false">EN</button>
+<header class="hud-top">
+  <a class="wordmark" href="#top">ARKANDRIA<b>.</b></a>
+  <div class="hud-right">
+    <span class="status"><span class="pulse" aria-hidden="true"></span><span data-i18n="status">PORTAL // AKTIF</span></span>
+    <div class="lang-toggle" role="group" aria-label="Language / Bahasa">
+      <button type="button" id="langId" aria-pressed="true">ID</button>
+      <button type="button" id="langEn" aria-pressed="false">EN</button>
+    </div>
   </div>
 </header>
 
 <main id="main">
-  <!-- HERO -->
+  <!-- HERO : satu frame sinematik -->
   <section class="hero" id="top" aria-labelledby="hero-title">
-    <div class="hero-bg" aria-hidden="true"></div>
-    <div class="hero-veil" aria-hidden="true"></div>
-    <div class="doorway" aria-hidden="true"></div>
-    <div class="fog" aria-hidden="true"></div>
-    <div class="embers" id="embers" aria-hidden="true"></div>
-    <div class="hero-inner">
-      <p class="eyebrow animate__animated animate__fadeInDown"><i data-lucide="moon-star"></i><span data-i18n="hero_eyebrow">AMBANG YANG TAK DIKENAL</span></p>
-      <h1 id="hero-title" class="animate__animated animate__fadeIn" style="animation-delay:.15s">ARKANDRIA</h1>
-      <p class="lede animate__animated animate__fadeInUp" style="animation-delay:.35s" data-i18n="hero_lede">Sebuah dimensi di antara dunia — tempat setiap portal membuka sebuah cerita, dan setiap cerita menunggu seseorang yang cukup berani untuk melangkah masuk.</p>
-      <div class="cta-row animate__animated animate__fadeInUp" style="animation-delay:.55s">
-        <a class="btn btn-primary" href="#cerita"><i data-lucide="door-open"></i><span data-i18n="hero_cta1">Jelajahi cerita</span></a>
-        <a class="btn btn-ghost" href="#dunia"><i data-lucide="book-open"></i><span data-i18n="hero_cta2">Apa itu Arkandria?</span></a>
+    <div class="hero-bg" aria-hidden="true"><img src="assets/hero-cosmic-crimson.jpg" alt="" fetchpriority="high" /></div>
+    <div class="hero-shade" aria-hidden="true"></div>
+    <canvas id="embers" aria-hidden="true"></canvas>
+    <div class="hero-frame">
+      <h1 class="hero-title" id="hero-title" data-i18n="hero_title">Ambang yang <em>Tak Dikenal</em></h1>
+      <p class="hero-lede" data-i18n="hero_lede">Sebuah dimensi di antara dunia — tempat setiap portal membuka sebuah cerita, dan setiap cerita menunggu seseorang yang cukup berani untuk melangkah masuk.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-solid" href="#cerita"><span data-i18n="hero_cta1">Jelajahi cerita</span></a>
+        <a class="btn btn-ghost" href="#dunia"><span data-i18n="hero_cta2">Apa itu Arkandria?</span></a>
       </div>
-    </div>
-    <p class="scroll-cue"><i data-lucide="chevron-down"></i><span data-i18n="scroll">gulir</span></p>
-  </section>
-
-  <!-- PREMISE -->
-  <section id="dunia" aria-labelledby="dunia-title">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <p class="eyebrow"><i data-lucide="sparkles"></i><span data-i18n="dunia_eyebrow">PREMIS</span></p>
-        <h2 id="dunia-title" data-i18n="dunia_h2">Sebuah ambang, bukan perpustakaan</h2>
-      </div>
-      <div class="prose reveal">
-        <p data-i18n="dunia_p1"><strong>Arkandria bukan kumpulan buku.</strong> Ia adalah sebuah dimensi — ruang liminal antara dunia yang biasa dan yang tak dikenal.</p>
-        <p data-i18n="dunia_p2">Tersebar di dalamnya ada ambang-ambang: pintu, benda, dan tempat yang terbuka menuju cerita-cerita yang hidup. Kau tidak membacanya dari kejauhan. Kau melangkah masuk — dan cerita itu mulai mengenalmu.</p>
-      </div>
-      <div class="rule" aria-hidden="true"></div>
-    </div>
-  </section>
-
-  <!-- STORIES -->
-  <section id="cerita" aria-labelledby="cerita-title">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <p class="eyebrow"><i data-lucide="layers"></i><span data-i18n="cerita_eyebrow">PORTAL CERITA</span></p>
-        <h2 id="cerita-title" data-i18n="cerita_h2">Pilih ambangmu</h2>
-        <p data-i18n="cerita_sub">Setiap portal menuju tempat yang berbeda. Pilih dengan hati-hati — tidak semua cerita membiarkanmu pergi.</p>
-      </div>
-      <div class="cards reveal">
-        <a class="card" href="/the-asylum/">
-          <span class="card-icon"><i data-lucide="door-open"></i></span>
-          <span class="kicker" data-i18n="asylum_kicker">PART 1 · HOROR INTERAKTIF</span>
-          <h3>The Asylum</h3>
-          <p class="hook" data-i18n="asylum_hook">Kau terbangun di ujung lorong gelap dengan tangan diperban dan tanpa ingatan. Empat pintu. Salah satunya sudah mengawasimu.</p>
-          <span class="meta">
-            <span class="status live" data-i18n="asylum_status">DAPAT DIMAINKAN</span>
-            <span class="go" data-i18n="asylum_go">Masuk →</span>
-          </span>
-        </a>
-        <div class="card soon" aria-disabled="true">
-          <span class="card-icon"><i data-lucide="ghost"></i></span>
-          <span class="kicker">???</span>
-          <h3 data-i18n="soon_title">Ambang berikutnya</h3>
-          <p class="hook" data-i18n="soon_hook">Ambang kedua sedang terbentuk dalam kegelapan. Cerita berikutnya akan segera terungkap.</p>
-          <span class="meta">
-            <span class="status soon" data-i18n="soon_status">SEGERA HADIR</span>
-          </span>
+      <div class="hero-foot">
+        <span class="scroll-cue"><span data-i18n="scroll">gulir</span><span class="scroll-line" aria-hidden="true"></span></span>
+        <div class="telemetry" aria-hidden="true">
+          <b data-i18n="telemetry_1">MEDAN EMBER // STABIL</b><br />
+          06&deg;12&prime;S &nbsp;106&deg;49&prime;E
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CLOSING -->
-  <section class="closing" aria-label="Penutup">
-    <div class="wrap reveal">
-      <p class="line1" data-i18n="close_1">Tidak semua pintu seharusnya dibuka.</p>
-      <p class="line2" data-i18n="close_2">Tapi kau sudah sampai sejauh ini.</p>
+  <!-- PREMIS -->
+  <section class="frame" id="dunia" aria-labelledby="dunia-title">
+    <p class="frame-tag reveal" data-i18n="dunia_eyebrow">PREMIS</p>
+    <h2 id="dunia-title" class="reveal" data-i18n="dunia_h2">Sebuah ambang, bukan perpustakaan</h2>
+    <div class="cols">
+      <p class="reveal" data-i18n="dunia_p1"><strong>Arkandria bukan kumpulan buku.</strong> Ia adalah sebuah dimensi — ruang liminal antara dunia yang biasa dan yang tak dikenal.</p>
+      <p class="reveal" data-i18n="dunia_p2">Tersebar di dalamnya ada ambang-ambang: pintu, benda, dan tempat yang terbuka menuju cerita-cerita yang hidup. Kau tidak membacanya dari kejauhan. Kau melangkah masuk — dan cerita itu mulai mengenalmu.</p>
     </div>
+  </section>
+
+  <!-- PORTAL CERITA -->
+  <section class="frame" id="cerita" aria-labelledby="cerita-title">
+    <p class="frame-tag reveal" data-i18n="cerita_eyebrow">PORTAL CERITA</p>
+    <h2 id="cerita-title" class="reveal" data-i18n="cerita_h2">Pilih ambangmu</h2>
+    <p class="reveal" data-i18n="cerita_sub" style="margin-bottom: 2.4rem;">Setiap portal menuju tempat yang berbeda. Pilih dengan hati-hati — tidak semua cerita membiarkanmu pergi.</p>
+    <div class="portals">
+      <a class="portal reveal" href="/the-asylum/">
+        <span class="p-kind" data-i18n="asylum_kicker">PART 1 · HOROR INTERAKTIF</span>
+        <h3>The Asylum</h3>
+        <p class="p-hook" data-i18n="asylum_hook">Kau terbangun di ujung lorong gelap dengan tangan diperban dan tanpa ingatan. Empat pintu. Salah satunya sudah mengawasimu.</p>
+        <span class="p-row">
+          <span class="p-status" data-i18n="asylum_status">DAPAT DIMAINKAN</span>
+          <span class="p-go"><span data-i18n="asylum_go">Masuk</span> <span class="arrow" aria-hidden="true">&rarr;</span></span>
+        </span>
+      </a>
+      <div class="portal portal-soon reveal" aria-disabled="true">
+        <span class="p-kind" data-i18n="soon_status">SEGERA HADIR</span>
+        <h3 data-i18n="soon_title">Ambang berikutnya</h3>
+        <p class="p-hook" data-i18n="soon_hook">Ambang kedua sedang terbentuk dalam kegelapan. Cerita berikutnya akan segera terungkap.</p>
+        <span class="p-row">
+          <span class="p-status" data-i18n="soon_wait">MENUNGGU</span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PENUTUP -->
+  <section class="closing" aria-label="Penutup">
+    <p class="reveal" data-i18n="close_1">Tidak semua pintu seharusnya dibuka.</p>
+    <p class="reveal" data-i18n="close_2">Tapi kau sudah sampai sejauh ini.</p>
+    <div class="rule reveal" aria-hidden="true"></div>
   </section>
 </main>
 
 <footer>
-  <span data-i18n="footer_tag">ARKANDRIA — Ambang yang Tak Dikenal</span>
-  <nav aria-label="Navigasi footer">
+  <span class="tag" data-i18n="footer_tag">ARKANDRIA — Ambang yang Tak Dikenal</span>
+  <nav aria-label="Navigasi bawah">
     <a href="#top" data-i18n="nav_top">Beranda</a>
     <a href="#cerita" data-i18n="nav_stories">Cerita</a>
     <a href="/the-asylum/">The Asylum</a>
   </nav>
-  <span data-i18n="footer_note">© 2026 Arkandria</span>
+  <span data-i18n="footer_note">&copy; 2026 Arkandria</span>
 </footer>
 
 <script>
 "use strict";
-/* i18n — kamus UI saja. Preferensi bahasa disimpan terpisah dari progres game. */
+/* i18n — seluruh copy UI. Kunci baru: hero_title, status, telemetry_1, soon_wait. */
 const STR = {
   id: {
     skip:"Lewati ke konten",
-    hero_eyebrow:"AMBANG YANG TAK DIKENAL",
+    status:"PORTAL // AKTIF",
+    hero_title:'Ambang yang <em>Tak Dikenal</em>',
     hero_lede:"Sebuah dimensi di antara dunia — tempat setiap portal membuka sebuah cerita, dan setiap cerita menunggu seseorang yang cukup berani untuk melangkah masuk.",
     hero_cta1:"Jelajahi cerita",
     hero_cta2:"Apa itu Arkandria?",
     scroll:"gulir",
+    telemetry_1:"MEDAN EMBER // STABIL",
     dunia_eyebrow:"PREMIS",
     dunia_h2:"Sebuah ambang, bukan perpustakaan",
     dunia_p1:"<strong>Arkandria bukan kumpulan buku.</strong> Ia adalah sebuah dimensi — ruang liminal antara dunia yang biasa dan yang tak dikenal.",
@@ -384,10 +367,11 @@ const STR = {
     asylum_kicker:"PART 1 · HOROR INTERAKTIF",
     asylum_hook:"Kau terbangun di ujung lorong gelap dengan tangan diperban dan tanpa ingatan. Empat pintu. Salah satunya sudah mengawasimu.",
     asylum_status:"DAPAT DIMAINKAN",
-    asylum_go:"Masuk →",
+    asylum_go:"Masuk",
     soon_title:"Ambang berikutnya",
     soon_hook:"Ambang kedua sedang terbentuk dalam kegelapan. Cerita berikutnya akan segera terungkap.",
     soon_status:"SEGERA HADIR",
+    soon_wait:"MENUNGGU",
     close_1:"Tidak semua pintu seharusnya dibuka.",
     close_2:"Tapi kau sudah sampai sejauh ini.",
     footer_tag:"ARKANDRIA — Ambang yang Tak Dikenal",
@@ -399,11 +383,13 @@ const STR = {
   },
   en: {
     skip:"Skip to content",
-    hero_eyebrow:"THE UNKNOWN THRESHOLD",
+    status:"PORTAL // ACTIVE",
+    hero_title:'The <em>Unknown</em> Threshold',
     hero_lede:"A dimension between worlds — where every portal opens onto a story, and every story waits for someone brave enough to step inside.",
     hero_cta1:"Explore the stories",
     hero_cta2:"What is Arkandria?",
     scroll:"scroll",
+    telemetry_1:"EMBER FIELD // STABLE",
     dunia_eyebrow:"PREMISE",
     dunia_h2:"A threshold, not a library",
     dunia_p1:"<strong>Arkandria is not a collection of books.</strong> It is a dimension — a liminal space between the ordinary world and the unknown.",
@@ -414,10 +400,11 @@ const STR = {
     asylum_kicker:"PART 1 · INTERACTIVE HORROR",
     asylum_hook:"You wake at the end of a dark corridor with bandaged hands and no memory. Four doors. One of them is already watching you.",
     asylum_status:"PLAYABLE",
-    asylum_go:"Enter →",
+    asylum_go:"Enter",
     soon_title:"The next threshold",
     soon_hook:"A second threshold is forming in the dark. The next story will reveal itself soon.",
     soon_status:"COMING SOON",
+    soon_wait:"WAITING",
     close_1:"Not every door should be opened.",
     close_2:"But you've come this far.",
     footer_tag:"ARKANDRIA — The Unknown Threshold",
@@ -428,70 +415,74 @@ const STR = {
     doc_desc:"Arkandria — a dimension between worlds. Every portal opens onto a story. Choose your threshold carefully."
   }
 };
-const LANG_KEY = "arkandria_lang"; /* key terpisah — ganti bahasa tidak menyentuh progres game */
-
-function setLang(lang){
-  if(!STR[lang]) lang = "id";
-  try{ localStorage.setItem(LANG_KEY, lang); }catch(e){}
-  document.documentElement.lang = lang;
-  document.querySelectorAll("[data-i18n]").forEach(el=>{
+const root = document.documentElement;
+function applyLang(l) {
+  const d = STR[l] || STR.id;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
     const k = el.getAttribute("data-i18n");
-    if(STR[lang][k] !== undefined) el.innerHTML = STR[lang][k];
+    if (d[k] !== undefined) el.innerHTML = d[k];
   });
-  document.title = STR[lang].doc_title;
-  const md = document.querySelector('meta[name="description"]');
-  if(md) md.setAttribute("content", STR[lang].doc_desc);
-  document.getElementById("langId").setAttribute("aria-pressed", lang==="id" ? "true" : "false");
-  document.getElementById("langEn").setAttribute("aria-pressed", lang==="en" ? "true" : "false");
+  root.lang = l === "en" ? "en" : "id";
+  document.title = d.doc_title;
+  document.querySelector('meta[name="description"]').setAttribute("content", d.doc_desc);
+  document.getElementById("langId").setAttribute("aria-pressed", l === "id");
+  document.getElementById("langEn").setAttribute("aria-pressed", l === "en");
+  try { localStorage.setItem("arkandria-lang", l); } catch (e) {}
 }
-document.getElementById("langId").addEventListener("click", ()=>setLang("id"));
-document.getElementById("langEn").addEventListener("click", ()=>setLang("en"));
-(function init(){
-  let lang = "id";
-  try{ lang = localStorage.getItem(LANG_KEY) || "id"; }catch(e){}
-  setLang(lang);
+let lang = "id";
+try { lang = localStorage.getItem("arkandria-lang") || "id"; } catch (e) {}
+document.getElementById("langId").addEventListener("click", () => applyLang("id"));
+document.getElementById("langEn").addEventListener("click", () => applyLang("en"));
+applyLang(lang);
+
+/* Ember particles — signature atmosphere, kept subtle */
+(function () {
+  const c = document.getElementById("embers");
+  if (!c || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const x = c.getContext("2d");
+  let W, H, ps = [];
+  function resize() {
+    const r = c.parentElement.getBoundingClientRect();
+    W = c.width = r.width; H = c.height = r.height;
+    const n = Math.min(130, Math.floor(W * H / 16000));
+    ps = Array.from({ length: n }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.6 + 0.4, s: Math.random() * 0.32 + 0.06,
+      p: Math.random() * Math.PI * 2, cr: Math.random() < 0.28
+    }));
+  }
+  resize(); addEventListener("resize", resize);
+  (function tick(t) {
+    x.clearRect(0, 0, W, H);
+    for (const p of ps) {
+      p.y -= p.s; if (p.y < -4) { p.y = H + 4; p.x = Math.random() * W; }
+      const tw = 0.35 + 0.65 * Math.abs(Math.sin(t / 1100 + p.p));
+      x.beginPath(); x.arc(p.x, p.y, p.r, 0, 7);
+      x.fillStyle = p.cr ? `rgba(220,20,60,${0.8 * tw})` : `rgba(232,224,220,${0.55 * tw})`;
+      x.fill();
+    }
+    requestAnimationFrame(tick);
+  })(0);
 })();
 
-/* Ikon Lucide */
-function initIcons(){
-  if(window.lucide){ try{ lucide.createIcons(); }catch(e){} }
-}
-if(document.readyState === "complete"){ initIcons(); }
-else{ window.addEventListener("load", initIcons); }
-
-/* Reveal on scroll — Animate.css via IntersectionObserver */
-(function(){
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const els = document.querySelectorAll(".reveal");
-  if(reduced || !("IntersectionObserver" in window)){
-    els.forEach(el=>el.classList.add("is-visible"));
-    return;
-  }
-  const io = new IntersectionObserver(entries=>{
-    entries.forEach(en=>{
-      if(en.isIntersecting){
-        en.target.classList.add("is-visible","animate__animated","animate__fadeInUp");
-        io.unobserve(en.target);
-      }
+/* One authored motion: parallax hero + batched scroll reveals */
+(function () {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const bg = document.querySelector(".hero-bg");
+  const io = new IntersectionObserver(es => {
+    es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+  }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+  if (reduce || !bg) return;
+  let ticking = false;
+  addEventListener("scroll", () => {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(() => {
+      const y = Math.min(scrollY, innerHeight);
+      bg.style.transform = `translateY(${y * 0.28}px)`;
+      ticking = false;
     });
-  }, {threshold:.12});
-  els.forEach(el=>io.observe(el));
-})();
-
-/* Bara api melayang di hero */
-(function(){
-  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const box = document.getElementById("embers");
-  if(!box) return;
-  for(let i=0;i<14;i++){
-    const s = document.createElement("span");
-    const size = 3 + Math.random()*7;
-    s.style.width = s.style.height = size.toFixed(1)+"px";
-    s.style.left = (Math.random()*100).toFixed(1)+"%";
-    s.style.animationDuration = (7+Math.random()*9).toFixed(1)+"s";
-    s.style.animationDelay = (Math.random()*9).toFixed(1)+"s";
-    box.appendChild(s);
-  }
+  }, { passive: true });
 })();
 </script>
 </body>
