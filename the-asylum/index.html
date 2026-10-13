@@ -3244,7 +3244,7 @@ const Inventory = {
     const _before = Reactions.snapshot();
     this.remove(id, 1);
     Reactions.process(_before, "use", id);
-    Bus.emit('toast',{key:'toast_use', param:itemNameL(it)});
+    Bus.emit('toast',{key:'toast_use', param:itemNameL(it)+" 🩸"});
     Bus.emit('item:used',{id});
     return true;
   },
@@ -5011,10 +5011,11 @@ const TutPops = {
   },
   next(){
     const key = this.queue.shift();
-    if(!key){ this.showing = false; return; }
+    if(!key){ this.showing = false; this._cur=null; return; }
     const d = TUTPOP[key];
     if(!d){ this.next(); return; }
     this.showing = true;
+    this._cur = key;
     const t = $("#tutPopT"), h = $("#tutPopH"), m = $("#tutModal");
     if(t) t.textContent = tutPopT(d);
     if(h) h.innerHTML = tutPopH(d);
@@ -5032,7 +5033,6 @@ const TutPops = {
   }
 };
 Bus.on('tutorial:pop', ({id})=>{
-  TutPops._cur = id;
   TutPops.pop(id);
 });
 
