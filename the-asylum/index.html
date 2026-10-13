@@ -1788,6 +1788,7 @@ const Screens = (() => {
 
 /* ---------- 3.x LANG ---------- */
 let LANG = "id";
+const LANG_KEY = "asylum_lang_v1";
 try{ const _l = localStorage.getItem(LANG_KEY); if(_l==="en"||_l==="id") LANG=_l; }catch(e){}
 function setLang(l){ LANG=(l==="en"?"en":"id"); try{localStorage.setItem(LANG_KEY,LANG);}catch(e){} }
 /* L(en, id): pilih string sesuai bahasa; fallback ke id bila en kosong */
@@ -2851,6 +2852,8 @@ const LEGEND = [
   ["c-black", "Teks <b class='c-black'>hitam</b> adalah situasi langka yang terjadi secara spesial."]
 ];
 /* ---------- 3.x tutorial fns + TUT_STEPS ---------- */
+const TUT_KEY = "asylum_tutorial_v1";
+const TUT_VERSION = 1;
 function tutGet(){
   try{
     const raw = localStorage.getItem(TUT_KEY);
