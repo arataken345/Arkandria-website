@@ -82,6 +82,15 @@ NODE_SFX = {
     "s12_c": "whisper", "s12_peek": "whisper",
 }
 
+# Knot "major": pembuka chapter/part + momen penting → drop cap di UI.
+# (Feedback Kaze: drop cap HANYA di scene utama/besar, bukan semua scene.)
+MAJOR_KNOTS = {
+    "prolog1", "prolog2", "opening",          # pembuka
+    "d1_hub", "d2_hub", "d3_hub", "d4_hub",   # hub tiap pintu
+    "hub_exit", "reception_hub", "s12_hub",   # threshold / klimaks
+    "tbc",                                    # penutup part
+}
+
 # Terjemahan tag mapan dari difficulty-pack di the-asylum.html (string identik)
 TAG_EN_BORROW = {"[Dalam bahaya]": "[In danger]", "[Terluka]": "[Wounded]"}
 
@@ -129,6 +138,7 @@ def gen(lang):
     A("//")
     A("// Konvensi: knot per node lama; tag #KICKER/#TAG dibaca bridge.js dari currentTags;")
     A("// #AUDIO = ambient, #IMAGE = background, #SFX = one-shot SFX (lihat NODE_SFX).")
+    A("// #MAJOR = scene utama/besar → drop cap di UI (hanya knot di MAJOR_KNOTS).")
     A("// Sticky choice: pilihan hilang setelah dipakai (perbaikan dari doneFlag lama).")
     A("// Bentuk: * {not f_x} [teks]  ~ f_x = true  -> target  (flag di-prefix f_)")
     A("// Cold open: prolog1 -> END (layar judul = UI shell); new game mulai di prolog2")
@@ -168,6 +178,8 @@ def gen(lang):
             A(f"#TAG:{tag}")
         A(f"#AUDIO:{amb}")
         A(f"#IMAGE:bg_{amb}")
+        if nid in MAJOR_KNOTS:
+            A("#MAJOR")
         if nid in NODE_SFX:
             A(f"#SFX:{NODE_SFX[nid]}")
 

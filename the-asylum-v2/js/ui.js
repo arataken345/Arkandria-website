@@ -46,7 +46,21 @@ var STR = {
     tut_start: "Mulai Bermain",
     checkpoint_saved: "Checkpoint",
     obtained: "Mendapat",
-    autosave_note: "Otomatis tersimpan di checkpoint."
+    autosave_note: "Otomatis tersimpan di checkpoint.",
+    game_menu: "Menu",
+    settings: "Pengaturan",
+    language: "Bahasa",
+    sound: "Suara",
+    sound_on: "Nyala",
+    sound_off: "Mati",
+    text_speed: "Kecepatan Teks",
+    speed_lambat: "Lambat",
+    speed_normal: "Normal",
+    speed_cepat: "Cepat",
+    back_to_hub: "Kembali ke Ambang",
+    back_to_title: "Menu Judul",
+    hub_kicker: "ARKANDRIA · AMBANG PERTAMA",
+    quit_to_title_confirm: "Kembali ke menu judul? Progres yang belum disimpan akan hilang."
   },
   en: {
     subtitle: "The forgotten asylum.",
@@ -84,7 +98,21 @@ var STR = {
     tut_start: "Begin",
     checkpoint_saved: "Checkpoint",
     obtained: "Obtained",
-    autosave_note: "Autosaved at checkpoints."
+    autosave_note: "Autosaved at checkpoints.",
+    game_menu: "Menu",
+    settings: "Settings",
+    language: "Language",
+    sound: "Sound",
+    sound_on: "On",
+    sound_off: "Off",
+    text_speed: "Text Speed",
+    speed_lambat: "Slow",
+    speed_normal: "Normal",
+    speed_cepat: "Fast",
+    back_to_hub: "Back to the Threshold",
+    back_to_title: "Title Screen",
+    hub_kicker: "ARKANDRIA · FIRST THRESHOLD",
+    quit_to_title_confirm: "Quit to the title screen? Unsaved progress will be lost."
   }
 };
 
@@ -133,6 +161,15 @@ function reducedMotion() {
   catch (e) { return false; }
 }
 
+/* ---------------- Text speed (feedback Kaze: default jauh lebih lambat) ---------------- */
+var TEXT_SPEEDS = {
+  lambat: { step: 1, ms: 48 },  /* ~21 char/detik */
+  normal: { step: 1, ms: 30 },  /* ~33 char/detik */
+  cepat:  { step: 2, ms: 16 }   /* ~125 char/detik (kecepatan lama) */
+};
+var TEXT_SPEED_KEYS = ["lambat", "normal", "cepat"];
+var DEFAULT_TEXT_SPEED = "lambat";
+
 /* ---------------- UI ---------------- */
 var UI = {
   story: null,
@@ -159,9 +196,12 @@ function tf(key, a, b) {
 
 /* ============ Boot ============ */
 UI.init = function () {
+  if (this._inited) return; /* idempoten: cegah double wire/listeners */
+  this._inited = true;
   var self = this;
   try { localforage.config({ name: "asylum_v2", storeName: "asylum_v2" }); } catch (e) {}
   try { AudioSys.init(); } catch (e) {}
+  try { Bridge.loadSettings(); } catch (e) {}
   Bridge.reset("id");
   this.lang = "id";
   var unlockOnce = function () { try { AudioSys.unlock(); } catch (e) {} };
@@ -186,6 +226,7 @@ UI.showTitle = function () {
   var wrap = el("div", "screen title-screen");
   wrap.innerHTML =
     '<div class="title-flicker">' +
+      '<div class="hub-kicker">' + esc(t("hub_kicker")) + '</div>' +
       '<div class="title-kicker">' + esc(t("subtitle")) + '</div>' +
       '<h1 class="game-title">THE ASYLUM</h1>' +
       '<div class="title-rule"><span></span><i>✦</i><span></span></div>' +
@@ -198,6 +239,7 @@ UI.showTitle = function () {
     '<div class="title-foot">' +
       '<button class="mini-btn" id="btnLang">' + esc(UI.lang === "id" ? "EN" : "ID") + '</button>' +
       '<button class="mini-btn" id="btnMuteTitle">' + (AudioSys.isMuted() ? "🔇" : "🔊") + '</button>' +
+      '<a class="mini-btn hub-link" href="../">⛩ ' + esc(t("back_to_hub")) + '</a>' +
     '</div>';
   overlay.appendChild(wrap);
 
@@ -347,6 +389,7 @@ UI.advance = function () {
 UI.renderPosition = function () {
   var story = this.story;
   var paras = [], tags = [];
+  this.knotMajor = false; /* F2: drop cap hanya jika knot bertag #MAJOR */
   var guard = 0;
   try {
     while (story.canContinue && guard++ < 200) {
@@ -368,15 +411,17 @@ UI.renderPosition = function () {
 UI.handleTags = function (tags) {
   for (var i = 0; i < tags.length; i++) {
     var raw = String(tags[i] || "");
-    var m = raw.match(/^([A-Z]+):([\s\S]*)$/);
+    /* tag berformat KEY:val ATAU bare KEY (mis. MAJOR) */
+    var m = raw.match(/^([A-Z_]+)(?::([\s\S]*))?$/);
     if (!m) continue;
-    var key = m[1], val = m[2].trim();
+    var key = m[1], val = (m[2] || "").trim();
     if (key === "KICKER") this.kicker = val;
     else if (key === "TAG") { this.tag = val; this.updateLocation(); }
     else if (key === "AUDIO") { try { AudioSys.setAmbient(val); } catch (e) {} }
     else if (key === "SFX") { try { AudioSys.sfx(val); } catch (e) {} }  /* one-shot */
     else if (key === "IMAGE") this.setScene(val);
     else if (key === "STATUS") Bridge.applyStatusTag(val);
+    else if (key === "MAJOR") this.knotMajor = true;
   }
   this.renderHUD();
 };
@@ -477,7 +522,7 @@ UI.renderKnot = function (paras, choices, ended, tags) {
   var self = this;
   this.stopTypewriter();
   var view = { paras: paras.slice(), choices: choices.map(function (c) { return c.text; }),
-               kicker: this.kicker, tag: this.tag };
+               kicker: this.kicker, tag: this.tag, major: !!this.knotMajor };
   this.lastCheckpointView = view;
 
   this.cinematic(function () {
@@ -490,6 +535,7 @@ UI.renderSavedView = function (view) {
   var self = this;
   this.stopTypewriter();
   this.kicker = view.kicker || ""; this.tag = view.tag || "";
+  this.knotMajor = !!view.major;
   this.updateLocation();
   var choices = [];
   try {
@@ -514,7 +560,7 @@ UI.buildKnotDOM = function (paras, choices, ended, instant) {
     var k = el("div", "kicker", esc(this.kicker));
     area.appendChild(k);
   }
-  var body = el("div", "narrative");
+  var body = el("div", "narrative" + (this.knotMajor ? " major" : ""));
   area.appendChild(body);
   var choiceBox = el("div", "choices");
   area.appendChild(choiceBox);
@@ -558,6 +604,11 @@ UI.buildKnotDOM = function (paras, choices, ended, instant) {
   body.onclick = function () { self.skipTypewriter(); };
 };
 
+UI.textSpeed = function () {
+  var k = Bridge.settings && Bridge.settings.textSpeed;
+  return TEXT_SPEEDS[k] || TEXT_SPEEDS[DEFAULT_TEXT_SPEED];
+};
+
 UI.typeNext = function (instant) {
   var self = this;
   var item = this.typeQueue.shift();
@@ -574,16 +625,18 @@ UI.typeNext = function (instant) {
     this.typeNext(instant);
     return;
   }
-  var i = 0, text = item.text;
+  var speed = this.textSpeed();
+  var i = 0, text = item.text, sinceTick = 0;
   var tick = function () {
-    i += 2;
+    i += speed.step;
+    sinceTick += speed.step;
     p.textContent = text.slice(0, i);
-    if (i % 18 < 2) { try { AudioSys.sfx("type_tick", { gain: 0.10 }); } catch (e) {} }
+    if (sinceTick >= 6) { sinceTick = 0; try { AudioSys.sfx("type_tick", { gain: 0.10 }); } catch (e) {} }
     if (i >= text.length) {
       self.typeTimer = null;
       setTimeout(function () { self.typeNext(instant); }, 160);
     } else {
-      self.typeTimer = setTimeout(tick, 16);
+      self.typeTimer = setTimeout(tick, speed.ms);
     }
   };
   this._typeSkip = function () {
@@ -596,6 +649,20 @@ UI.typeNext = function (instant) {
 
 UI.skipTypewriter = function () {
   if (this.typing && this._typeSkip) this._typeSkip();
+};
+
+/* Complete every queued paragraph instantly (used by Esc). */
+UI.finishTyping = function () {
+  if (this.typeTimer) { clearTimeout(this.typeTimer); this.typeTimer = null; }
+  while (this.typeQueue.length) {
+    var item = this.typeQueue.shift();
+    var p = el("p", "para");
+    p.textContent = item.text;
+    item.parent.appendChild(p);
+  }
+  this.typing = false;
+  this._typeSkip = null;
+  if (this._afterType) { var f = this._afterType; this._afterType = null; f(); }
 };
 
 UI.stopTypewriter = function () {
@@ -623,6 +690,14 @@ UI.onKey = function (e) {
   /* modal open? let it handle keys */
   if ($(".modal-open")) {
     if (e.key === "Escape") this.closeModal();
+    return;
+  }
+  if (e.key === "Escape") {
+    /* Esc saat mengetik = selesaikan teks dulu (seperti klik); Esc saat idle = buka menu. */
+    if (this._gameStarted && !this.coldOpen) {
+      if (this.typing) this.finishTyping();
+      else this.openGameMenu();
+    }
     return;
   }
   if (e.key >= "1" && e.key <= "9") {
@@ -1194,9 +1269,93 @@ UI.renderHUD = function () {
   this.updateLocation();
 };
 
+/* ============ Game menu (F1: navigasi persisten) ============ */
+UI.openGameMenu = function () {
+  var self = this;
+  var rows =
+    '<button class="menu-row" id="mResume"><span class="mr-ic">▶</span><span>' + esc(t("continue")) + '</span></button>' +
+    '<button class="menu-row" id="mSettings"><span class="mr-ic">⚙</span><span>' + esc(t("settings")) + '</span></button>' +
+    '<button class="menu-row" id="mSave"><span class="mr-ic">💾</span><span>' + esc(t("save_title")) + '</span></button>' +
+    '<button class="menu-row" id="mTitle"><span class="mr-ic">⌂</span><span>' + esc(t("back_to_title")) + '</span></button>' +
+    '<button class="menu-row hub" id="mHub"><span class="mr-ic">⛩</span><span>' + esc(t("back_to_hub")) + '</span></button>';
+  this.openModal(
+    '<div class="modal-kicker">' + esc(t("game_menu")) + '</div>' +
+    '<div class="menu-list">' + rows + '</div>',
+    function (root) {
+      $("#mResume", root).onclick = function () { self.closeModal(); self.pumpQueues(); };
+      $("#mSettings", root).onclick = function () { self.openSettings(); };
+      $("#mSave", root).onclick = function () { self.openSave(); };
+      $("#mTitle", root).onclick = function () {
+        if (Bridge.S && (Bridge.S.knotsVisited > 1 || (Bridge.S.items || []).length > 0)) {
+          if (!window.confirm(t("quit_to_title_confirm"))) return;
+        }
+        self.closeModal();
+        self.stopTypewriter();
+        $("#hud").classList.remove("visible");
+        $("#dock").classList.remove("visible");
+        self.showTitle();
+      };
+      $("#mHub", root).onclick = function () { window.location.href = "../"; };
+    }
+  );
+};
+
+UI.openSettings = function () {
+  var self = this;
+  var muted = false;
+  try { muted = AudioSys.isMuted(); } catch (e) {}
+  var spd = (Bridge.settings && Bridge.settings.textSpeed) || DEFAULT_TEXT_SPEED;
+  var seg = function (name, opts, cur) {
+    return '<div class="seg" data-seg="' + name + '">' + opts.map(function (o) {
+      return '<button type="button" class="' + (o.v === cur ? "on" : "") + '" data-val="' + o.v + '">' + esc(o.l) + '</button>';
+    }).join("") + '</div>';
+  };
+  this.openModal(
+    '<div class="modal-kicker">' + esc(t("settings")) + '</div>' +
+    '<div class="set-row"><span>' + esc(t("language")) + '</span>' +
+      seg("lang", [{ v: "id", l: "ID" }, { v: "en", l: "EN" }], self.lang) + '</div>' +
+    '<div class="set-row"><span>' + esc(t("sound")) + '</span>' +
+      seg("mute", [{ v: "on", l: t("sound_on") }, { v: "off", l: t("sound_off") }], muted ? "off" : "on") + '</div>' +
+    '<div class="set-row"><span>' + esc(t("text_speed")) + '</span>' +
+      seg("speed", [
+        { v: "lambat", l: t("speed_lambat") },
+        { v: "normal", l: t("speed_normal") },
+        { v: "cepat", l: t("speed_cepat") }
+      ], spd) + '</div>' +
+    '<div class="btnrow"><button class="btn-choice ghost" id="mBack">' + esc(t("back")) + '</button></div>',
+    function (root) {
+      $("#mBack", root).onclick = function () { self.openGameMenu(); };
+      root.querySelectorAll(".seg").forEach(function (s) {
+        var name = s.getAttribute("data-seg");
+        s.querySelectorAll("button").forEach(function (b) {
+          b.onclick = function () {
+            var v = b.getAttribute("data-val");
+            s.querySelectorAll("button").forEach(function (x) { x.classList.remove("on"); });
+            b.classList.add("on");
+            if (name === "lang") {
+              if (v !== self.lang) {
+                self.toggleLang();
+                try { $("#dock-lang").textContent = self.lang === "id" ? "EN" : "ID"; } catch (e) {}
+                self.renderHUD();
+              }
+            } else if (name === "mute") {
+              var wantMute = (v === "off");
+              try { if (AudioSys.isMuted() !== wantMute) AudioSys.toggleMute(); } catch (e) {}
+              try { $("#dock-mute").textContent = wantMute ? "🔇" : "🔊"; } catch (e) {}
+            } else if (name === "speed") {
+              try { Bridge.setTextSpeed(v); } catch (e) {}
+            }
+          };
+        });
+      });
+    }
+  );
+};
+
 /* ============ Dock (bottom bar) ============ */
 UI.wireDock = function () {
   var self = this;
+  $("#dock-menu").onclick = function () { self.openGameMenu(); };
   $("#dock-inv").onclick = function () { self.openInventory(); };
   $("#dock-achv").onclick = function () { self.openAchievements(); };
   $("#dock-save").onclick = function () { self.openSave(); };

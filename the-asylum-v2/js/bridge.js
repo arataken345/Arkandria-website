@@ -234,6 +234,29 @@ var Bridge = {
   _statusSetThisKnot: false,
   _inFaint: false,
 
+  /* ----- player settings (persisted separately from saves) ----- */
+  settings: { textSpeed: "lambat" },
+  loadSettings: function () {
+    var self = this;
+    try {
+      return localforage.getItem("asylum_v2_settings").then(function (s) {
+        var v = s && s.textSpeed;
+        if (v === "lambat" || v === "normal" || v === "cepat") {
+          self.settings.textSpeed = v;
+        }
+      }).catch(function () {});
+    } catch (e) { return null; }
+  },
+  saveSettings: function () {
+    try { localforage.setItem("asylum_v2_settings", this.settings).catch(function () {}); } catch (e) {}
+  },
+  setTextSpeed: function (v) {
+    if (v === "lambat" || v === "normal" || v === "cepat") {
+      this.settings.textSpeed = v;
+      this.saveSettings();
+    }
+  },
+
   /* ----- lifecycle ----- */
   reset: function (lang) {
     this.S = defaultState();

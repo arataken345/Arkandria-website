@@ -4,6 +4,7 @@
 //
 // Konvensi: knot per node lama; tag #KICKER/#TAG dibaca bridge.js dari currentTags;
 // #AUDIO = ambient, #IMAGE = background, #SFX = one-shot SFX (lihat NODE_SFX).
+// #MAJOR = scene utama/besar → drop cap di UI (hanya knot di MAJOR_KNOTS).
 // Sticky choice: pilihan hilang setelah dipakai (perbaikan dari doneFlag lama).
 // Bentuk: * {not f_x} [teks]  ~ f_x = true  -> target  (flag di-prefix f_)
 // Cold open: prolog1 -> END (layar judul = UI shell); new game mulai di prolog2
@@ -48,6 +49,7 @@ EXTERNAL FAINT_CHECK()
 #KICKER:Part 1 : Awal Mula
 #AUDIO:corridor
 #IMAGE:bg_corridor
+#MAJOR
 Kamu terbangun di ujung lorong gelap yang bau dan lembap. Segalanya terasa kotor, penuh puing-puing dan pecahan kaca. Beberapa pintu rusak dan tergantung miring, membuat bayangan-bayangan aneh di bawah cahaya redup.
 Di dinding ada coretan-coretan — seperti pesan atau peringatan, tetapi hampir semuanya susah untuk dibaca.
 Lalu, kamu melihat tanganmu. Keduanya dibalut perban kotor. Tapi kamu nggak merasakan ada rasa sakit sama sekali.
@@ -59,6 +61,7 @@ Disaat kamu mencoba mengingat apa yang terjadi, kepalamu terasa kosong. Kamu ngg
 #KICKER:Part 1 : Awal Mula
 #AUDIO:doorhub
 #IMAGE:bg_doorhub
+#MAJOR
 Setelah berjalan ke depan dengan kebingungan sesaat, kini di depanmu terlihat empat pintu — masing-masing menampilkan kesannya tersendiri.
 Pintu paling kiri tertutup rapat. Engselnya berkarat, tapi gagangnya terlihat agak bersih dari debu, seperti baru saja dipakai. Pintu kedua di kiri tampak terbuka lebar dan setengah rusak.
 Kemudian, pintu pertama di sisi kanan berayun pelan, berderit kecil meski tak ada angin sedikit pun — seperti ada yang meniupnya. Pintu kedua lebih tenang dan normal, tapi dari celahnya kamu bisa lihat bayangan samar terletak di atas meja.
@@ -69,6 +72,7 @@ Lorong terus berlanjut, tapi suasananya makin tidak nyaman. Lampu-lampu berkedip
 #KICKER:Part 1 : Awal Mula
 #AUDIO:doorhub
 #IMAGE:bg_doorhub
+#MAJOR
 Kau berdiri di tengah lorong. Empat pintu mengapitmu — dua di kiri, dua di kanan — dan di depan, lorong terus berlanjut ke dalam kegelapan yang semakin pekat.
 Apa yang akan kau lakukan?
 * {not f_d1} [Mengecek pintu pertama di kiri]
@@ -83,18 +87,19 @@ Apa yang akan kau lakukan?
 * {not f_d4} [Mengecek pintu kedua di kanan]
     ~ f_d4 = true
     -> d4_hub
-+ [Terus maju meski ragu.] -> d5_1
+* [Terus maju meski ragu.] -> d5_1
 
 === d1_hub ===
 #KICKER:Part 1 : Awal Mula
 #AUDIO:saferoom
 #IMAGE:bg_saferoom
+#MAJOR
 Kau mendekati pintu paling kiri. Tertutup rapat. Engselnya berkarat — tapi gagang pintunya bersih. Terlalu bersih untuk tempat sekotor ini.
 Seperti baru saja digenggam. Oleh seseorang. Atau sesuatu.
 Kayunya dingin saat kau mendekat.
-+ [Tempelkan telinga ke pintu, dengarkan dulu] -> d1_a
-+ [Dorong perlahan, intip lewat celah] -> d1_b
-+ [Buka lebar-lebar sekaligus] -> d1_c
+* [Tempelkan telinga ke pintu, dengarkan dulu] -> d1_a
+* [Dorong perlahan, intip lewat celah] -> d1_b
+* [Buka lebar-lebar sekaligus] -> d1_c
 
 === d1_a ===
 #KICKER:Part 1 : Awal Mula
@@ -112,8 +117,8 @@ Tidak ada suara lain. Ruangan di baliknya sepertinya kosong.
 #AUDIO:saferoom
 #IMAGE:bg_saferoom
 Pintu itu diam. Keputusanmu?
-+ [Buka pintunya, masuk] -> d1_room
-+ [Urungkan — kembali ke lorong] -> opening
+* [Buka pintunya, masuk] -> d1_room
+* [Urungkan — kembali ke lorong] -> opening
 
 === d1_b ===
 #KICKER:Part 1 : Awal Mula
@@ -129,8 +134,8 @@ Tapi di ujung penglihatanmu, ada sesuatu yang berkilau redup di lantai — seper
 #AUDIO:saferoom
 #IMAGE:bg_saferoom
 Celah itu menunggu. Keputusanmu?
-+ [Masuk dan periksa] -> d1_room
-+ [Tutup perlahan, jangan ambil risiko] -> opening
+* [Masuk dan periksa] -> d1_room
+* [Tutup perlahan, jangan ambil risiko] -> opening
 
 === d1_c ===
 #KICKER:Part 1 : Awal Mula
@@ -149,8 +154,8 @@ Ruangan di baliknya kosong dan gelap. Meja-meja terbalik. Hening.
 #IMAGE:bg_saferoom
 ~ ADD_EMOTION("Takut", 1)
 Derit itu mungkin terdengar sampai ujung lorong. Keputusanmu?
-+ [Masuk cepat sebelum ada yang datang] -> d1_room
-+ [Tutup dan mundur — terlalu berisik] -> opening
+* [Masuk cepat sebelum ada yang datang] -> d1_room
+* [Tutup dan mundur — terlalu berisik] -> opening
 
 === d1_room ===
 #KICKER:Part 1 : Awal Mula
@@ -159,8 +164,8 @@ Derit itu mungkin terdengar sampai ujung lorong. Keputusanmu?
 Kau melangkah masuk. Udara di sini lebih dingin, dan baunya... tua. Seperti ruangan yang sudah bertahun-tahun tidak disentuh siapa pun.
 Meja-meja terbalik berserakan. Di sudut, ada noda gelap di lantai — besar, tidak beraturan, meresap ke dalam beton. Kau tidak mau terlalu memikirkan apa itu.
 Di bawah salah satu meja yang masih berdiri, ada sesuatu: sebungkus plastik bening berisi roti kering. Dan di sampingnya, selembar surat terlipat yang sudah menguning.
-+ [Ambil bungkusan itu] -> d1_loot
-+ [Periksa noda gelap itu dulu] -> d1_stain
+* [Ambil bungkusan itu] -> d1_loot
+* [Periksa noda gelap itu dulu] -> d1_stain
 
 === d1_stain ===
 #KICKER:Part 1 : Awal Mula
@@ -177,8 +182,8 @@ Kau tidak tahu apakah itu membuatmu lega atau justru lebih takut.
 #AUDIO:saferoom
 #IMAGE:bg_saferoom
 Noda itu tidak menjawab apa-apa. Bungkusan di bawah meja masih di sana.
-+ [Kembali dan ambil bungkusan itu] -> d1_loot
-+ [Tinggalkan semuanya, keluar dari sini] -> d1_empty
+* [Kembali dan ambil bungkusan itu] -> d1_loot
+* [Tinggalkan semuanya, keluar dari sini] -> d1_empty
 
 === d1_loot ===
 #TAG:[Aman]
@@ -205,12 +210,13 @@ Lorong menyambutmu kembali — sama gelapnya, sama sunyinya.
 #KICKER:Part 1 : Awal Mula
 #AUDIO:darkstare
 #IMAGE:bg_darkstare
+#MAJOR
 Pintu kedua di kiri terbuka lebar, setengah rusak — kayunya retak, tergantung miring di satu engsel.
 Di baliknya: ruang sempit yang dipenuhi lemari-lemari tua berderet, seperti arsip atau gudang penyimpanan. Bau kapur barus dan kayu lapuk menyambutmu.
 Semuanya diam. Terlalu diam?
-+ [Lempar kerikil ke dalam, dengarkan] -> d2_a
-+ [Masuk dan buka lemari satu per satu] -> d2_room
-+ [Firasat buruk — mundur] -> d2_c
+* [Lempar kerikil ke dalam, dengarkan] -> d2_a
+* [Masuk dan buka lemari satu per satu] -> d2_room
+* [Firasat buruk — mundur] -> d2_c
 
 === d2_a ===
 #KICKER:Part 1 : Awal Mula
@@ -228,8 +234,8 @@ Kau menunggu. Tidak ada lagi.
 #IMAGE:bg_darkstare
 ~ ADD_EMOTION("Takut", 1)
 Bunyi itu tidak terulang. Keputusanmu?
-+ [Masuk dan periksa] -> d2_room
-+ [Batalkan — kembali ke lorong] -> opening
+* [Masuk dan periksa] -> d2_room
+* [Batalkan — kembali ke lorong] -> opening
 
 === d2_c ===
 #KICKER:Part 1 : Awal Mula
@@ -254,7 +260,7 @@ Lemari pertama: pintunya sedikit terbuka. Lemari kedua: tertutup rapat. Lemari k
 * {not f_d2c3} [Periksa lemari ketiga yang terkunci]
     ~ f_d2c3 = true
     -> d2_c3
-+ [Keluar dari ruangan ini] -> d2_done
+* [Keluar dari ruangan ini] -> d2_done
 
 === d2_c1 ===
 #TAG:[Aman]
@@ -291,8 +297,8 @@ Kau menempelkan tangan ke kayunya. Dingin.
 #AUDIO:darkstare
 #IMAGE:bg_darkstare
 Lemari itu diam. Terlalu diam.
-+ [Tempelkan telinga, dengarkan] -> d2_c3b
-+ [Jangan sentuh — jauhi] -> d2_c3c
+* [Tempelkan telinga, dengarkan] -> d2_c3b
+* [Jangan sentuh — jauhi] -> d2_c3c
 
 === d2_c3b ===
 #TAG:[Aman]
@@ -329,12 +335,13 @@ Di belakangmu, ruangan itu kembali sunyi — tapi kau tidak bisa menghilangkan p
 #KICKER:Part 1 : Awal Mula
 #AUDIO:teddyroom
 #IMAGE:bg_teddyroom
+#MAJOR
 Pintu pertama di kanan berayun pelan. Berderit kecil. Tidak ada angin — tapi ia bergerak, seperti dihembus sesuatu yang tidak terlihat.
 Dari celahnya, kau mendengar sesuatu: detak. Pelan, berirama. Seperti... detak jantung? Atau jam?
 Udara yang keluar dari celah itu dingin. Tidak wajar dinginnya.
-+ [Ikuti suara detak itu — masuk] -> d3_a
-+ [Diam di ambang pintu, amati dulu] -> d3_b
-+ [Mundur perlahan, tutup pintu] -> d3_c
+* [Ikuti suara detak itu — masuk] -> d3_a
+* [Diam di ambang pintu, amati dulu] -> d3_b
+* [Mundur perlahan, tutup pintu] -> d3_c
 
 === d3_a ===
 #KICKER:Part 1 : Awal Mula
@@ -352,8 +359,8 @@ Ia melihatmu.
 #IMAGE:bg_teddyroom
 ~ ADD_EMOTION("Takut", 2)
 Mata merah itu menyipit. Ia mulai bergerak ke arahmu.
-+ [Beku — jangan bergerak sama sekali] -> d3_a2a
-+ [Putar balik dan LARI] -> d3_a2b
+* [Beku — jangan bergerak sama sekali] -> d3_a2a
+* [Putar balik dan LARI] -> d3_a2b
 
 === d3_a2a ===
 #TAG:[Dalam bahaya]
@@ -413,12 +420,13 @@ Kau menutup pintu sepenuhnya dan mundur. Jantungmu masih berdebar lama setelahny
 #KICKER:Part 1 : Awal Mula
 #AUDIO:corridor
 #IMAGE:bg_corridor
+#MAJOR
 Pintu kedua di kanan lebih tenang. Dari celahnya, kau bisa melihat sebuah meja — dan di atasnya, bayangan samar.
 Kau mendorong pintu itu. Ruangan kecil. Meja kayu di tengah. Dan di atasnya...
 Sebuah boneka beruang. Usang, satu matanya lepas, tapi bersih — terlalu bersih untuk tempat ini. Seolah seseorang merawatnya.
-+ [Ambil bonekanya langsung] -> d4_a
-+ [Periksa meja dan sekitarnya dulu] -> d4_b
-+ [Jangan sentuh apa pun — pergi] -> d4_c
+* [Ambil bonekanya langsung] -> d4_a
+* [Periksa meja dan sekitarnya dulu] -> d4_b
+* [Jangan sentuh apa pun — pergi] -> d4_c
 
 === d4_a ===
 #TAG:[Aman]
@@ -448,9 +456,9 @@ Crayon merahnya ditekan begitu keras sampai kertasnya sobek tepat di bagian mata
 #AUDIO:corridor
 #IMAGE:bg_corridor
 Gambar itu terasa dingin di jarimu. Boneka itu masih di atas meja.
-+ [Ambil bonekanya juga] -> d4_a
-+ [Ambil gambarnya saja, tinggalkan boneka] -> d4_draw
-+ [Tinggalkan semuanya] -> d4_c
+* [Ambil bonekanya juga] -> d4_a
+* [Ambil gambarnya saja, tinggalkan boneka] -> d4_draw
+* [Tinggalkan semuanya] -> d4_c
 
 === d4_draw ===
 #TAG:[Aman]
@@ -498,9 +506,9 @@ Dan kau teringat: tadi, saat bayangan besar melintas di kejauhan, setiap lampu y
 Gema langkah itu masih ada — setengah ketukan di belakangmu. Lampu yang stabil itu menunggu.
 Apa yang akan kau lakukan?
 // REQ: energy>=15 (bridge.js mengunci bila tak terpenuhi)
-+ [Berlari ke lampu yang stabil — terang berarti aman (butuh 15 energi)] -> d5_trap
-+ [Bergerak di antara kedipan, tetap dalam bayangan — Butuh fokus (mental ≤ Gelisah)] -> d5_smart
-+ [Berbalik kembali ke persimpangan pintu] -> d5_back
+* [Berlari ke lampu yang stabil — terang berarti aman (butuh 15 energi)] -> d5_trap
+* [Bergerak di antara kedipan, tetap dalam bayangan — Butuh fokus (mental ≤ Gelisah)] -> d5_smart
+* [Berbalik kembali ke persimpangan pintu] -> d5_back
 
 === d5_trap ===
 #AUDIO:doorhub
@@ -541,6 +549,7 @@ Kau kembali ke persimpangan pintu dengan napas memburu. Setidaknya kau masih hid
 #KICKER:Part 1 : Awal Mula
 #AUDIO:reception
 #IMAGE:bg_reception
+#MAJOR
 Langkah-langkahmu melambat, nyaris tanpa suara di atas lantai yang dingin, hingga kau tiba di sebuah pertigaan lorong. Di tengahnya, seperti bangkai hewan purba, berdiri meja resepsionis tua yang nyaris hancur — permukaannya retak, tepinya mengelupas, dan di atasnya berserakan tumpukan kertas yang telah menjadi sarang debu. Dari balik meja itu, dua lorong lain membentang: yang kiri tenggelam dalam kegelapan pekat, sunyi hingga kau bisa mendengar darahmu sendiri berdenyut di telinga; yang kanan, di ujungnya, memancarkan secercah cahaya redup yang bergoyang pelan, seolah mengundangmu mendekat — atau memancingmu.
 Kau menarik napas, dan udara di sini terasa salah — berat, pengap, seakan tempat ini menyimpan terlalu banyak hal yang tak seharusnya diingat. Dan suara-suara itu… bisikan-bisikan samar yang sejak tadi mengikutimu, kini terdengar lebih dekat, merayap di sepanjang dinding seperti sesuatu yang hidup, menolak pergi, menolak membiarkanmu sendirian dengan pikiranmu sendiri.
 -> reception_hub
@@ -549,6 +558,7 @@ Kau menarik napas, dan udara di sini terasa salah — berat, pengap, seakan temp
 #KICKER:Part 1 : Awal Mula
 #AUDIO:reception
 #IMAGE:bg_reception
+#MAJOR
 Kau berdiri di jantung pertigaan itu, dikelilingi kebisuan yang terasa berat menekan kulitmu. Meja resepsionis yang hancur itu membusuk dalam diam di tengah ruangan, tumpukan kertas berdebu di atasnya seolah menyimpan rahasia yang tak berani dibuka. Lorong kiri menganga gelap dan sunyi, menelan setiap suara; lorong kanan menjanjikan cahaya redup yang tak bisa sepenuhnya kau percaya. Dan di antara semuanya, suara-suara aneh itu masih berkeliaran — samar, sabar, menghantuimu.
 * {not f_rec_desk} [Periksa area sekitar meja resepsionis]
     ~ f_rec_desk = true
@@ -556,7 +566,7 @@ Kau berdiri di jantung pertigaan itu, dikelilingi kebisuan yang terasa berat men
 * {not f_rec_left} [Masuki lorong kiri yang gelap dan sunyi]
     ~ f_rec_left = true
     -> rec_left_1
-+ [Periksa tumpukan kertas di atas meja] -> rec_papers_1
+* [Periksa tumpukan kertas di atas meja] -> rec_papers_1
 
 === rec_desk_1 ===
 #KICKER:Part 1 : Awal Mula
@@ -571,8 +581,8 @@ Jari-jarimu meraba di antara serpihan-serpihan tak dikenal — pecahan yang taja
 #AUDIO:reception
 #IMAGE:bg_reception
 Kau masih berjongkok, napasmu tertahan, dan dalam gelap kolong meja itu dua hal menarik perhatianmu: lantai berdebu yang dingin di bawah telapak tanganmu, dan gundukan puing di sekitar kaki meja — keduanya seolah menyimpan sesuatu yang menunggu ditemukan.
-+ [Raba lantai berdebu di kolong meja] -> rec_desk_floor
-+ [Periksa puing di sekitar kaki meja] -> rec_desk_rubble
+* [Raba lantai berdebu di kolong meja] -> rec_desk_floor
+* [Periksa puing di sekitar kaki meja] -> rec_desk_rubble
 
 === rec_desk_floor ===
 #KICKER:Part 1 : Awal Mula
@@ -587,8 +597,8 @@ Kau menariknya keluar ke cahaya: sebuah koin logam tua, permukaannya begitu kusa
 #AUDIO:reception
 #IMAGE:bg_reception
 Koin itu tergeletak di telapak tanganmu yang kotor, dinginnya perlahan meresap ke kulitmu, seolah menuntut sebuah keputusan.
-+ [Ambil koin itu] -> rec_coin
-+ [Biarkan saja di sana] -> rec_desk_back
+* [Ambil koin itu] -> rec_coin
+* [Biarkan saja di sana] -> rec_desk_back
 
 === rec_desk_rubble ===
 #KICKER:Part 1 : Awal Mula
@@ -604,7 +614,7 @@ Kau mengobrak-abrik sisa puing itu, tapi tidak ada lagi. Hanya debu yang beterba
 #AUDIO:reception
 #IMAGE:bg_reception
 Puing itu tidak menyimpan apa-apa lagi — hanya bisu, debu, dan bau lapuk yang menempel di pakaianmu.
-+ [Kembali berdiri] -> rec_desk_back
+* [Kembali berdiri] -> rec_desk_back
 
 === rec_coin ===
 #KICKER:Part 1 : Awal Mula
@@ -640,8 +650,8 @@ Kegelapan di lorong ini lebih tebal, lebih rakus. Ia menelan cahaya dari pertiga
 #AUDIO:leftcorridor
 #IMAGE:bg_leftcorridor
 Di ujung lorong — tanpa pintu samping, tanpa celah apa pun — berdiri sebuah pintu baja tebal. Logamnya memantulkan sisa cahaya dengan dingin, kusam, dan tak bersahabat. Lorong ini buntu. Kakimu telah membawamu sejauh ia bisa melangkah, dan satu-satunya yang menunggumu di sini hanyalah diamnya baja itu.
-+ [Melangkah perlahan ke pintu baja] -> rec_left_door
-+ [Kembali ke pertigaan] -> rec_left_back
+* [Melangkah perlahan ke pintu baja] -> rec_left_door
+* [Kembali ke pertigaan] -> rec_left_back
 
 === rec_left_door ===
 #KICKER:Part 1 : Awal Mula
@@ -658,9 +668,9 @@ Lalu kau melihatnya. Goresan-goresan dalam membelah permukaan baja itu, berulang
 #IMAGE:bg_steeldoor
 #SFX:door_creak
 Pintu itu diam — diam yang tidak wajar, diam yang seolah sedang menahan napas. Dari celah tipis di bawahnya merembes bau besi berkarat, dan di baliknya... sesuatu yang busuk, samar, seperti daging yang dibiarkan membusuk di ruangan tanpa udara. Bau itu membuat perutmu mual.
-+ [Dorong pintu baja itu] -> rec_left_push
-+ [Telusuri goresan di permukaan pintu] -> rec_left_scratch
-+ [Kembali ke pertigaan] -> rec_left_back
+* [Dorong pintu baja itu] -> rec_left_push
+* [Telusuri goresan di permukaan pintu] -> rec_left_scratch
+* [Kembali ke pertigaan] -> rec_left_back
 
 === rec_left_push ===
 #KICKER:Part 1 : Awal Mula
@@ -711,7 +721,7 @@ Kertas-kertas itu menunggu — diam, sabar, seolah mereka sudah menunggu seseora
 * {not f_rec_photos} [Lihat foto-foto terlampir]
     ~ f_rec_photos = true
     -> rec_papers_photos
-+ [Ambil beberapa lembar yang utuh] -> rec_papers_take
+* [Ambil beberapa lembar yang utuh] -> rec_papers_take
 
 === rec_papers_read ===
 #KICKER:Part 1 : Awal Mula
@@ -783,10 +793,11 @@ Lalu ia melesat melewatimu. Makhluk kecil gesit seukuran anjing, dengan kaki-kak
 #KICKER:Part 1 : Awal Mula
 #AUDIO:hall
 #IMAGE:bg_hall
+#MAJOR
 Kau berdiri di ambang pintu aula, sebagian tubuhmu masih tersembunyi di balik bayangan kusen yang retak. Di depanmu, kekacauan itu bergolak — makhluk-makhluk teralihkan, perhatian mereka tercerai-berai ke berbagai arah. Ini adalah kesempatan. Atau jebakan. Udara dingin menusuk paru-parumu, dan setiap detik yang kau habiskan untuk berpikir adalah satu detik lagi kau terlihat.
-+ [Lari panik kembali ke meja resepsionis] -> s12_panic
-+ [Bersembunyi di balik tumpukan peti tua] -> s12_hide_1
-+ [Menyelinap melewati aula selagi mereka teralihkan] -> s12_run_1
+* [Lari panik kembali ke meja resepsionis] -> s12_panic
+* [Bersembunyi di balik tumpukan peti tua] -> s12_hide_1
+* [Menyelinap melewati aula selagi mereka teralihkan] -> s12_run_1
 
 === faint_killed ===
 #KICKER:Part 1 : Awal Mula
@@ -837,9 +848,9 @@ Waktu berjalan dengan lambat yang menyiksa, setiap detik meregang seperti karet.
 #AUDIO:crates
 #IMAGE:bg_crates
 Kau meringkuk di balik peti, lutut ditarik rapat ke dada. Napasmu tertahan di tenggorokan — setiap tarikan terasa seperti pengkhianatan terhadap dirimu sendiri. Di luar sana, aula masih bergolak dengan suara-suara yang tidak ingin kau kenali, dan yang bisa kau lakukan hanyalah menunggu.
-+ [Tahan napas. Jangan bergerak sama sekali.] -> s12_hide_ok
-+ [Mengintip lewat celah peti] -> s12_peek
-+ [Bersiap lari jika ketahuan] -> s12_ready
+* [Tahan napas. Jangan bergerak sama sekali.] -> s12_hide_ok
+* [Mengintip lewat celah peti] -> s12_peek
+* [Bersiap lari jika ketahuan] -> s12_ready
 
 === s12_peek ===
 #KICKER:Part 1 : Awal Mula
@@ -865,8 +876,8 @@ Kau mengatur napas — masuk perlahan lewat hidung, keluar lewat mulut yang hamp
 #AUDIO:crates
 #IMAGE:bg_crates
 Mereka masih sibuk sendiri — berpindah-pindah di antara peti, mengendus, tanpa menyadari kehadiranmu. Dan di seberang sana, pintu itu terlihat. Terbuka. Gelap. Menjanjikan sesuatu yang lebih baik daripada tempat ini. Detik ini adalah celahmu.
-+ [Tetap bersembunyi] -> s12_hide_ok
-+ [Lari sekarang!] -> s12_run_1
+* [Tetap bersembunyi] -> s12_hide_ok
+* [Lari sekarang!] -> s12_run_1
 
 === s12_hide_ok ===
 #KICKER:Part 1 : Awal Mula
@@ -893,9 +904,9 @@ Makhluk kecil gesit itu berbelok tak terduga — bukan menjauh, melainkan ke ara
 #AUDIO:hall
 #IMAGE:bg_hall
 Ia datang cepat — terlalu cepat. Pintu tinggal beberapa langkah lagi, dan kau bisa mendengar cakar-cakar kecil itu mencakar lantai di belakangmu. Pilihanmu sekarang menentukan segalanya.
-+ [Zig-zag di antara mereka] -> s12_run_ok
-+ [Lari lurus secepat mungkin] -> s12_run_straight
-+ [Batalkan — kembali bersembunyi] -> s12_hide_1
+* [Zig-zag di antara mereka] -> s12_run_ok
+* [Lari lurus secepat mungkin] -> s12_run_straight
+* [Batalkan — kembali bersembunyi] -> s12_hide_1
 
 === s12_run_straight ===
 #KICKER:Part 1 : Awal Mula
@@ -930,6 +941,7 @@ Sesuatu menunggumu di depan. Kau bisa merasakannya di udara yang semakin dingin,
 === tbc ===
 #AUDIO:corridor
 #IMAGE:bg_corridor
+#MAJOR
 Bersambung…
 -> END
 

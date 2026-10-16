@@ -4,6 +4,7 @@
 //
 // Konvensi: knot per node lama; tag #KICKER/#TAG dibaca bridge.js dari currentTags;
 // #AUDIO = ambient, #IMAGE = background, #SFX = one-shot SFX (lihat NODE_SFX).
+// #MAJOR = scene utama/besar → drop cap di UI (hanya knot di MAJOR_KNOTS).
 // Sticky choice: pilihan hilang setelah dipakai (perbaikan dari doneFlag lama).
 // Bentuk: * {not f_x} [teks]  ~ f_x = true  -> target  (flag di-prefix f_)
 // Cold open: prolog1 -> END (layar judul = UI shell); new game mulai di prolog2
@@ -49,6 +50,7 @@ EXTERNAL FAINT_CHECK()
 #KICKER:Part 1 : Awal Mula
 #AUDIO:corridor
 #IMAGE:bg_corridor
+#MAJOR
 // TODO-EN: story
 Kamu terbangun di ujung lorong gelap yang bau dan lembap. Segalanya terasa kotor, penuh puing-puing dan pecahan kaca. Beberapa pintu rusak dan tergantung miring, membuat bayangan-bayangan aneh di bawah cahaya redup.
 Di dinding ada coretan-coretan — seperti pesan atau peringatan, tetapi hampir semuanya susah untuk dibaca.
@@ -62,6 +64,7 @@ Disaat kamu mencoba mengingat apa yang terjadi, kepalamu terasa kosong. Kamu ngg
 #KICKER:Part 1 : Awal Mula
 #AUDIO:doorhub
 #IMAGE:bg_doorhub
+#MAJOR
 // TODO-EN: story
 Setelah berjalan ke depan dengan kebingungan sesaat, kini di depanmu terlihat empat pintu — masing-masing menampilkan kesannya tersendiri.
 Pintu paling kiri tertutup rapat. Engselnya berkarat, tapi gagangnya terlihat agak bersih dari debu, seperti baru saja dipakai. Pintu kedua di kiri tampak terbuka lebar dan setengah rusak.
@@ -74,6 +77,7 @@ Lorong terus berlanjut, tapi suasananya makin tidak nyaman. Lampu-lampu berkedip
 #KICKER:Part 1 : Awal Mula
 #AUDIO:doorhub
 #IMAGE:bg_doorhub
+#MAJOR
 // TODO-EN: story
 Kau berdiri di tengah lorong. Empat pintu mengapitmu — dua di kiri, dua di kanan — dan di depan, lorong terus berlanjut ke dalam kegelapan yang semakin pekat.
 Apa yang akan kau lakukan?
@@ -94,23 +98,24 @@ Apa yang akan kau lakukan?
     ~ f_d4 = true
     -> d4_hub
 // TODO-EN: choice
-+ [Terus maju meski ragu.] -> d5_1
+* [Terus maju meski ragu.] -> d5_1
 
 === d1_hub ===
 // TODO-EN: kicker
 #KICKER:Part 1 : Awal Mula
 #AUDIO:saferoom
 #IMAGE:bg_saferoom
+#MAJOR
 // TODO-EN: story
 Kau mendekati pintu paling kiri. Tertutup rapat. Engselnya berkarat — tapi gagang pintunya bersih. Terlalu bersih untuk tempat sekotor ini.
 Seperti baru saja digenggam. Oleh seseorang. Atau sesuatu.
 Kayunya dingin saat kau mendekat.
 // TODO-EN: choice
-+ [Tempelkan telinga ke pintu, dengarkan dulu] -> d1_a
+* [Tempelkan telinga ke pintu, dengarkan dulu] -> d1_a
 // TODO-EN: choice
-+ [Dorong perlahan, intip lewat celah] -> d1_b
+* [Dorong perlahan, intip lewat celah] -> d1_b
 // TODO-EN: choice
-+ [Buka lebar-lebar sekaligus] -> d1_c
+* [Buka lebar-lebar sekaligus] -> d1_c
 
 === d1_a ===
 // TODO-EN: kicker
@@ -133,9 +138,9 @@ Tidak ada suara lain. Ruangan di baliknya sepertinya kosong.
 // TODO-EN: story
 Pintu itu diam. Keputusanmu?
 // TODO-EN: choice
-+ [Buka pintunya, masuk] -> d1_room
+* [Buka pintunya, masuk] -> d1_room
 // TODO-EN: choice
-+ [Urungkan — kembali ke lorong] -> opening
+* [Urungkan — kembali ke lorong] -> opening
 
 === d1_b ===
 // TODO-EN: kicker
@@ -156,9 +161,9 @@ Tapi di ujung penglihatanmu, ada sesuatu yang berkilau redup di lantai — seper
 // TODO-EN: story
 Celah itu menunggu. Keputusanmu?
 // TODO-EN: choice
-+ [Masuk dan periksa] -> d1_room
+* [Masuk dan periksa] -> d1_room
 // TODO-EN: choice
-+ [Tutup perlahan, jangan ambil risiko] -> opening
+* [Tutup perlahan, jangan ambil risiko] -> opening
 
 === d1_c ===
 // TODO-EN: kicker
@@ -182,9 +187,9 @@ Ruangan di baliknya kosong dan gelap. Meja-meja terbalik. Hening.
 // TODO-EN: story
 Derit itu mungkin terdengar sampai ujung lorong. Keputusanmu?
 // TODO-EN: choice
-+ [Masuk cepat sebelum ada yang datang] -> d1_room
+* [Masuk cepat sebelum ada yang datang] -> d1_room
 // TODO-EN: choice
-+ [Tutup dan mundur — terlalu berisik] -> opening
+* [Tutup dan mundur — terlalu berisik] -> opening
 
 === d1_room ===
 // TODO-EN: kicker
@@ -196,9 +201,9 @@ Kau melangkah masuk. Udara di sini lebih dingin, dan baunya... tua. Seperti ruan
 Meja-meja terbalik berserakan. Di sudut, ada noda gelap di lantai — besar, tidak beraturan, meresap ke dalam beton. Kau tidak mau terlalu memikirkan apa itu.
 Di bawah salah satu meja yang masih berdiri, ada sesuatu: sebungkus plastik bening berisi roti kering. Dan di sampingnya, selembar surat terlipat yang sudah menguning.
 // TODO-EN: choice
-+ [Ambil bungkusan itu] -> d1_loot
+* [Ambil bungkusan itu] -> d1_loot
 // TODO-EN: choice
-+ [Periksa noda gelap itu dulu] -> d1_stain
+* [Periksa noda gelap itu dulu] -> d1_stain
 
 === d1_stain ===
 // TODO-EN: kicker
@@ -220,9 +225,9 @@ Kau tidak tahu apakah itu membuatmu lega atau justru lebih takut.
 // TODO-EN: story
 Noda itu tidak menjawab apa-apa. Bungkusan di bawah meja masih di sana.
 // TODO-EN: choice
-+ [Kembali dan ambil bungkusan itu] -> d1_loot
+* [Kembali dan ambil bungkusan itu] -> d1_loot
 // TODO-EN: choice
-+ [Tinggalkan semuanya, keluar dari sini] -> d1_empty
+* [Tinggalkan semuanya, keluar dari sini] -> d1_empty
 
 === d1_loot ===
 // TODO-EN: tag
@@ -254,16 +259,17 @@ Lorong menyambutmu kembali — sama gelapnya, sama sunyinya.
 #KICKER:Part 1 : Awal Mula
 #AUDIO:darkstare
 #IMAGE:bg_darkstare
+#MAJOR
 // TODO-EN: story
 Pintu kedua di kiri terbuka lebar, setengah rusak — kayunya retak, tergantung miring di satu engsel.
 Di baliknya: ruang sempit yang dipenuhi lemari-lemari tua berderet, seperti arsip atau gudang penyimpanan. Bau kapur barus dan kayu lapuk menyambutmu.
 Semuanya diam. Terlalu diam?
 // TODO-EN: choice
-+ [Lempar kerikil ke dalam, dengarkan] -> d2_a
+* [Lempar kerikil ke dalam, dengarkan] -> d2_a
 // TODO-EN: choice
-+ [Masuk dan buka lemari satu per satu] -> d2_room
+* [Masuk dan buka lemari satu per satu] -> d2_room
 // TODO-EN: choice
-+ [Firasat buruk — mundur] -> d2_c
+* [Firasat buruk — mundur] -> d2_c
 
 === d2_a ===
 // TODO-EN: kicker
@@ -286,9 +292,9 @@ Kau menunggu. Tidak ada lagi.
 // TODO-EN: story
 Bunyi itu tidak terulang. Keputusanmu?
 // TODO-EN: choice
-+ [Masuk dan periksa] -> d2_room
+* [Masuk dan periksa] -> d2_room
 // TODO-EN: choice
-+ [Batalkan — kembali ke lorong] -> opening
+* [Batalkan — kembali ke lorong] -> opening
 
 === d2_c ===
 // TODO-EN: kicker
@@ -321,7 +327,7 @@ Lemari pertama: pintunya sedikit terbuka. Lemari kedua: tertutup rapat. Lemari k
     ~ f_d2c3 = true
     -> d2_c3
 // TODO-EN: choice
-+ [Keluar dari ruangan ini] -> d2_done
+* [Keluar dari ruangan ini] -> d2_done
 
 === d2_c1 ===
 // TODO-EN: tag
@@ -367,9 +373,9 @@ Kau menempelkan tangan ke kayunya. Dingin.
 // TODO-EN: story
 Lemari itu diam. Terlalu diam.
 // TODO-EN: choice
-+ [Tempelkan telinga, dengarkan] -> d2_c3b
+* [Tempelkan telinga, dengarkan] -> d2_c3b
 // TODO-EN: choice
-+ [Jangan sentuh — jauhi] -> d2_c3c
+* [Jangan sentuh — jauhi] -> d2_c3c
 
 === d2_c3b ===
 // TODO-EN: tag
@@ -413,16 +419,17 @@ Di belakangmu, ruangan itu kembali sunyi — tapi kau tidak bisa menghilangkan p
 #KICKER:Part 1 : Awal Mula
 #AUDIO:teddyroom
 #IMAGE:bg_teddyroom
+#MAJOR
 // TODO-EN: story
 Pintu pertama di kanan berayun pelan. Berderit kecil. Tidak ada angin — tapi ia bergerak, seperti dihembus sesuatu yang tidak terlihat.
 Dari celahnya, kau mendengar sesuatu: detak. Pelan, berirama. Seperti... detak jantung? Atau jam?
 Udara yang keluar dari celah itu dingin. Tidak wajar dinginnya.
 // TODO-EN: choice
-+ [Ikuti suara detak itu — masuk] -> d3_a
+* [Ikuti suara detak itu — masuk] -> d3_a
 // TODO-EN: choice
-+ [Diam di ambang pintu, amati dulu] -> d3_b
+* [Diam di ambang pintu, amati dulu] -> d3_b
 // TODO-EN: choice
-+ [Mundur perlahan, tutup pintu] -> d3_c
+* [Mundur perlahan, tutup pintu] -> d3_c
 
 === d3_a ===
 // TODO-EN: kicker
@@ -445,9 +452,9 @@ Ia melihatmu.
 // TODO-EN: story
 Mata merah itu menyipit. Ia mulai bergerak ke arahmu.
 // TODO-EN: choice
-+ [Beku — jangan bergerak sama sekali] -> d3_a2a
+* [Beku — jangan bergerak sama sekali] -> d3_a2a
 // TODO-EN: choice
-+ [Putar balik dan LARI] -> d3_a2b
+* [Putar balik dan LARI] -> d3_a2b
 
 === d3_a2a ===
 #TAG:[In danger]
@@ -513,16 +520,17 @@ Kau menutup pintu sepenuhnya dan mundur. Jantungmu masih berdebar lama setelahny
 #KICKER:Part 1 : Awal Mula
 #AUDIO:corridor
 #IMAGE:bg_corridor
+#MAJOR
 // TODO-EN: story
 Pintu kedua di kanan lebih tenang. Dari celahnya, kau bisa melihat sebuah meja — dan di atasnya, bayangan samar.
 Kau mendorong pintu itu. Ruangan kecil. Meja kayu di tengah. Dan di atasnya...
 Sebuah boneka beruang. Usang, satu matanya lepas, tapi bersih — terlalu bersih untuk tempat ini. Seolah seseorang merawatnya.
 // TODO-EN: choice
-+ [Ambil bonekanya langsung] -> d4_a
+* [Ambil bonekanya langsung] -> d4_a
 // TODO-EN: choice
-+ [Periksa meja dan sekitarnya dulu] -> d4_b
+* [Periksa meja dan sekitarnya dulu] -> d4_b
 // TODO-EN: choice
-+ [Jangan sentuh apa pun — pergi] -> d4_c
+* [Jangan sentuh apa pun — pergi] -> d4_c
 
 === d4_a ===
 // TODO-EN: tag
@@ -559,11 +567,11 @@ Crayon merahnya ditekan begitu keras sampai kertasnya sobek tepat di bagian mata
 // TODO-EN: story
 Gambar itu terasa dingin di jarimu. Boneka itu masih di atas meja.
 // TODO-EN: choice
-+ [Ambil bonekanya juga] -> d4_a
+* [Ambil bonekanya juga] -> d4_a
 // TODO-EN: choice
-+ [Ambil gambarnya saja, tinggalkan boneka] -> d4_draw
+* [Ambil gambarnya saja, tinggalkan boneka] -> d4_draw
 // TODO-EN: choice
-+ [Tinggalkan semuanya] -> d4_c
+* [Tinggalkan semuanya] -> d4_c
 
 === d4_draw ===
 // TODO-EN: tag
@@ -620,11 +628,11 @@ Gema langkah itu masih ada — setengah ketukan di belakangmu. Lampu yang stabil
 Apa yang akan kau lakukan?
 // REQ: energy>=15 (bridge.js mengunci bila tak terpenuhi)
 // TODO-EN: choice
-+ [Berlari ke lampu yang stabil — terang berarti aman (needs 15 energy)] -> d5_trap
+* [Berlari ke lampu yang stabil — terang berarti aman (needs 15 energy)] -> d5_trap
 // TODO-EN: choice
-+ [Bergerak di antara kedipan, tetap dalam bayangan — Requires focus (mental ≤ Uneasy)] -> d5_smart
+* [Bergerak di antara kedipan, tetap dalam bayangan — Requires focus (mental ≤ Uneasy)] -> d5_smart
 // TODO-EN: choice
-+ [Berbalik kembali ke persimpangan pintu] -> d5_back
+* [Berbalik kembali ke persimpangan pintu] -> d5_back
 
 === d5_trap ===
 #AUDIO:doorhub
@@ -670,6 +678,7 @@ Kau kembali ke persimpangan pintu dengan napas memburu. Setidaknya kau masih hid
 #KICKER:Part 1: The Beginning
 #AUDIO:reception
 #IMAGE:bg_reception
+#MAJOR
 Your steps slow, near-silent on the cold floor, until you reach a three-way junction of corridors. At its center, like the carcass of some ancient beast, stands an old reception desk on the verge of collapse — its surface cracked, its edges flaking, and across it lie stacks of paper long since claimed by dust. Behind the desk, two more corridors stretch out: the left one drowned in total darkness, so silent you can hear your own blood pulsing in your ears; the right one, at its far end, giving off a trembling sliver of dim light, as if inviting you closer — or luring you in.
 You draw a breath, and the air here feels wrong — heavy, stale, as though this place holds too many things that were never meant to be remembered. And those voices… the faint whispers that have been following you all this while now sound closer, crawling along the walls like something alive, refusing to leave, refusing to let you be alone with your own thoughts.
 -> reception_hub
@@ -678,6 +687,7 @@ You draw a breath, and the air here feels wrong — heavy, stale, as though this
 #KICKER:Part 1: The Beginning
 #AUDIO:reception
 #IMAGE:bg_reception
+#MAJOR
 You stand at the heart of the junction, wrapped in a silence that presses heavily against your skin. The ruined reception desk rots quietly at the room's center, its stacks of dusty papers seeming to guard secrets that dare not be opened. The left corridor gapes dark and soundless, swallowing every noise; the right one promises a dim light you cannot fully trust. And between it all, those strange voices still drift — faint, patient, haunting you.
 * {not f_rec_desk} [Search around the reception desk]
     ~ f_rec_desk = true
@@ -685,7 +695,7 @@ You stand at the heart of the junction, wrapped in a silence that presses heavil
 * {not f_rec_left} [Enter the dark, silent left corridor]
     ~ f_rec_left = true
     -> rec_left_1
-+ [Examine the stack of papers on the desk] -> rec_papers_1
+* [Examine the stack of papers on the desk] -> rec_papers_1
 
 === rec_desk_1 ===
 #KICKER:Part 1: The Beginning
@@ -700,8 +710,8 @@ Your fingers grope among unidentifiable fragments — sharp on one side, soft an
 #AUDIO:reception
 #IMAGE:bg_reception
 You stay crouched, breath held, and in the darkness beneath the desk two things draw your attention: the cold dusty floor beneath your palm, and the mound of rubble around the desk's legs — each seeming to hold something waiting to be found.
-+ [Feel along the dusty floor beneath the desk] -> rec_desk_floor
-+ [Sift through the rubble around the desk legs] -> rec_desk_rubble
+* [Feel along the dusty floor beneath the desk] -> rec_desk_floor
+* [Sift through the rubble around the desk legs] -> rec_desk_rubble
 
 === rec_desk_floor ===
 #KICKER:Part 1: The Beginning
@@ -716,8 +726,8 @@ You draw it out into the light: an old metal coin, its surface so tarnished it i
 #AUDIO:reception
 #IMAGE:bg_reception
 The coin lies in your grimy palm, its cold slowly seeping into your skin, as if demanding a decision.
-+ [Take the coin] -> rec_coin
-+ [Leave it where it is] -> rec_desk_back
+* [Take the coin] -> rec_coin
+* [Leave it where it is] -> rec_desk_back
 
 === rec_desk_rubble ===
 #KICKER:Part 1: The Beginning
@@ -733,7 +743,7 @@ You rummage through the remaining rubble, but there is nothing more. Only dust t
 #AUDIO:reception
 #IMAGE:bg_reception
 The rubble holds nothing more — only silence, dust, and the smell of decay clinging to your clothes.
-+ [Stand back up] -> rec_desk_back
+* [Stand back up] -> rec_desk_back
 
 === rec_coin ===
 #KICKER:Part 1: The Beginning
@@ -769,8 +779,8 @@ The Darkness in this corridor is thicker, hungrier. It swallows the light from t
 #AUDIO:leftcorridor
 #IMAGE:bg_leftcorridor
 At the end of the corridor — no side doors, no gaps anywhere — stands a thick steel door. Its metal reflects the dying light coldly, dully, without welcome. This corridor is a dead end. Your feet have carried you as far as they can go, and the only thing waiting for you here is the silence of that steel.
-+ [Step slowly toward the steel door] -> rec_left_door
-+ [Return to the junction] -> rec_left_back
+* [Step slowly toward the steel door] -> rec_left_door
+* [Return to the junction] -> rec_left_back
 
 === rec_left_door ===
 #KICKER:Part 1: The Beginning
@@ -787,9 +797,9 @@ Then you see them. Deep scratches carve across the steel, repeated and parallel 
 #IMAGE:bg_steeldoor
 #SFX:door_creak
 The door is silent — a silence that feels wrong, a silence that feels like it is holding its breath. From the thin gap beneath it seeps the smell of rusted iron, and beneath that... something rotten, faint, like meat left to rot in an airless room. The smell turns your stomach.
-+ [Shove the steel door] -> rec_left_push
-+ [Examine the scratches on the surface] -> rec_left_scratch
-+ [Return to the junction] -> rec_left_back
+* [Shove the steel door] -> rec_left_push
+* [Examine the scratches on the surface] -> rec_left_scratch
+* [Return to the junction] -> rec_left_back
 
 === rec_left_push ===
 #KICKER:Part 1: The Beginning
@@ -840,7 +850,7 @@ The papers wait — silent, patient, as if they have been waiting for someone fo
 * {not f_rec_photos} [Look at the attached photos]
     ~ f_rec_photos = true
     -> rec_papers_photos
-+ [Take a few intact sheets] -> rec_papers_take
+* [Take a few intact sheets] -> rec_papers_take
 
 === rec_papers_read ===
 #KICKER:Part 1: The Beginning
@@ -912,10 +922,11 @@ Then it shoots past you. The swift little creature, dog-sized, with insect legs 
 #KICKER:Part 1: The Beginning
 #AUDIO:hall
 #IMAGE:bg_hall
+#MAJOR
 You stand on the threshold of the hall, half your body still hidden in the shadow of the cracked doorframe. Before you, the chaos churns — the creatures distracted, their attention scattered in every direction. This is an opportunity. Or a trap. Cold air stings your lungs, and every second you spend thinking is one more second of being seen.
-+ [Flee back to the reception desk in a panic] -> s12_panic
-+ [Hide behind the pile of old crates] -> s12_hide_1
-+ [Slip through the hall while they are distracted] -> s12_run_1
+* [Flee back to the reception desk in a panic] -> s12_panic
+* [Hide behind the pile of old crates] -> s12_hide_1
+* [Slip through the hall while they are distracted] -> s12_run_1
 
 === faint_killed ===
 #KICKER:Part 1: The Beginning
@@ -966,9 +977,9 @@ Time crawls with agonizing slowness, every second stretching like rubber. Then s
 #AUDIO:crates
 #IMAGE:bg_crates
 You crouch behind the crates, knees drawn tight to your chest. Your breath is caught in your throat — every inhale feels like a betrayal of yourself. Out there, the hall still churns with sounds you do not want to recognize, and all you can do is wait.
-+ [Hold your breath. Do not move at all.] -> s12_hide_ok
-+ [Peek through the gaps in the crates] -> s12_peek
-+ [Get ready to run if you are spotted] -> s12_ready
+* [Hold your breath. Do not move at all.] -> s12_hide_ok
+* [Peek through the gaps in the crates] -> s12_peek
+* [Get ready to run if you are spotted] -> s12_ready
 
 === s12_peek ===
 #KICKER:Part 1: The Beginning
@@ -994,8 +1005,8 @@ You steadied your breathing — slow in through the nose, silent out through the
 #AUDIO:crates
 #IMAGE:bg_crates
 They were still busy with themselves — drifting between the crates, sniffing, unaware of your presence. And across from you, the door was visible. Open. Dark. Promising something better than this place. This second was your window.
-+ [Stay hidden] -> s12_hide_ok
-+ [Run now!] -> s12_run_1
+* [Stay hidden] -> s12_hide_ok
+* [Run now!] -> s12_run_1
 
 === s12_hide_ok ===
 #KICKER:Part 1: The Beginning
@@ -1022,9 +1033,9 @@ The swift little creature veered without warning — not away, but toward you! I
 #AUDIO:hall
 #IMAGE:bg_hall
 It came fast — too fast. The door was only a few steps away, and you could hear those small claws scraping the floor behind you. Your choice now decided everything.
-+ [Weave zigzag between them] -> s12_run_ok
-+ [Sprint straight as fast as you can] -> s12_run_straight
-+ [Abort — hide again] -> s12_hide_1
+* [Weave zigzag between them] -> s12_run_ok
+* [Sprint straight as fast as you can] -> s12_run_straight
+* [Abort — hide again] -> s12_hide_1
 
 === s12_run_straight ===
 #KICKER:Part 1: The Beginning
@@ -1059,6 +1070,7 @@ Something waited for you ahead. You could feel it in the air growing colder, in 
 === tbc ===
 #AUDIO:corridor
 #IMAGE:bg_corridor
+#MAJOR
 To be continued…
 -> END
 
