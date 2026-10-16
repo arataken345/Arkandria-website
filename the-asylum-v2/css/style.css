@@ -41,12 +41,13 @@ body {
   will-change: transform;
 }
 @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.07); } }
-/* readability veil over every scene */
+/* readability veil over every scene — keeps the CG visible like v1:
+   clear in the middle, darkened top/bottom for HUD + text legibility */
 #scene::after {
   content: ""; position: absolute; inset: 0;
   background:
-    linear-gradient(180deg, rgba(5,4,3,0.50) 0%, rgba(5,4,3,0.22) 30%, rgba(5,4,3,0.58) 68%, rgba(5,4,3,0.90) 100%),
-    radial-gradient(120% 95% at 50% 42%, transparent 42%, rgba(3,2,2,0.52) 100%);
+    linear-gradient(180deg, rgba(5,4,3,0.68) 0%, rgba(5,4,3,0.28) 20%, rgba(5,4,3,0) 38%, rgba(5,4,3,0) 58%, rgba(5,4,3,0.42) 80%, rgba(5,4,3,0.82) 100%),
+    radial-gradient(120% 95% at 50% 42%, transparent 58%, rgba(3,2,2,0.42) 100%);
 }
 /* per-scene light-source position (consumed by #light) */
 .scene-title      { background-image: url('../assets/img/bg_title.jpg'); --lx: 50%; --ly: 34%; }
