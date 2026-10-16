@@ -1,0 +1,182 @@
+{
+  "amb_title": {
+    "file": "amb_title.wav",
+    "duration_sec": 40.0,
+    "description": "Drone gelap sinematik untuk layar judul: sub bass dalam, dengung detuned, sapuan udara, ping metalik jauh.",
+    "ogg": "amb_title.ogg"
+  },
+  "amb_corridor": {
+    "file": "amb_corridor.wav",
+    "duration_sec": 40.0,
+    "description": "Koridor: angin lorong (brown noise), dengung listrik 50Hz, tetesan air jauh menggema.",
+    "ogg": "amb_corridor.ogg"
+  },
+  "amb_reception": {
+    "file": "amb_reception.wav",
+    "duration_sec": 40.0,
+    "description": "Resepsionis: dengung lampu neon 100Hz, desis halus, room tone steril.",
+    "ogg": "amb_reception.ogg"
+  },
+  "amb_doorhub": {
+    "file": "amb_doorhub.wav",
+    "duration_sec": 40.0,
+    "description": "Pusat pintu: gemuruh rendah berdenyut, resonansi metalik menyapu pelan.",
+    "ogg": "amb_doorhub.ogg"
+  },
+  "amb_saferoom": {
+    "file": "amb_saferoom.wav",
+    "duration_sec": 40.0,
+    "description": "Ruang aman: drone hangat paling tenang, 'napas' lambat, desis udara lembut.",
+    "ogg": "amb_saferoom.ogg"
+  },
+  "amb_darkstare": {
+    "file": "amb_darkstare.wav",
+    "duration_sec": 40.0,
+    "description": "Kehampaan tegang: nyaris hening, denyut sub sporadis, ping tinggi seperti tinnitus.",
+    "ogg": "amb_darkstare.ogg"
+  },
+  "amb_teddyroom": {
+    "file": "amb_teddyroom.wav",
+    "duration_sec": 40.0,
+    "description": "Ruang boneka: drone teredam, siulan angin, debuk pelan tak beraturan, nada tinggi bergoyang.",
+    "ogg": "amb_teddyroom.ogg"
+  },
+  "amb_steeldoor": {
+    "file": "amb_steeldoor.wav",
+    "duration_sec": 40.0,
+    "description": "Pintu baja: drone metalik inharmonik berdenyut + gemuruh bawah.",
+    "ogg": "amb_steeldoor.ogg"
+  },
+  "amb_leftcorridor": {
+    "file": "amb_leftcorridor.wav",
+    "duration_sec": 40.0,
+    "description": "Koridor kiri: angin kencang, tetesan bergema, erangan jauh teredam.",
+    "ogg": "amb_leftcorridor.ogg"
+  },
+  "amb_hall": {
+    "file": "amb_hall.wav",
+    "duration_sec": 40.0,
+    "description": "Aula luas: drone dalam berdenyut, sapuan udara lambat, gemuruh jauh membengkak.",
+    "ogg": "amb_hall.ogg"
+  },
+  "amb_crates": {
+    "file": "amb_crates.wav",
+    "duration_sec": 40.0,
+    "description": "Gudang peti: udara berdebu, derit kayu stick-slip, satu ketukan pelan.",
+    "ogg": "amb_crates.ogg"
+  },
+  "amb_death": {
+    "file": "amb_death.wav",
+    "duration_sec": 40.0,
+    "description": "Layar kematian: sub disonan, denyut jantung sekarat, gemerincing tegang.",
+    "ogg": "amb_death.ogg"
+  },
+  "sfx_ui_click": {
+    "file": "sfx_ui_click.wav",
+    "duration_sec": 0.09,
+    "description": "Klik UI pendek dan kering untuk tombol/menu.",
+    "ogg": "sfx_ui_click.ogg"
+  },
+  "sfx_ui_hover": {
+    "file": "sfx_ui_hover.wav",
+    "duration_sec": 0.07,
+    "description": "Blip hover sangat pelan saat kursor menyentuh pilihan.",
+    "ogg": "sfx_ui_hover.ogg"
+  },
+  "sfx_type_tick": {
+    "file": "sfx_type_tick.wav",
+    "duration_sec": 0.05,
+    "description": "Detak mesin tik per huruf untuk efek teks berjalan.",
+    "ogg": "sfx_type_tick.ogg"
+  },
+  "sfx_choice_appear": {
+    "file": "sfx_choice_appear.wav",
+    "duration_sec": 0.45,
+    "description": "Desis lembut munculnya pilihan dialog.",
+    "ogg": "sfx_choice_appear.ogg"
+  },
+  "sfx_pickup": {
+    "file": "sfx_pickup.wav",
+    "duration_sec": 0.35,
+    "description": "Nada ganda lembut saat mengambil item.",
+    "ogg": "sfx_pickup.ogg"
+  },
+  "sfx_achievement": {
+    "file": "sfx_achievement.wav",
+    "duration_sec": 0.9,
+    "description": "Kilau tiga nada hangat untuk achievement terbuka.",
+    "ogg": "sfx_achievement.ogg"
+  },
+  "sfx_death_sting": {
+    "file": "sfx_death_sting.wav",
+    "duration_sec": 1.6,
+    "description": "Sengatan kematian: klaster disonan + hantaman noise.",
+    "ogg": "sfx_death_sting.ogg"
+  },
+  "sfx_heal": {
+    "file": "sfx_heal.wav",
+    "duration_sec": 1.3,
+    "description": "Hembusan hangat menenangkan saat HP pulih.",
+    "ogg": "sfx_heal.ogg"
+  },
+  "sfx_dice_roll": {
+    "file": "sfx_dice_roll.wav",
+    "duration_sec": 0.8,
+    "description": "Derik dadu: rangkaian klik berderak.",
+    "ogg": "sfx_dice_roll.ogg"
+  },
+  "sfx_paper_rustle": {
+    "file": "sfx_paper_rustle.wav",
+    "duration_sec": 0.6,
+    "description": "Gemeresik kertas saat membuka dokumen/catatan.",
+    "ogg": "sfx_paper_rustle.ogg"
+  },
+  "sfx_door_creak": {
+    "file": "sfx_door_creak.wav",
+    "duration_sec": 1.4,
+    "description": "Derit pintu kayu: gesekan stick-slip bernada turun.",
+    "ogg": "sfx_door_creak.ogg"
+  },
+  "sfx_metal_clang": {
+    "file": "sfx_metal_clang.wav",
+    "duration_sec": 1.6,
+    "description": "Dentang logam: partial inharmonik berdecay panjang.",
+    "ogg": "sfx_metal_clang.ogg"
+  },
+  "sfx_whisper": {
+    "file": "sfx_whisper.wav",
+    "duration_sec": 1.4,
+    "description": "Bisikan tiga suku kata dari noise berfilter.",
+    "ogg": "sfx_whisper.ogg"
+  },
+  "sfx_footstep": {
+    "file": "sfx_footstep.wav",
+    "duration_sec": 0.3,
+    "description": "Langkah kaki: debuk rendah + gesekan.",
+    "ogg": "sfx_footstep.ogg"
+  },
+  "sfx_energy_low": {
+    "file": "sfx_energy_low.wav",
+    "duration_sec": 0.9,
+    "description": "Peringatan energi rendah: dua denyut grave.",
+    "ogg": "sfx_energy_low.ogg"
+  },
+  "sfx_faint": {
+    "file": "sfx_faint.wav",
+    "duration_sec": 1.1,
+    "description": "Pingsan: nada turun melayang seperti kesadaran memudar.",
+    "ogg": "sfx_faint.ogg"
+  },
+  "sfx_heartbeat": {
+    "file": "sfx_heartbeat.wav",
+    "duration_sec": 1.1,
+    "description": "Detak jantung lub-dub untuk momen tegang.",
+    "ogg": "sfx_heartbeat.ogg"
+  },
+  "sfx_jumpscare": {
+    "file": "sfx_jumpscare.wav",
+    "duration_sec": 1.4,
+    "description": "Jumpscare: ledakan noise + jeritan disonan + hantaman sub.",
+    "ogg": "sfx_jumpscare.ogg"
+  }
+}

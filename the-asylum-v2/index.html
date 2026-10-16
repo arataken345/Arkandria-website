@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="The Asylum — a psychological horror choose-your-own-story. / Cerita horor psikologis interaktif.">
+<meta name="theme-color" content="#0a0908">
+<title>The Asylum</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Procedural scene backdrop (swapped per #IMAGE tag) -->
+<div id="scene" class="scene-title" aria-hidden="true"></div>
+<div id="vignette" aria-hidden="true"></div>
+<div id="grain" aria-hidden="true"></div>
+<div id="letterbox-top" aria-hidden="true"></div>
+<div id="letterbox-bottom" aria-hidden="true"></div>
+
+<!-- Top HUD: mental / status / location / energy / deaths + condition chips -->
+<header id="hud" aria-label="Status">
+  <div class="hud-row">
+    <div id="hud-mental"></div>
+    <span id="hud-status" class="status-pill st-safe"></span>
+    <span id="hud-loc"></span>
+    <div id="hud-energy">
+      <span aria-hidden="true">⚡</span>
+      <div class="ebar"><span id="hud-energy-fill" class="fill"></span></div>
+      <span id="hud-energy-num">100</span>
+    </div>
+    <span id="hud-deaths" title="Deaths">☠ 0</span>
+  </div>
+  <div class="hud-row sub">
+    <div id="hud-tiers" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    <div id="hud-fx" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  </div>
+</header>
+
+<!-- Main story column -->
+<main id="app">
+  <div id="story"></div>
+</main>
+
+<!-- Bottom dock: inventory / achievements / save / mute / language -->
+<nav id="dock" aria-label="Menu">
+  <button class="dock-btn" id="dock-inv" title="Tas / Bag">🎒</button>
+  <button class="dock-btn" id="dock-achv" title="Pencapaian / Achievements">🏆</button>
+  <button class="dock-btn" id="dock-save" title="Simpan / Save">💾</button>
+  <button class="dock-btn" id="dock-mute" title="Suara / Sound">🔊</button>
+  <button class="dock-btn" id="dock-lang" title="Bahasa / Language">EN</button>
+</nav>
+
+<div id="toasts" aria-live="polite"></div>
+<div id="title-overlay" class="hidden" aria-label="Title"></div>
+<div id="modal-root"></div>
+
+<script src="js/ink.js"></script>
+<script src="js/howler.min.js"></script>
+<script src="js/localforage.min.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/bridge.js"></script>
+<script src="js/ui.js"></script>
+<script src="story/part1_id.js"></script>
+<script src="story/part1_en.js"></script>
+</body>
+</html>
