@@ -31,26 +31,79 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---------------- Scene backdrop (procedural, no assets) ---------------- */
+/* ---------------- Scene backdrop (AI-generated photographic series) ---------------- */
 #scene {
-  position: fixed; inset: 0; z-index: 0;
-  transition: opacity 1.2s ease;
+  position: fixed; inset: -26px; z-index: 0;
+  background: #060505 center / cover no-repeat;
+  transition: opacity 1.1s ease;
+  animation: kenburns 42s ease-in-out infinite alternate;
+  translate: calc(var(--px, 0) * -14px) calc(var(--py, 0) * -10px);
+  will-change: transform;
 }
-.scene-default  { background: radial-gradient(120% 90% at 50% 10%, #171312 0%, #0a0908 60%, #060505 100%); }
-.scene-title    { background: radial-gradient(100% 80% at 50% 30%, #1c0f12 0%, #0a0908 65%, #050404 100%); }
-.scene-ward     { background: radial-gradient(110% 85% at 50% 20%, #1a1d1c 0%, #0c0d0c 55%, #070707 100%); }
-.scene-corridor { background: linear-gradient(180deg, #0b0a09 0%, #141011 45%, #0a0908 100%); }
-.scene-hall     { background: radial-gradient(90% 70% at 50% 40%, #1b1512 0%, #0d0b0a 60%, #070606 100%); }
-.scene-dark     { background: radial-gradient(80% 60% at 50% 50%, #0e0c0e 0%, #060506 70%, #030303 100%); }
-.scene-reception{ background: radial-gradient(110% 80% at 30% 20%, #1c1a15 0%, #0e0c0a 60%, #070606 100%); }
-.scene-doorhub  { background: linear-gradient(180deg, #100d0e 0%, #191114 50%, #0a0908 100%); }
-.scene-saferoom { background: radial-gradient(100% 80% at 50% 30%, #14201a 0%, #0b0e0c 60%, #060706 100%); }
-.scene-darkstare{ background: radial-gradient(70% 55% at 50% 45%, #141021 0%, #0a0812 60%, #040405 100%); }
-.scene-teddyroom{ background: radial-gradient(100% 80% at 50% 30%, #1d1712 0%, #0f0c09 60%, #070605 100%); }
-.scene-steeldoor{ background: linear-gradient(180deg, #101216 0%, #1a1d22 45%, #0a0b0d 100%); }
-.scene-leftcorridor { background: linear-gradient(90deg, #0b0a09 0%, #151214 50%, #0b0a09 100%); }
-.scene-crates   { background: radial-gradient(100% 80% at 50% 60%, #1a140e 0%, #0e0b08 60%, #060504 100%); }
-.scene-death    { background: radial-gradient(90% 70% at 50% 50%, #23060b 0%, #0d0406 60%, #050203 100%); }
+@keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.07); } }
+/* readability veil over every scene */
+#scene::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(5,4,3,0.50) 0%, rgba(5,4,3,0.22) 30%, rgba(5,4,3,0.58) 68%, rgba(5,4,3,0.90) 100%),
+    radial-gradient(120% 95% at 50% 42%, transparent 42%, rgba(3,2,2,0.52) 100%);
+}
+/* per-scene light-source position (consumed by #light) */
+.scene-title      { background-image: url('../assets/img/bg_title.jpg'); --lx: 50%; --ly: 34%; }
+.scene-corridor   { background-image: url('../assets/img/bg_corridor.jpg'); --lx: 50%; --ly: 30%; }
+.scene-reception  { background-image: url('../assets/img/bg_reception.jpg'); --lx: 30%; --ly: 22%; }
+.scene-hall       { background-image: url('../assets/img/bg_hall.jpg'); --lx: 50%; --ly: 18%; }
+.scene-doorhub    { background-image: url('../assets/img/bg_doorhub.jpg'); --lx: 50%; --ly: 46%; }
+.scene-saferoom   { background-image: url('../assets/img/bg_saferoom.jpg'); --lx: 50%; --ly: 30%; }
+.scene-darkstare  { background-image: url('../assets/img/bg_darkstare.jpg'); --lx: 50%; --ly: 44%; }
+.scene-teddyroom  { background-image: url('../assets/img/bg_teddyroom.jpg'); --lx: 72%; --ly: 60%; }
+.scene-crates     { background-image: url('../assets/img/bg_crates.jpg'); --lx: 78%; --ly: 40%; }
+.scene-steeldoor  { background-image: url('../assets/img/bg_steeldoor.jpg'); --lx: 50%; --ly: 16%; }
+.scene-leftcorridor { background-image: url('../assets/img/bg_corridor.jpg'); --lx: 50%; --ly: 60%;
+  filter: brightness(0.7) saturate(0.88) hue-rotate(-12deg); }
+.scene-death      { background-image: url('../assets/img/bg_death.jpg'); --lx: 50%; --ly: 50%; }
+.scene-ward       { background: radial-gradient(110% 85% at 50% 20%, #1a1d1c 0%, #0c0d0c 55%, #070707 100%); }
+.scene-dark       { background: radial-gradient(80% 60% at 50% 50%, #0e0c0e 0%, #060506 70%, #030303 100%); }
+.scene-default    { background: radial-gradient(120% 90% at 50% 10%, #171312 0%, #0a0908 60%, #060505 100%); }
+
+/* ---------------- Breathing light layer ---------------- */
+#light {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(46% 34% at var(--lx, 50%) var(--ly, 30%), rgba(194,20,48,0.12), transparent 70%);
+  mix-blend-mode: screen;
+  animation: breathe 9s ease-in-out infinite;
+  translate: calc(var(--px, 0) * -7px) calc(var(--py, 0) * -5px);
+}
+@keyframes breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+body.st-danger #light {
+  background: radial-gradient(54% 40% at var(--lx, 50%) var(--ly, 30%), rgba(194,20,48,0.26), transparent 70%);
+  animation: lightflicker 1.7s steps(2, jump-none) infinite;
+}
+@keyframes lightflicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ---------------- Foreground: drifting fog + dust motes ---------------- */
+#scene-fg {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden;
+  translate: calc(var(--px, 0) * 24px) calc(var(--py, 0) * 18px);
+}
+.fog {
+  position: absolute; top: 18%; left: -20%; width: 140vmax; height: 34vmax;
+  border-radius: 50%; filter: blur(70px); opacity: 0.10;
+  background: radial-gradient(closest-side, rgba(168,158,148,0.55), transparent);
+  animation: fogdrift 52s ease-in-out infinite alternate;
+}
+.fog.f2 { top: 58%; animation-duration: 74s; animation-delay: -28s; opacity: 0.07; }
+@keyframes fogdrift { from { transform: translateX(-10%); } to { transform: translateX(10%); } }
+.mote {
+  position: absolute; border-radius: 50%;
+  background: rgba(233,225,211,0.55);
+  animation: motefloat linear infinite;
+}
+@keyframes motefloat {
+  from { transform: translateY(12vh); opacity: 0; }
+  12% { opacity: 0.65; } 82% { opacity: 0.35; }
+  to { transform: translateY(-106vh); opacity: 0; }
+}
 
 /* ---------------- Film grain + vignette ---------------- */
 #grain {
@@ -67,10 +120,42 @@ body {
 #vignette {
   position: fixed; inset: 0; z-index: 59; pointer-events: none;
   background: radial-gradient(115% 100% at 50% 45%, transparent 55%, rgba(0,0,0,0.55) 100%);
+  animation: vbreathe 11s ease-in-out infinite;
 }
+@keyframes vbreathe { 0%, 100% { opacity: 0.92; } 50% { opacity: 1; } }
+body.st-danger #vignette {
+  background: radial-gradient(115% 100% at 50% 45%, transparent 48%, rgba(110,11,28,0.44) 100%);
+  animation: dangerpulse 1.8s ease-in-out infinite;
+}
+body.st-wounded #vignette {
+  background: radial-gradient(115% 100% at 50% 45%, transparent 52%, rgba(110,11,28,0.30) 100%);
+}
+@keyframes dangerpulse { 50% { opacity: 0.68; } }
 body.dead-veil #vignette {
   background: radial-gradient(115% 100% at 50% 45%, transparent 40%, rgba(110, 11, 28, 0.5) 100%);
+  animation: none;
 }
+
+/* ---------------- Cinematic location card ---------------- */
+#loc-card {
+  position: fixed; inset: 0; z-index: 55; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+}
+#loc-card.show { animation: loccard 2.6s ease both; }
+#loc-card .lc-inner { text-align: center; }
+#loc-card .lc-name {
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(30px, 7vw, 56px);
+  letter-spacing: 0.42em; text-indent: 0.42em;
+  color: var(--ink); text-shadow: 0 2px 26px rgba(0,0,0,0.95), 0 0 60px rgba(194,20,48,0.25);
+  margin-bottom: 14px;
+}
+#loc-card .lc-rule { display: flex; align-items: center; gap: 12px; justify-content: center; }
+#loc-card .lc-rule span { height: 1px; width: 72px; background: linear-gradient(90deg, transparent, var(--crimson-deep)); }
+#loc-card .lc-rule span:last-child { background: linear-gradient(90deg, var(--crimson-deep), transparent); }
+#loc-card .lc-rule i { color: var(--crimson); font-style: normal; font-size: 11px; }
+@keyframes loccard { 0% { opacity: 0; transform: scale(0.985); } 16% { opacity: 1; transform: none; } 74% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ---------------- Letterbox (cinematic transitions) ---------------- */
 #letterbox-top, #letterbox-bottom {
@@ -194,8 +279,19 @@ body.transitioning #app { opacity: 0; }
   color: var(--ink);
   margin: 0 0 1.35em;
   text-wrap: pretty;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.85);
 }
 .para:last-child { margin-bottom: 0.6em; }
+/* gothic drop cap on the opening paragraph of each knot */
+.narrative .para:first-child::first-letter {
+  font-size: 2.9em; float: left; line-height: 0.84;
+  padding: 0.05em 0.14em 0 0; color: var(--crimson);
+}
+::selection { background: rgba(194, 20, 48, 0.6); color: #fff; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #0a0908; }
+::-webkit-scrollbar-thumb { background: #2b2320; border-radius: 5px; border: 2px solid #0a0908; }
+::-webkit-scrollbar-thumb:hover { background: var(--crimson-deep); }
 
 /* ---------------- Title overlay (above the cold open) ---------------- */
 #title-overlay {
@@ -218,8 +314,16 @@ body.transitioning #app { opacity: 0; }
   border: 1px solid var(--line); border-left: 2px solid var(--ink-faint);
   border-radius: 4px; padding: 15px 18px; cursor: pointer;
   transition: border-color 0.22s, background 0.22s, transform 0.15s;
-  width: 100%;
+  width: 100%; position: relative; overflow: hidden;
 }
+/* crimson wash sweeps in on hover */
+.btn-choice::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(194,20,48,0.22), rgba(194,20,48,0.05) 55%, transparent);
+  transform: translateX(-102%); transition: transform 0.45s ease;
+}
+.btn-choice:hover::before, .btn-choice:focus-visible::before { transform: none; }
+.btn-choice > * { position: relative; }
 .btn-choice:hover, .btn-choice:focus-visible {
   border-color: rgba(194,20,48,0.7); border-left-color: var(--crimson);
   background: rgba(40, 14, 18, 0.55);
@@ -441,6 +545,8 @@ body.transitioning #app { opacity: 0; }
 /* ---------------- Reduced motion ---------------- */
 @media (prefers-reduced-motion: reduce) {
   #grain { animation: none; }
+  #scene, #light, .fog, .mote { animation: none !important; }
+  #vignette { animation: none; }
   .title-flicker { animation: none; }
   .status-pill.st-danger, .status-pill.st-wounded, .tier-chip.tl3,
   .death-title, .ebar .fill.et-empty { animation: none; }

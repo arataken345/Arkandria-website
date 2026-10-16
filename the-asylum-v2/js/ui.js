@@ -167,6 +167,7 @@ UI.init = function () {
   var unlockOnce = function () { try { AudioSys.unlock(); } catch (e) {} };
   document.addEventListener("pointerdown", unlockOnce, { once: true });
   document.addEventListener("keydown", function (e) { self.onKey(e); });
+  try { this.initAtmosphere(); } catch (e) {}
   this.boot();
 };
 
@@ -231,6 +232,7 @@ UI.storyJson = function () {
 UI.startNew = function () {
   Bridge.reset(this.lang);
   this.kicker = ""; this.tag = "";
+  this._lastTag = ""; this._gameStarted = false;
   this.dead = false;
   this.loadStoryFresh();
   this.hideTitle();
@@ -251,6 +253,7 @@ UI.boot = function () {
 UI.beginFromKnot = function (knot) {
   try { this.story.ChoosePathString(knot); }
   catch (e) { /* keep default position */ }
+  this._gameStarted = true;
   $("#hud").classList.add("visible");
   $("#dock").classList.add("visible");
   this.advance(); /* renderKnot wraps its own cinematic transition */
@@ -295,6 +298,7 @@ UI.loadFromSerialized = function (raw) {
   catch (e) { this.startNew(); return; }
   this.dead = false;
   this.hideTitle();
+  this._gameStarted = true;
   $("#hud").classList.add("visible");
   $("#dock").classList.add("visible");
   var self = this;
@@ -384,7 +388,77 @@ UI.setScene = function (id) {
   var known = ["default", "corridor", "ward", "hall", "dark", "reception", "doorhub",
     "saferoom", "darkstare", "teddyroom", "steeldoor", "leftcorridor", "crates", "death", "title"];
   if (known.indexOf(name) < 0) name = "default";
-  scene.className = "scene-" + name;
+  var next = "scene-" + name;
+  if (scene.className !== next) {
+    scene.className = next;
+    /* restart the Ken Burns drift so every arrival feels like a new shot */
+    try {
+      scene.style.animation = "none";
+      void scene.offsetWidth;
+      scene.style.animation = "";
+    } catch (e) {}
+  }
+};
+
+/* ============ Atmospheric depth: fog, dust, parallax ============ */
+UI.reducedMotion = function () {
+  try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; }
+};
+
+UI.initAtmosphere = function () {
+  var fg = $("#scene-fg");
+  if (fg && !fg.dataset.built) {
+    fg.dataset.built = "1";
+    var mk = function (cls, extra) {
+      var d = document.createElement("div");
+      d.className = cls;
+      for (var k in extra) d.style[k] = extra[k];
+      fg.appendChild(d);
+    };
+    mk("fog", {});
+    mk("fog f2", {});
+    /* dust motes rising through the light */
+    for (var i = 0; i < 16; i++) {
+      var s = (1.5 + Math.random() * 2.5).toFixed(1) + "px";
+      mk("mote", {
+        left: (Math.random() * 100).toFixed(1) + "%",
+        top: (20 + Math.random() * 80).toFixed(1) + "%",
+        width: s, height: s,
+        animationDuration: (9 + Math.random() * 16).toFixed(1) + "s",
+        animationDelay: (-Math.random() * 20).toFixed(1) + "s",
+        opacity: (0.25 + Math.random() * 0.5).toFixed(2)
+      });
+    }
+  }
+  /* mouse parallax — layers drift at different depths */
+  if (this.reducedMotion()) return;
+  try {
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+  } catch (e) { return; }
+  if (this._parallaxOn) return;
+  this._parallaxOn = true;
+  var root = document.documentElement, raf = 0, tx = 0, ty = 0;
+  var apply = function () {
+    raf = 0;
+    root.style.setProperty("--px", tx.toFixed(3));
+    root.style.setProperty("--py", ty.toFixed(3));
+  };
+  document.addEventListener("mousemove", function (e) {
+    tx = (e.clientX / window.innerWidth - 0.5) * 2;
+    ty = (e.clientY / window.innerHeight - 0.5) * 2;
+    if (!raf) raf = requestAnimationFrame(apply);
+  }, { passive: true });
+};
+
+/* Cinematic location title card when the #TAG changes. */
+UI.showLocCard = function (tag) {
+  var card = $("#loc-card");
+  if (!card || !tag || this.reducedMotion()) return;
+  card.innerHTML = '<div class="lc-inner"><div class="lc-name">' + esc(tag.toUpperCase()) +
+    '</div><div class="lc-rule"><span></span><i>◆</i><span></span></div></div>';
+  card.classList.remove("show");
+  void card.offsetWidth;
+  card.classList.add("show");
 };
 
 /* Cinematic letterbox transition around a content swap. */
@@ -1046,6 +1120,14 @@ UI.floatText = function (text, kind) {
 UI.updateLocation = function () {
   var loc = $("#hud-loc");
   if (loc) loc.textContent = this.tag || "";
+  /* cinematic title card when entering a new location */
+  if (this.tag && this.tag !== this._lastTag) {
+    var first = !this._lastTag;
+    this._lastTag = this.tag;
+    if (!first && this._gameStarted) {
+      try { this.showLocCard(this.tag); } catch (e) {}
+    }
+  }
 };
 
 UI.renderHUD = function () {
@@ -1066,6 +1148,9 @@ UI.renderHUD = function () {
     var st = S.status || "safe";
     pill.className = "status-pill st-" + st;
     pill.textContent = Bridge.statusName();
+    /* atmosphere follows the body: danger flickers the light, wounds bleed the edges */
+    document.body.classList.toggle("st-danger", st === "danger");
+    document.body.classList.toggle("st-wounded", st === "wounded");
   }
   /* energy */
   var bar = $("#hud-energy-fill");
